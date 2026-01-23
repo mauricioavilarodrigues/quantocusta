@@ -1,0 +1,24 @@
+# Ideia do Projeto
+
+## Problema
+Hoje é difícil saber preços reais de produtos no comércio local sem ir fisicamente às lojas.
+
+## Objetivo inicial (versão 0.1)
+Criar uma página simples onde seja possível:
+- Ver uma lista de produtos
+- Ver preços cadastrados manualmente
+- Saber de qual estabelecimento é o preço
+
+## O que NÃO faz parte agora
+- Login de usuários
+- Geolocalização automática
+- Mapa
+- Avaliações
+- Comparação inteligente de preços
+
+## Público inicial
+Pessoas da nossa cidade que querem comparar preços básicos.
+
+## Dúvidas em aberto
+- Quem cadastra os preços?
+- Os preços terão data?
