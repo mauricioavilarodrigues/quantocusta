@@ -1,31 +1,44 @@
 # Dados iniciais do ComparaRG
 
-## Produtos
-- Arroz 1kg
-- Feijão 1kg
-- Leite 1L
-- Óleo de soja
-- Açúcar
-- Café
-- Pão francês
-- sabão líquido 
-- sabão em pó 
-- água sanitária 
-- ovos
-- azeite
-- xampu
-- maionese 
+## Objetivo
+Comparar preços de produtos básicos por cidade, iniciando em Rio Grande – RS.
+
+---
+
+## Produtos iniciais
+- Arroz 1kg  
+- Feijão 1kg  
+- Leite 1L  
+- Óleo de soja  
+- Açúcar  
+- Café  
+- Azeite 
+- Maionese
+- Sabão líquido  
+- Sabão em pó  
+- Água sanitária  
+- Condicionador
+- Xampu
+- Gasolina Aditivada
+- Gasolina Comum
+
+---
 
 ## Lojas exemplo
-- Mercado guanabara 
-- stok
-- farmácias são joao
-- panvel
+- Mercado   
+- Atacados 
+- Farmácias  
+- Postos de combustível
+
+---
 
 ## Campos obrigatórios
-- Produto
-- Preço
-- Loja
-- Data da coleta
-- Data da validade
-- 
+- Produto  
+- Preço  
+- Loja  
+- Cidade  
+- Bairro  
+- Data da coleta  
+- Data da validade  
+- Usuário ou loja que cadastrou  
+- Data de atualização
