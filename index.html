@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8">
+  <title>ComparaRG</title>
+</head>
+<body>
+  <h1>ComparaRG</h1>
+
+  <input id="busca" placeholder="Buscar produto...">
+  <button onclick="buscar()">Buscar</button>
+
+  <ul id="resultado"></ul>
+
+  <script>
+    async function buscar() {
+      const termo = document.getElementById("busca").value.toLowerCase();
+      const res = await fetch("data.json");
+      const data = await res.json();
+
+      const lista = document.getElementById("resultado");
+      lista.innerHTML = "";
+
+      data.produtos
+        .filter(p => p.nome.toLowerCase().includes(termo))
+        .sort((a,b) => a.preco - b.preco)
+        .forEach(p => {
+          const li = document.createElement("li");
+          li.innerText = `${p.nome} - R$ ${p.preco} - ${p.loja}`;
+          lista.appendChild(li);
+        });
+    }
+  </script>
+</body>
+</html>
