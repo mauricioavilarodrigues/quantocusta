@@ -1,0 +1,31 @@
+# Dados iniciais do ComparaRG
+
+## Produtos
+- Arroz 1kg
+- Feijão 1kg
+- Leite 1L
+- Óleo de soja
+- Açúcar
+- Café
+- Pão francês
+- sabão líquido 
+- sabão em pó 
+- água sanitária 
+- ovos
+- azeite
+- xampu
+- maionese 
+
+## Lojas exemplo
+- Mercado guanabara 
+- stok
+- farmácias são joao
+- panvel
+
+## Campos obrigatórios
+- Produto
+- Preço
+- Loja
+- Data da coleta
+- Data da validade
+- 
