@@ -1,0 +1,18 @@
+{
+  "produtos": [
+    {
+      "nome": "Arroz 1kg",
+      "preco": 5.99,
+      "loja": "Guanabara",
+      "data_coleta": "2026-01-24",
+      "validade": "2026-02-01"
+    },
+    {
+      "nome": "Leite 1L",
+      "preco": 4.50,
+      "loja": "Stok",
+      "data_coleta": "2026-01-24",
+      "validade": "2026-01-28"
+    }
+  ]
+}
