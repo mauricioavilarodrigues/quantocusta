@@ -20,5 +20,5 @@ Criar uma página simples onde seja possível:
 Pessoas da nossa cidade que querem comparar preços básicos.
 
 ## Dúvidas em aberto
-- Quem cadastra os preços?
-- Os preços terão data?
+- Quem cadastra os preços? Admin, usuários e parceiros.
+- Os preços terão data? Sim, de lançamento e de vencimento.
