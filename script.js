@@ -36,3 +36,15 @@ inputBusca.addEventListener("keypress", function(event) {
     buscar();
   }
 });
+
+document.addEventListener("DOMContentLoaded", function() {
+
+  const inputBusca = document.getElementById("busca");
+
+  inputBusca.addEventListener("keypress", function(event) {
+    if (event.key === "Enter") {
+      buscar();
+    }
+  });
+
+});
