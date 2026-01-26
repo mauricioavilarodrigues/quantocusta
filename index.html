@@ -33,3 +33,35 @@
   </script>
 </body>
 </html>
+<h2>Preço da Gasolina — QuantoCusta</h2>
+
+<table border="1" cellpadding="10" cellspacing="0">
+  <thead>
+    <tr>
+      <th>Posto</th>
+      <th>Gasolina Comum</th>
+      <th>Gasolina Aditivada</th>
+    </tr>
+  </thead>
+  <tbody id="tabela-combustivel"></tbody>
+</table>
+
+<script>
+fetch("data.json")
+  .then(response => response.json())
+  .then(data => {
+    const tabela = document.getElementById("tabela-combustivel");
+
+    data.combustiveis.forEach(item => {
+      const linha = document.createElement("tr");
+
+      linha.innerHTML = `
+        <td>${item.posto}</td>
+        <td>R$ ${item.comum.toFixed(2)}</td>
+        <td>R$ ${item.aditivada.toFixed(2)}</td>
+      `;
+
+      tabela.appendChild(linha);
+    });
+  });
+</script>
