@@ -23,13 +23,13 @@
 
       data.produtos
         .filter(p => p.nome.toLowerCase().includes(termo))
-        .sort((a,b) => a.preco - b.preco)
+        .sort((a, b) => a.preco - b.preco)
         .forEach(p => {
           const li = document.createElement("li");
-          li.innerText = `${p.nome} - R$ ${p.preco} - ${p.loja}`;
+          li.innerText = `${p.nome} - R$ ${p.preco.toFixed(2)} - ${p.loja}`;
           lista.appendChild(li);
         });
-    
-    });
-  });
-</script>
+    }
+  </script>
+</body>
+</html>
