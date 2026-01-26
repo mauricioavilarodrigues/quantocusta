@@ -29,23 +29,3 @@
       "validade": "2026-01-28"
     }
   ]
-}
-{
-  "combustiveis": [
-    {
-      "posto": "Posto Buffon",
-      "comum": 5.85,
-      "aditivada": 6.10
-    },
-    {
-      "posto": "Posto SIM",
-      "comum": 5.95,
-      "aditivada": 6.20
-    },
-    {
-      "posto": "Posto Shell",
-      "comum": 5.70,
-      "aditivada": 6.08
-    }
-  ]
-}
