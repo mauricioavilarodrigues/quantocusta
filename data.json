@@ -1,5 +1,5 @@
 {
-  "produtos": [
+  "supermercado": [
     {
       "nome": "Arroz 1kg",
       "preco": 5.97,
@@ -27,6 +27,45 @@
       "loja": "Ecomix",
       "data_coleta": "2026-01-24",
       "validade": "2026-01-28"
+    }
+  ],
+
+  "combustivel": [
+    {
+      "nome": "Gasolina Comum",
+      "preco": 5.85,
+      "posto": "Buffon",
+      "data_coleta": "2026-01-26"
+    },
+    {
+      "nome": "Gasolina Aditivada",
+      "preco": 6.10,
+      "posto": "Buffon",
+      "data_coleta": "2026-01-26"
+    },
+    {
+      "nome": "Gasolina Comum",
+      "preco": 5.95,
+      "posto": "SIM",
+      "data_coleta": "2026-01-26"
+    },
+    {
+      "nome": "Gasolina Aditivada",
+      "preco": 6.20,
+      "posto": "SIM",
+      "data_coleta": "2026-01-26"
+    },
+    {
+      "nome": "Gasolina Comum",
+      "preco": 5.70,
+      "posto": "Shell",
+      "data_coleta": "2026-01-26"
+    },
+    {
+      "nome": "Gasolina Aditivada",
+      "preco": 6.08,
+      "posto": "Shell",
+      "data_coleta": "2026-01-26"
     }
   ]
 }
