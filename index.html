@@ -65,3 +65,51 @@ fetch("data.json")
     });
   });
 </script>
+<h2>Preço da Gasolina — QuantoCusta</h2>
+
+<table border="1" cellpadding="10" cellspacing="0">
+  <thead>
+    <tr>
+      <th>Posto</th>
+      <th>Gasolina Comum</th>
+      <th>Gasolina Aditivada</th>
+    </tr>
+  </thead>
+  <tbody id="tabela-combustivel"></tbody>
+</table>
+
+<script>
+fetch("data.json")
+  .then(response => response.json())
+  .then(data => {
+    const tabela = document.getElementById("tabela-combustivel");
+
+    // Descobre menor preço entre todos
+    let menor = Infinity;
+    data.combustiveis.forEach(p => {
+      menor = Math.min(menor, p.comum, p.aditivada);
+    });
+
+    // Ordena pelo menor preço do posto
+    data.combustiveis.sort((a, b) => {
+      const menorA = Math.min(a.comum, a.aditivada);
+      const menorB = Math.min(b.comum, b.aditivada);
+      return menorA - menorB;
+    });
+
+    data.combustiveis.forEach(item => {
+      const linha = document.createElement("tr");
+
+      const comumClass = item.comum === menor ? "style='background:#c8f7c5;font-weight:bold'" : "";
+      const aditivadaClass = item.aditivada === menor ? "style='background:#c8f7c5;font-weight:bold'" : "";
+
+      linha.innerHTML = `
+        <td>${item.posto}</td>
+        <td ${comumClass}>R$ ${item.comum.toFixed(2)}</td>
+        <td ${aditivadaClass}>R$ ${item.aditivada.toFixed(2)}</td>
+      `;
+
+      tabela.appendChild(linha);
+    });
+  });
+</script>
