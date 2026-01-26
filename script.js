@@ -28,3 +28,11 @@ campoBusca.addEventListener("input", () => {
 });
 
 mostrarProdutos(produtos);
+
+const inputBusca = document.getElementById("busca");
+
+inputBusca.addEventListener("keypress", function(event) {
+  if (event.key === "Enter") {
+    buscar();
+  }
+});
