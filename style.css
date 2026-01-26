@@ -1,0 +1,22 @@
+body {
+  font-family: Arial, sans-serif;
+  padding: 20px;
+  background-color: #f2f2f2;
+}
+
+h1 {
+  color: #2c3e50;
+}
+
+input {
+  padding: 8px;
+  width: 250px;
+  margin-bottom: 15px;
+}
+
+.produto {
+  background: white;
+  padding: 10px;
+  margin-bottom: 8px;
+  border-radius: 5px;
+}
