@@ -2,7 +2,7 @@
   "produtos": [
     {
       "nome": "Arroz 1kg",
-      "preco": 5.99,
+      "preco": 5.97,
       "loja": "Guanabara",
       "data_coleta": "2026-01-24",
       "validade": "2026-02-01"
@@ -15,7 +15,7 @@
       "validade": "2026-01-28"
     },
     {
-      "nome": "Arroz 1kg",
+      "nome": "Arros 1kg",
       "preco": 5.98,
       "loja": "Stok",
       "data_coleta": "2026-01-24",
