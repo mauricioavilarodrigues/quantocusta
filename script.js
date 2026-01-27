@@ -1,3 +1,15 @@
+document.addEventListener("DOMContentLoaded", function() {
+
+  const inputBusca = document.getElementById("busca");
+
+  inputBusca.addEventListener("keypress", function(event) {
+    if (event.key === "Enter") {
+      buscar();
+    }
+  });
+
+});
+
 let nichoSelecionado = "";
 let categoriaSelecionada = "";
 
@@ -25,14 +37,6 @@ campoBusca.addEventListener("input", () => {
 
 mostrarProdutos(produtos);
 
-const inputBusca = document.getElementById("busca");
-
-inputBusca.addEventListener("keypress", function(event) {
-  if (event.key === "Enter") {
-    buscar();
-  }
-});
-
 document.addEventListener("DOMContentLoaded", function() {
 
   const inputBusca = document.getElementById("busca");
@@ -44,14 +48,6 @@ document.addEventListener("DOMContentLoaded", function() {
   });
 
 });
-
-function validarBusca() {
-
-  if (!nichoSelecionado) {
-  document.getElementById("mensagem").innerText =
-  "Por favor, selecione Supermercado, Combustível ou Farmácia.";
-return;
-  }
 
   if (!categoriaSelecionada) {
     document.getElementById("mensagem").innerText =
