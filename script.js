@@ -56,7 +56,6 @@ inputBusca.addEventListener("keypress", function(event) {
 });
 
 async function buscar(){
-document.addEventListener("DOMContentLoaded", function() {
 
   if(!nichoAtual){
     alert("Por favor, selecione Supermercado, Combustível ou Farmácia.");
