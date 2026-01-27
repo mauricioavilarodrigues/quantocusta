@@ -62,18 +62,44 @@ async function buscar() {
     });
 }
 </script>
-<h1>quantocusta</h1>
+<script>
+let nichoAtual = "supermercado";
 
-<div>
-  <button onclick="setNicho('supermercado')">🛒 Supermercado</button>
-  <button onclick="setNicho('combustivel')">⛽ Combustível</button>
-</div>
+function setNicho(nicho) {
+  nichoAtual = nicho;
+  document.getElementById("resultado").innerHTML = "";
+}
 
-<br>
+async function buscar() {
+  const termo = document.getElementById("busca").value.toLowerCase();
+  const res = await fetch("data.json");
+  const data = await res.json();
 
-<input id="busca" placeholder="Buscar produto...">
-<button onclick="buscar()">Buscar</button>
+  const lista = document.getElementById("resultado");
+  lista.innerHTML = "";
 
-<ul id="resultado"></ul>
+  const itens = data[nichoAtual];
+
+  if (!itens) {
+    lista.innerHTML = "<li>Nenhum dado encontrado.</li>";
+    return;
+  }
+
+  const filtrados = itens.filter(p =>
+    p.nome.toLowerCase().includes(termo)
+  );
+
+  filtrados
+    .sort((a, b) => a.preco - b.preco)
+    .forEach((p, i) => {
+      const li = document.createElement("li");
+      const local = p.loja || p.posto;
+      const destaque = i === 0 ? " ⭐ MENOR PREÇO" : "";
+
+      li.innerText = `${p.nome} - R$ ${p.preco} - ${local}${destaque}`;
+      lista.appendChild(li);
+    });
+}
+</script>
 
 </html>
