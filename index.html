@@ -114,8 +114,33 @@ async function buscar(){
   const data = await res.json();
 
   let itens = data[nichoAtual].filter(p =>
-    p.nome.toLowerCase().includes(termo)
-  );
+    p.nome.toLowerCase().includes(termo) 
+
+    async function buscar(){
+
+  if (!nichoAtual) {
+    mostrarDialogo("Por favor, selecione Supermercado, Combustível ou Farmácia.");
+    return;
+  }
+
+  if (nichoAtual === "combustivel" && !tipoAtual) {
+    mostrarDialogo("Por favor, selecione o tipo de combustível.");
+    return;
+  }
+
+  if (nichoAtual === "supermercado" && !categoriaAtual) {
+    mostrarDialogo("Por favor, selecione uma categoria do supermercado.");
+    return;
+  }
+
+  if (nichoAtual === "farmacia" && !categoriaFarmaciaAtual) {
+    mostrarDialogo("Por favor, selecione uma categoria da farmácia.");
+    return;
+  }
+
+  mostrarDialogo("Agora você pode digitar o produto para buscar.");
+  });
+  }
 
   if(nichoAtual=="combustivel")
     itens = itens.filter(p => p.nome.toLowerCase().includes(tipoAtual.toLowerCase()));
