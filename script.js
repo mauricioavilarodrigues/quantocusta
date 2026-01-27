@@ -48,6 +48,17 @@ inputBusca.addEventListener("keypress", function(event) {
   }
 });
 
+document.addEventListener("DOMContentLoaded", function() {
+  const campoBusca = document.getElementById("busca");
+
+  campoBusca.addEventListener("keydown", function(event) {
+    if (event.key === "Enter") {
+      event.preventDefault();
+      buscar();
+    }
+  });
+});
+
 async function buscar(){
 document.addEventListener("DOMContentLoaded", function() {
 
