@@ -19,10 +19,25 @@ const campoBusca = document.getElementById("busca");
 function mostrarProdutos(listaProdutos) {
   lista.innerHTML = "";
 
-  listaProdutos.forEach(produto => {
+  listaProdutos.forEach((produto, index) => {
     const div = document.createElement("div");
     div.className = "produto";
-    div.textContent = `${produto.nome} - R$ ${produto.preco.toFixed(2)} (${produto.loja})`;
+
+    div.innerHTML = `
+      <span>
+        ${produto.nome} - R$ ${produto.preco.toFixed(2)} (${produto.loja})
+      </span>
+
+      <div class="avaliacao">
+        <p>Este preço confere com o da loja?</p>
+
+        <button onclick="confirmarPreco(${index})">👍 Confere</button>
+        <button onclick="negarPreco(${index})">❌ Não confere</button>
+
+        <span id="feedback-${index}"></span>
+      </div>
+    `;
+
     lista.appendChild(div);
   });
 }
@@ -93,4 +108,14 @@ return;
   }
 
   alert("Agora você pode digitar o produto para buscar.");
+}
+
+  function confirmarPreco(index) {
+  document.getElementById(`feedback-${index}`).innerText =
+    "Obrigado por confirmar!";
+}
+
+function negarPreco(index) {
+  document.getElementById(`feedback-${index}`).innerText =
+    "Preço contestado. Obrigado!";
 }
