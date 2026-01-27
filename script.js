@@ -34,12 +34,12 @@ function mostrarProdutos(listaProdutos) {
     div.className = "produto";
 
     div.innerHTML = `
-      <span>
+      <div>
         ${produto.nome} - R$ ${produto.preco.toFixed(2)} (${produto.loja})
-      </span>
+      </div>
 
       <div class="avaliacao">
-        <p>Este preço confere com o da loja?</p>
+        <strong>Este preço confere com o da loja?</strong><br>
         <button onclick="confirmarPreco(${index})">👍 Confere</button>
         <button onclick="negarPreco(${index})">❌ Não confere</button>
         <span id="feedback-${index}"></span>
