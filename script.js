@@ -58,19 +58,16 @@ document.addEventListener("DOMContentLoaded", function() {
 
 });
 
-function validarBusca() {
+function buscar() {
+
+  const mensagem = document.getElementById("mensagem");
 
   if (!nichoSelecionado) {
-  document.getElementById("mensagem").innerText =
-  "Por favor, selecione Supermercado, Combustível ou Farmácia.";
-return;
-  }
-
-  if (!categoriaSelecionada) {
-    document.getElementById("mensagem").innerText =
-    "Por favor, selecione o tipo de combustível.";
+    mensagem.innerText = "Por favor, selecione Supermercado, Combustível ou Farmácia.";
     return;
   }
 
-  alert("Agora você pode digitar o produto para buscar.");
-}
+  if (!categoriaSelecionada) {
+    mensagem.innerText = "Por favor, selecione o tipo de combustível.";
+    return;
+  }
