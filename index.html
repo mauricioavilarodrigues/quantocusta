@@ -1,1 +1,127 @@
-<!DOCTYPE html> <html lang="pt-br"> <head> <meta charset="UTF-8"> <title>quantocusta</title> <meta name="viewport" content="width=device-width, initial-scale=1"> <style> body{font-family:Arial;background:#f6f7fb;padding:20px} h1{text-align:center} .topo,.filtros,.busca{display:flex;justify-content:center;gap:8px;flex-wrap:wrap;margin-bottom:12px} button{border:none;padding:10px 16px;border-radius:20px;background:#e0e3ff;font-weight:bold;cursor:pointer} button.ativo{background:#4f5dff;color:white} ul{list-style:none;padding:0;max-width:600px;margin:auto} li{background:white;margin:6px 0;padding:10px;border-radius:10px;display:flex;justify-content:space-between;align-items:center} .preco{color:#4f5dff;font-weight:bold} .caixa{background:white;padding:12px;border-radius:12px;margin-top:20px;max-width:600px;margin:auto} .menor{border:2px solid #4f5dff} </style> </head> <body> <h1>💰 quantocusta</h1> <div class="topo"> <button onclick="setNicho('supermercado',this)">🛒 Supermercado</button> <button onclick="setNicho('combustivel',this)">⛽ Combustível</button> <button onclick="setNicho('farmacia',this)">💊 Farmácia</button> </div> <div id="filtroSupermercado" class="filtros" style="display:none;"> <button onclick="setCategoria('alimento',this)">🥦 Alimentos</button> <button onclick="setCategoria('limpeza',this)">🧼 Limpeza</button> </div> <div id="filtroCombustivel" class="filtros" style="display:none;"> <button onclick="setTipo('Comum',this)">Comum</button> <button onclick="setTipo('Aditivada',this)">Aditivada</button> </div> <div id="filtroFarmacia" class="filtros" style="display:none;"> <button onclick="setCategoriaFarmacia('remedio',this)">💊 Remédios</button> <button onclick="setCategoriaFarmacia('higiene',this)">🧴 Higiene</button> </div> <div class="busca"> <input id="busca" placeholder="Buscar..."> <button onclick="buscar()">Buscar</button> </div> <ul id="resultado"></ul> <div class="caixa"> <button onclick="compararCesta()">🧺 Comparar cesta</button> <div id="cestaResultado"></div> </div> <script> let nichoAtual="",tipoAtual="",categoriaAtual="",categoriaFarmaciaAtual=""; let cesta=[]; function limparAtivos(grupo){ document.querySelectorAll(grupo+" button").forEach(b=>b.classList.remove("ativo")); } function setNicho(n,b){ nichoAtual=n;tipoAtual="";categoriaAtual="";categoriaFarmaciaAtual=""; document.getElementById("resultado").innerHTML=""; limparAtivos(".topo");b.classList.add("ativo"); ["Supermercado","Combustivel","Farmacia"].forEach(f=>document.getElementById("filtro"+f).style.display="none"); if(n=="supermercado")filtroSupermercado.style.display="flex"; if(n=="combustivel")filtroCombustivel.style.display="flex"; if(n=="farmacia")filtroFarmacia.style.display="flex"; } function setTipo(t,b){tipoAtual=t;limparAtivos("#filtroCombustivel");b.classList.add("ativo");buscar();} function setCategoria(c,b){categoriaAtual=c;limparAtivos("#filtroSupermercado");b.classList.add("ativo");buscar();} function setCategoriaFarmacia(c,b){categoriaFarmaciaAtual=c;limparAtivos("#filtroFarmacia");b.classList.add("ativo");buscar();} async function buscar(){ if(!nichoAtual)return; if(nichoAtual=="combustivel"&&!tipoAtual)return; if(nichoAtual=="supermercado"&&!categoriaAtual)return; if(nichoAtual=="farmacia"&&!categoriaFarmaciaAtual)return; const termo=busca.value.toLowerCase(); const res=await fetch("data.json"); const data=await res.json(); let itens=data[nichoAtual].filter(p=>p.nome.toLowerCase().includes(termo)); if(nichoAtual=="combustivel")itens=itens.filter(p=>p.nome.includes(tipoAtual)); if(nichoAtual=="supermercado")itens=itens.filter(p=>p.tipo==categoriaAtual); if(nichoAtual=="farmacia")itens=itens.filter(p=>p.tipo==categoriaFarmaciaAtual); resultado.innerHTML=""; itens.forEach(p=>{ const li=document.createElement("li"); li.innerHTML=<span><input type="checkbox" onchange='addCesta(${JSON.stringify(p)})'> ${p.nome}<br><small>${p.loja||p.posto}</small></span> <span class="preco">R$ ${p.preco.toFixed(2)}</span>; resultado.appendChild(li); }); } function addCesta(p){ cesta.push(p); } function compararCesta(){ let porLoja={}; cesta.forEach(p=>{ let l=p.loja||p.posto; porLoja[l]=(porLoja[l]||0)+p.preco; }); let html="<h3>Resultado da cesta</h3>"; let menor=Infinity; for(let l in porLoja) menor=Math.min(menor,porLoja[l]); for(let l in porLoja){ let cls=porLoja[l]==menor?"menor":""; html+=<div class="${cls}">${l}: R$ ${porLoja[l].toFixed(2)}</div>; } cestaResultado.innerHTML=html; } </script> </body> </html>
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+<meta charset="UTF-8">
+<title>quantocusta</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<style>
+body{font-family:Arial;background:#f6f7fb;padding:20px}
+h1{text-align:center}
+.topo,.filtros,.busca{display:flex;justify-content:center;gap:8px;flex-wrap:wrap;margin-bottom:12px}
+button{border:none;padding:10px 16px;border-radius:20px;background:#e0e3ff;font-weight:bold;cursor:pointer}
+button.ativo{background:#4f5dff;color:white}
+ul{list-style:none;padding:0;max-width:600px;margin:auto}
+li{background:white;margin:6px 0;padding:10px;border-radius:10px;display:flex;justify-content:space-between;align-items:center}
+.preco{color:#4f5dff;font-weight:bold}
+.caixa{background:white;padding:12px;border-radius:12px;margin-top:20px;max-width:600px;margin:auto}
+.menor{border:2px solid #4f5dff}
+</style>
+</head>
+
+<body>
+
+<h1>💰 quantocusta</h1>
+
+<div class="topo">
+<button onclick="setNicho('supermercado',this)">🛒 Supermercado</button>
+<button onclick="setNicho('combustivel',this)">⛽ Combustível</button>
+<button onclick="setNicho('farmacia',this)">💊 Farmácia</button>
+</div>
+
+<div id="filtroSupermercado" class="filtros" style="display:none;">
+<button onclick="setCategoria('alimento',this)">🥦 Alimentos</button>
+<button onclick="setCategoria('limpeza',this)">🧼 Limpeza</button>
+</div>
+
+<div id="filtroCombustivel" class="filtros" style="display:none;">
+<button onclick="setTipo('Comum',this)">Comum</button>
+<button onclick="setTipo('Aditivada',this)">Aditivada</button>
+</div>
+
+<div id="filtroFarmacia" class="filtros" style="display:none;">
+<button onclick="setCategoriaFarmacia('remedio',this)">💊 Remédios</button>
+<button onclick="setCategoriaFarmacia('higiene',this)">🧴 Higiene</button>
+</div>
+
+<div class="busca">
+<input id="busca" placeholder="Buscar...">
+<button onclick="buscar()">Buscar</button>
+</div>
+
+<ul id="resultado"></ul>
+
+<div class="caixa">
+<button onclick="compararCesta()">🧺 Comparar cesta</button>
+<div id="cestaResultado"></div>
+</div>
+
+<script>
+let nichoAtual="",tipoAtual="",categoriaAtual="",categoriaFarmaciaAtual="";
+let cesta=[];
+
+function limparAtivos(grupo){
+document.querySelectorAll(grupo+" button").forEach(b=>b.classList.remove("ativo"));
+}
+
+function setNicho(n,b){
+nichoAtual=n;tipoAtual="";categoriaAtual="";categoriaFarmaciaAtual="";
+document.getElementById("resultado").innerHTML="";
+limparAtivos(".topo");b.classList.add("ativo");
+["Supermercado","Combustivel","Farmacia"].forEach(f=>document.getElementById("filtro"+f).style.display="none");
+if(n=="supermercado")filtroSupermercado.style.display="flex";
+if(n=="combustivel")filtroCombustivel.style.display="flex";
+if(n=="farmacia")filtroFarmacia.style.display="flex";
+}
+
+function setTipo(t,b){tipoAtual=t;limparAtivos("#filtroCombustivel");b.classList.add("ativo");buscar();}
+function setCategoria(c,b){categoriaAtual=c;limparAtivos("#filtroSupermercado");b.classList.add("ativo");buscar();}
+function setCategoriaFarmacia(c,b){categoriaFarmaciaAtual=c;limparAtivos("#filtroFarmacia");b.classList.add("ativo");buscar();}
+
+async function buscar(){
+if(!nichoAtual)return;
+if(nichoAtual=="combustivel"&&!tipoAtual)return;
+if(nichoAtual=="supermercado"&&!categoriaAtual)return;
+if(nichoAtual=="farmacia"&&!categoriaFarmaciaAtual)return;
+
+const termo=busca.value.toLowerCase();
+const res=await fetch("data.json");
+const data=await res.json();
+let itens=data[nichoAtual].filter(p=>p.nome.toLowerCase().includes(termo));
+
+if(nichoAtual=="combustivel")itens=itens.filter(p=>p.nome.includes(tipoAtual));
+if(nichoAtual=="supermercado")itens=itens.filter(p=>p.tipo==categoriaAtual);
+if(nichoAtual=="farmacia")itens=itens.filter(p=>p.tipo==categoriaFarmaciaAtual);
+
+resultado.innerHTML="";
+itens.forEach(p=>{
+const li=document.createElement("li");
+li.innerHTML=`<span><input type="checkbox" onchange='addCesta(${JSON.stringify(p)})'> ${p.nome}<br><small>${p.loja||p.posto}</small></span>
+<span class="preco">R$ ${p.preco.toFixed(2)}</span>`;
+resultado.appendChild(li);
+});
+}
+
+function addCesta(p){
+cesta.push(p);
+}
+
+function compararCesta(){
+let porLoja={};
+cesta.forEach(p=>{
+let l=p.loja||p.posto;
+porLoja[l]=(porLoja[l]||0)+p.preco;
+});
+let html="<h3>Resultado da cesta</h3>";
+let menor=Infinity;
+for(let l in porLoja) menor=Math.min(menor,porLoja[l]);
+for(let l in porLoja){
+let cls=porLoja[l]==menor?"menor":"";
+html+=`<div class="${cls}">${l}: R$ ${porLoja[l].toFixed(2)}</div>`;
+}
+cestaResultado.innerHTML=html;
+}
+</script>
+
+</body>
+</html>
