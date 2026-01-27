@@ -48,12 +48,3 @@ document.addEventListener("DOMContentLoaded", function() {
   });
 
 });
-
-  if (!categoriaSelecionada) {
-    document.getElementById("mensagem").innerText =
-    "Por favor, selecione o tipo de combustível.";
-    return;
-  }
-
-  alert("Agora você pode digitar o produto para buscar.");
-}
