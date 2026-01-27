@@ -83,6 +83,7 @@
       display: flex;
       justify-content: space-between;
       align-items: center;
+      gap: 10px;
     }
 
     .preco {
@@ -92,6 +93,23 @@
 
     .menor {
       border: 2px solid #4f5dff;
+    }
+
+    .cestaBox{
+      background:white;
+      margin-top:20px;
+      padding:12px;
+      border-radius:12px;
+      box-shadow:0 2px 6px rgba(0,0,0,.08);
+      max-width:500px;
+      margin-left:auto;
+      margin-right:auto;
+    }
+
+    .itemCesta{
+      display:flex;
+      justify-content:space-between;
+      margin:4px 0;
     }
   </style>
 </head>
@@ -128,8 +146,15 @@
 
 <ul id="resultado"></ul>
 
+<button onclick="compararCesta()" style="margin:20px auto;display:block;">
+🧺 Comparar cesta
+</button>
+
+<div id="cestaResultado"></div>
+
 <script>
 let nichoAtual="", tipoAtual="", categoriaAtual="", categoriaFarmaciaAtual="";
+let cesta=[];
 
 function limparAtivos(grupo){
   document.querySelectorAll(grupo+" button").forEach(b=>b.classList.remove("ativo"));
@@ -139,6 +164,8 @@ function setNicho(nicho,btn){
   nichoAtual=nicho;
   tipoAtual=""; categoriaAtual=""; categoriaFarmaciaAtual="";
   document.getElementById("resultado").innerHTML="";
+  document.getElementById("cestaResultado").innerHTML="";
+  cesta=[];
 
   limparAtivos(".topo");
   btn.classList.add("ativo");
@@ -180,10 +207,68 @@ async function buscar(){
   itens.forEach((p,i)=>{
     const li=document.createElement("li");
     if(i===0) li.classList.add("menor");
-    const local=p.loja||p.posto;
-    li.innerHTML=`<span>${p.nome}<br><small>${local}</small></span><span class="preco">R$ ${p.preco.toFixed(2)}</span>`;
+
+    const local=p.loja||p.posto||"";
+
+    li.innerHTML=`
+      <label>
+        <input type="checkbox" onchange='toggleCesta(${JSON.stringify(p)})'>
+        ${p.nome}<br><small>${local}</small>
+      </label>
+      <span class="preco">R$ ${p.preco.toFixed(2)}</span>
+    `;
+
     lista.appendChild(li);
   });
+}
+
+function toggleCesta(produto){
+  const existe=cesta.find(p=>p.nome===produto.nome&&p.preco===produto.preco);
+  if(existe){
+    cesta=cesta.filter(p=>!(p.nome===produto.nome&&p.preco===produto.preco));
+  }else{
+    cesta.push(produto);
+  }
+}
+
+function compararCesta(){
+  const box=document.getElementById("cestaResultado");
+  box.innerHTML="";
+
+  if(cesta.length===0){
+    box.innerHTML="<p style='text-align:center'>Selecione produtos primeiro.</p>";
+    return;
+  }
+
+  const porLoja={};
+
+  cesta.forEach(p=>{
+    const local=p.loja||p.posto;
+    if(!porLoja[local]) porLoja[local]=0;
+    porLoja[local]+=p.preco;
+  });
+
+  let html="<div class='cestaBox'><h3>🧺 Sua cesta</h3>";
+
+  cesta.forEach(p=>{
+    html+=`<div class='itemCesta'><span>${p.nome}</span><span>R$ ${p.preco.toFixed(2)}</span></div>`;
+  });
+
+  html+="<hr><h4>Totais por loja</h4>";
+
+  let menor=Infinity, melhor="";
+
+  for(let loja in porLoja){
+    if(porLoja[loja]<menor){
+      menor=porLoja[loja];
+      melhor=loja;
+    }
+    html+=`<div class='itemCesta'><span>${loja}</span><span>R$ ${porLoja[loja].toFixed(2)}</span></div>`;
+  }
+
+  html+=`<hr><strong>⭐ Melhor opção: ${melhor} — R$ ${menor.toFixed(2)}</strong></div>`;
+
+  box.innerHTML=html;
 }
 </script>
 
