@@ -122,6 +122,35 @@ resultado.appendChild(li);
 
 function addCesta(p){
 cesta.push(p);
+ 
+}
+
+ let nichoSelecionado = "";
+let categoriaSelecionada = "";
+
+function mostrarProdutos(listaProdutos) {
+  const lista = document.getElementById("lista-produtos");
+  lista.innerHTML = "";
+
+  listaProdutos.forEach((produto, index) => {
+    const div = document.createElement("div");
+    div.className = "produto";
+
+    div.innerHTML = `
+      <div>
+        ${produto.nome} - R$ ${produto.preco.toFixed(2)} (${produto.loja})
+      </div>
+
+      <div class="avaliacao">
+        <strong>Este preço confere com o da loja?</strong><br>
+        <button onclick="confirmarPreco(${index})">👍 Confere</button>
+        <button onclick="negarPreco(${index})">❌ Não confere</button>
+        <span id="feedback-${index}"></span>
+      </div>
+    `;
+
+    lista.appendChild(div);
+  });
 }
 
 function compararCesta(){
