@@ -1,13 +1,6 @@
 let nichoSelecionado = "";
 let categoriaSelecionada = "";
 
-const produtos = [
-  { nome: "Arroz", preco: 0.00, loja: "Mercado Central" },
-  { nome: "Feijão", preco: 0.00, loja: "Super Bom" },
-  { nome: "Leite", preco: 0.00, loja: "Padaria Sol" },
-  { nome: "Açúcar", preco: 0.00, loja: "Mercado Central" }
-];
-
 const lista = document.getElementById("lista-produtos");
 const campoBusca = document.getElementById("busca");
 
