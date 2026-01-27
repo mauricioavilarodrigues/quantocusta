@@ -11,6 +11,11 @@ document.addEventListener("DOMContentLoaded", function() {
 
 });
 
+document.addEventListener("DOMContentLoaded", function() {
+  const campoBusca = document.getElementById("busca");
+  });
+}
+
 let nichoSelecionado = "";
 let categoriaSelecionada = "";
 
@@ -47,9 +52,6 @@ inputBusca.addEventListener("keypress", function(event) {
     buscar();
   }
 });
-
-document.addEventListener("DOMContentLoaded", function() {
-  const campoBusca = document.getElementById("busca");
 
   campoBusca.addEventListener("keydown", function(event) {
     if (event.key === "Enter") {
