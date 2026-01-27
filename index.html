@@ -3,138 +3,189 @@
 <head>
   <meta charset="UTF-8">
   <title>quantocusta</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f6f7fb;
+      margin: 0;
+      padding: 20px;
+    }
+
+    h1 {
+      text-align: center;
+      color: #333;
+    }
+
+    .topo {
+      display: flex;
+      justify-content: center;
+      gap: 10px;
+      margin-bottom: 10px;
+      flex-wrap: wrap;
+    }
+
+    button {
+      border: none;
+      padding: 10px 16px;
+      border-radius: 20px;
+      background: #e0e3ff;
+      cursor: pointer;
+      font-weight: bold;
+      transition: .2s;
+    }
+
+    button:hover {
+      background: #c9ceff;
+    }
+
+    button.ativo {
+      background: #4f5dff;
+      color: white;
+    }
+
+    .filtros {
+      display: flex;
+      justify-content: center;
+      gap: 8px;
+      margin-bottom: 12px;
+      flex-wrap: wrap;
+    }
+
+    .busca {
+      display: flex;
+      justify-content: center;
+      gap: 6px;
+      margin-bottom: 15px;
+    }
+
+    input {
+      padding: 10px;
+      border-radius: 20px;
+      border: 1px solid #ccc;
+      width: 220px;
+    }
+
+    ul {
+      list-style: none;
+      padding: 0;
+      max-width: 500px;
+      margin: auto;
+    }
+
+    li {
+      background: white;
+      margin-bottom: 10px;
+      padding: 12px;
+      border-radius: 12px;
+      box-shadow: 0 2px 6px rgba(0,0,0,.08);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .preco {
+      font-weight: bold;
+      color: #4f5dff;
+    }
+
+    .menor {
+      border: 2px solid #4f5dff;
+    }
+  </style>
 </head>
 
 <body>
-  <h1>quantocusta</h1>
 
-  <div>
-    <button onclick="setNicho('supermercado')">🛒 Supermercado</button>
-    <button onclick="setNicho('combustivel')">⛽ Combustível</button>
-    <button onclick="setNicho('farmacia')">💊 Farmácia</button>
-  </div>
+<h1>💰 quantocusta</h1>
 
-  <!-- Filtro supermercado -->
-  <div id="filtroSupermercado" style="display:none; margin-left:20px; margin-top:8px;">
-    <button onclick="setCategoria('alimento')">🥦 Alimentos</button>
-    <button onclick="setCategoria('limpeza')">🧼 Limpeza</button>
-  </div>
+<div class="topo">
+  <button onclick="setNicho('supermercado',this)">🛒 Supermercado</button>
+  <button onclick="setNicho('combustivel',this)">⛽ Combustível</button>
+  <button onclick="setNicho('farmacia',this)">💊 Farmácia</button>
+</div>
 
-  <!-- Filtro combustível -->
-  <div id="filtroCombustivel" style="display:none; margin-left:20px; margin-top:8px;">
-    <button onclick="setTipo('Comum')">Comum</button>
-    <button onclick="setTipo('Aditivada')">Aditivada</button>
-  </div>
+<div id="filtroSupermercado" class="filtros" style="display:none;">
+  <button onclick="setCategoria('alimento',this)">🥦 Alimentos</button>
+  <button onclick="setCategoria('limpeza',this)">🧼 Limpeza</button>
+</div>
 
-  <!-- Filtro farmácia -->
-  <div id="filtroFarmacia" style="display:none; margin-left:20px; margin-top:8px;">
-    <button onclick="setCategoriaFarmacia('remedio')">💊 Remédios</button>
-    <button onclick="setCategoriaFarmacia('higiene')">🧴 Higiene</button>
-  </div>
+<div id="filtroCombustivel" class="filtros" style="display:none;">
+  <button onclick="setTipo('Comum',this)">Comum</button>
+  <button onclick="setTipo('Aditivada',this)">Aditivada</button>
+</div>
 
-  <br>
+<div id="filtroFarmacia" class="filtros" style="display:none;">
+  <button onclick="setCategoriaFarmacia('remedio',this)">💊 Remédios</button>
+  <button onclick="setCategoriaFarmacia('higiene',this)">🧴 Higiene</button>
+</div>
 
-  <input id="busca" placeholder="Buscar produto...">
+<div class="busca">
+  <input id="busca" placeholder="Buscar...">
   <button onclick="buscar()">Buscar</button>
+</div>
 
-  <ul id="resultado"></ul>
+<ul id="resultado"></ul>
 
-  <script>
-    let nichoAtual = "";
-    let tipoAtual = "";
-    let categoriaAtual = "";
-    let categoriaFarmaciaAtual = "";
+<script>
+let nichoAtual="", tipoAtual="", categoriaAtual="", categoriaFarmaciaAtual="";
 
-    function setNicho(nicho) {
-      nichoAtual = nicho;
-      tipoAtual = "";
-      categoriaAtual = "";
-      categoriaFarmaciaAtual = "";
+function limparAtivos(grupo){
+  document.querySelectorAll(grupo+" button").forEach(b=>b.classList.remove("ativo"));
+}
 
-      document.getElementById("resultado").innerHTML = "";
+function setNicho(nicho,btn){
+  nichoAtual=nicho;
+  tipoAtual=""; categoriaAtual=""; categoriaFarmaciaAtual="";
+  document.getElementById("resultado").innerHTML="";
 
-      document.getElementById("filtroCombustivel").style.display = "none";
-      document.getElementById("filtroSupermercado").style.display = "none";
-      document.getElementById("filtroFarmacia").style.display = "none";
+  limparAtivos(".topo");
+  btn.classList.add("ativo");
 
-      if (nicho === "combustivel") {
-        document.getElementById("filtroCombustivel").style.display = "block";
-      }
+  document.getElementById("filtroSupermercado").style.display="none";
+  document.getElementById("filtroCombustivel").style.display="none";
+  document.getElementById("filtroFarmacia").style.display="none";
 
-      if (nicho === "supermercado") {
-        document.getElementById("filtroSupermercado").style.display = "block";
-      }
+  if(nicho==="supermercado") document.getElementById("filtroSupermercado").style.display="flex";
+  if(nicho==="combustivel") document.getElementById("filtroCombustivel").style.display="flex";
+  if(nicho==="farmacia") document.getElementById("filtroFarmacia").style.display="flex";
+}
 
-      if (nicho === "farmacia") {
-        document.getElementById("filtroFarmacia").style.display = "block";
-      }
-    }
+function setTipo(t,btn){ tipoAtual=t; limparAtivos("#filtroCombustivel"); btn.classList.add("ativo"); buscar(); }
+function setCategoria(c,btn){ categoriaAtual=c; limparAtivos("#filtroSupermercado"); btn.classList.add("ativo"); buscar(); }
+function setCategoriaFarmacia(c,btn){ categoriaFarmaciaAtual=c; limparAtivos("#filtroFarmacia"); btn.classList.add("ativo"); buscar(); }
 
-    function setTipo(tipo) {
-      tipoAtual = tipo;
-      buscar();
-    }
+async function buscar(){
+  if(!nichoAtual) return;
+  if(nichoAtual==="combustivel"&&!tipoAtual) return;
+  if(nichoAtual==="supermercado"&&!categoriaAtual) return;
+  if(nichoAtual==="farmacia"&&!categoriaFarmaciaAtual) return;
 
-    function setCategoria(cat) {
-      categoriaAtual = cat;
-      buscar();
-    }
+  const termo=document.getElementById("busca").value.toLowerCase();
+  const res=await fetch("data.json");
+  const data=await res.json();
 
-    function setCategoriaFarmacia(cat) {
-      categoriaFarmaciaAtual = cat;
-      buscar();
-    }
+  let itens=data[nichoAtual].filter(p=>p.nome.toLowerCase().includes(termo));
 
-    async function buscar() {
-      if (!nichoAtual) return;
+  if(nichoAtual==="combustivel") itens=itens.filter(p=>p.nome.toLowerCase().includes(tipoAtual.toLowerCase()));
+  if(nichoAtual==="supermercado") itens=itens.filter(p=>p.tipo===categoriaAtual);
+  if(nichoAtual==="farmacia") itens=itens.filter(p=>p.tipo===categoriaFarmaciaAtual);
 
-      if (nichoAtual === "combustivel" && !tipoAtual) return;
-      if (nichoAtual === "supermercado" && !categoriaAtual) return;
-      if (nichoAtual === "farmacia" && !categoriaFarmaciaAtual) return;
+  itens.sort((a,b)=>a.preco-b.preco);
 
-      const termo = document.getElementById("busca").value.toLowerCase();
-      const res = await fetch("data.json");
-      const data = await res.json();
+  const lista=document.getElementById("resultado");
+  lista.innerHTML="";
 
-      const lista = document.getElementById("resultado");
-      lista.innerHTML = "";
-
-      const itens = data[nichoAtual];
-
-      let filtrados = itens.filter(p =>
-        p.nome.toLowerCase().includes(termo)
-      );
-
-      if (nichoAtual === "combustivel") {
-        filtrados = filtrados.filter(p =>
-          p.nome.toLowerCase().includes(tipoAtual.toLowerCase())
-        );
-      }
-
-      if (nichoAtual === "supermercado") {
-        filtrados = filtrados.filter(p =>
-          p.tipo === categoriaAtual
-        );
-      }
-
-      if (nichoAtual === "farmacia") {
-        filtrados = filtrados.filter(p =>
-          p.tipo === categoriaFarmaciaAtual
-        );
-      }
-
-      filtrados
-        .sort((a, b) => a.preco - b.preco)
-        .forEach((p, i) => {
-          const li = document.createElement("li");
-          const local = p.loja || p.posto;
-          const destaque = i === 0 ? " ⭐ MENOR PREÇO" : "";
-
-          li.innerText = `${p.nome} - R$ ${p.preco.toFixed(2)} - ${local}${destaque}`;
-          lista.appendChild(li);
-        });
-    }
-  </script>
+  itens.forEach((p,i)=>{
+    const li=document.createElement("li");
+    if(i===0) li.classList.add("menor");
+    const local=p.loja||p.posto;
+    li.innerHTML=`<span>${p.nome}<br><small>${local}</small></span><span class="preco">R$ ${p.preco.toFixed(2)}</span>`;
+    lista.appendChild(li);
+  });
+}
+</script>
 
 </body>
 </html>
