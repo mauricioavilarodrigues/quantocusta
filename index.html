@@ -33,7 +33,7 @@
   <ul id="resultado"></ul>
 
   <script>
-    let nichoAtual = "supermercado";
+    let nichoAtual = "";
     let tipoAtual = "";
     let categoriaAtual = "";
 
@@ -41,6 +41,8 @@
       nichoAtual = nicho;
       tipoAtual = "";
       categoriaAtual = "";
+
+      document.getElementById("resultado").innerHTML = "";
 
       document.getElementById("filtroCombustivel").style.display = "none";
       document.getElementById("filtroSupermercado").style.display = "none";
@@ -52,8 +54,6 @@
       if (nicho === "supermercado") {
         document.getElementById("filtroSupermercado").style.display = "block";
       }
-
-      buscar();
     }
 
     function setTipo(tipo) {
@@ -67,6 +67,11 @@
     }
 
     async function buscar() {
+      if (!nichoAtual) return;
+
+      if (nichoAtual === "combustivel" && !tipoAtual) return;
+      if (nichoAtual === "supermercado" && !categoriaAtual) return;
+
       const termo = document.getElementById("busca").value.toLowerCase();
       const res = await fetch("data.json");
       const data = await res.json();
@@ -76,22 +81,17 @@
 
       const itens = data[nichoAtual];
 
-      if (!itens) {
-        lista.innerHTML = "<li>Nenhum dado encontrado.</li>";
-        return;
-      }
-
       let filtrados = itens.filter(p =>
         p.nome.toLowerCase().includes(termo)
       );
 
-      if (nichoAtual === "combustivel" && tipoAtual) {
+      if (nichoAtual === "combustivel") {
         filtrados = filtrados.filter(p =>
           p.nome.toLowerCase().includes(tipoAtual.toLowerCase())
         );
       }
 
-      if (nichoAtual === "supermercado" && categoriaAtual) {
+      if (nichoAtual === "supermercado") {
         filtrados = filtrados.filter(p =>
           p.tipo === categoriaAtual
         );
@@ -108,86 +108,7 @@
           lista.appendChild(li);
         });
     }
-  </script<script>
-  let nichoAtual = "";
-  let tipoAtual = "";
-  let categoriaAtual = "";
-
-  function setNicho(nicho) {
-    nichoAtual = nicho;
-    tipoAtual = "";
-    categoriaAtual = "";
-
-    const lista = document.getElementById("resultado");
-    lista.innerHTML = "<li>Selecione um filtro acima</li>";
-
-    document.getElementById("filtroCombustivel").style.display = "none";
-    document.getElementById("filtroSupermercado").style.display = "none";
-
-    if (nicho === "combustivel") {
-      document.getElementById("filtroCombustivel").style.display = "block";
-    }
-
-    if (nicho === "supermercado") {
-      document.getElementById("filtroSupermercado").style.display = "block";
-    }
-  }
-
-  function setTipo(tipo) {
-    tipoAtual = tipo;
-    buscar();
-  }
-
-  function setCategoria(cat) {
-    categoriaAtual = cat;
-    buscar();
-  }
-
-  async function buscar() {
-    if (!nichoAtual) return;
-
-    const termo = document.getElementById("busca").value.toLowerCase();
-    const res = await fetch("data.json");
-    const data = await res.json();
-
-    const lista = document.getElementById("resultado");
-    lista.innerHTML = "";
-
-    let itens = data[nichoAtual];
-    if (!itens) return;
-
-    let filtrados = itens;
-
-    if (nichoAtual === "combustivel" && tipoAtual) {
-      filtrados = filtrados.filter(p =>
-        p.nome.toLowerCase().includes(tipoAtual.toLowerCase())
-      );
-    }
-
-    if (nichoAtual === "supermercado" && categoriaAtual) {
-      filtrados = filtrados.filter(p =>
-        p.tipo === categoriaAtual
-      );
-    }
-
-    if (termo) {
-      filtrados = filtrados.filter(p =>
-        p.nome.toLowerCase().includes(termo)
-      );
-    }
-
-    filtrados
-      .sort((a, b) => a.preco - b.preco)
-      .forEach((p, i) => {
-        const li = document.createElement("li");
-        const local = p.loja || p.posto;
-        const destaque = i === 0 ? " ⭐ MENOR PREÇO" : "";
-        li.innerText = `${p.nome} - R$ ${p.preco.toFixed(2)} - ${local}${destaque}`;
-        lista.appendChild(li);
-      });
-  }
-</script>
->
+  </script>
 
 </body>
 </html>
