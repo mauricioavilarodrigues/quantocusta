@@ -41,3 +41,27 @@ mostrarProdutos(produtos);
   });
 
 });
+
+async function buscar(){
+
+  if(!nichoAtual){
+    alert("Por favor, selecione Supermercado, Combustível ou Farmácia.");
+    return;
+  }
+
+  if(nichoAtual=="combustivel" && !tipoAtual){
+    alert("Por favor, selecione o tipo de combustível.");
+    return;
+  }
+
+  if(nichoAtual=="supermercado" && !categoriaAtual){
+    alert("Por favor, selecione uma categoria do supermercado.");
+    return;
+  }
+
+  if(nichoAtual=="farmacia" && !categoriaFarmaciaAtual){
+    alert("Por favor, selecione uma categoria da farmácia.");
+    return;
+  }
+
+}
