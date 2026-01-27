@@ -38,6 +38,8 @@ campoBusca.addEventListener("input", () => {
 
 mostrarProdutos(produtos);
 
+    }
+  });
 const inputBusca = document.getElementById("busca");
 
 inputBusca.addEventListener("keypress", function(event) {
@@ -46,28 +48,45 @@ inputBusca.addEventListener("keypress", function(event) {
   }
 });
 
+async function buscar(){
 document.addEventListener("DOMContentLoaded", function() {
 
+  if(!nichoAtual){
+    alert("Por favor, selecione Supermercado, Combustível ou Farmácia.");
+    return;
+  }
   const inputBusca = document.getElementById("busca");
 
+  if(nichoAtual=="combustivel" && !tipoAtual){
+    alert("Por favor, selecione o tipo de combustível.");
+    return;
+  }
   inputBusca.addEventListener("keypress", function(event) {
     if (event.key === "Enter") {
       buscar();
     }
   });
 
+  if(nichoAtual=="supermercado" && !categoriaAtual){
+    alert("Por favor, selecione uma categoria do supermercado.");
+    return;
 });
 
-function buscar() {
-
-  const mensagem = document.getElementById("mensagem");
+function validarBusca() {
 
   if (!nichoSelecionado) {
-    mensagem.innerText = "Por favor, selecione Supermercado, Combustível ou Farmácia.";
+  document.getElementById("mensagem").innerText =
+  "Por favor, selecione Supermercado, Combustível ou Farmácia.";
+return;
+  }
+
+  if(nichoAtual=="farmacia" && !categoriaFarmaciaAtual){
+    alert("Por favor, selecione uma categoria da farmácia.");
+  if (!categoriaSelecionada) {
+    document.getElementById("mensagem").innerText =
+    "Por favor, selecione o tipo de combustível.";
     return;
   }
 
-  if (!categoriaSelecionada) {
-    mensagem.innerText = "Por favor, selecione o tipo de combustível.";
-    return;
-  }
+  alert("Agora você pode digitar o produto para buscar.");
+}
