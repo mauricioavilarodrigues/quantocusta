@@ -4,8 +4,16 @@
   <meta charset="UTF-8">
   <title>quantocusta</title>
 </head>
+
 <body>
   <h1>quantocusta</h1>
+
+  <div>
+    <button onclick="setNicho('supermercado')">🛒 Supermercado</button>
+    <button onclick="setNicho('combustivel')">⛽ Combustível</button>
+  </div>
+
+  <br>
 
   <input id="busca" placeholder="Buscar produto...">
   <button onclick="buscar()">Buscar</button>
@@ -13,6 +21,13 @@
   <ul id="resultado"></ul>
 
   <script>
+    let nichoAtual = "supermercado";
+
+    function setNicho(nicho) {
+      nichoAtual = nicho;
+      buscar();
+    }
+
     async function buscar() {
       const termo = document.getElementById("busca").value.toLowerCase();
       const res = await fetch("data.json");
@@ -21,85 +36,29 @@
       const lista = document.getElementById("resultado");
       lista.innerHTML = "";
 
-      data.produtos
-        .filter(p => p.nome.toLowerCase().includes(termo))
+      const itens = data[nichoAtual];
+
+      if (!itens) {
+        lista.innerHTML = "<li>Nenhum dado encontrado.</li>";
+        return;
+      }
+
+      const filtrados = itens.filter(p =>
+        p.nome.toLowerCase().includes(termo)
+      );
+
+      filtrados
         .sort((a, b) => a.preco - b.preco)
-        .forEach(p => {
+        .forEach((p, i) => {
           const li = document.createElement("li");
-          li.innerText = `${p.nome} - R$ ${p.preco.toFixed(2)} - ${p.loja}`;
+          const local = p.loja || p.posto;
+          const destaque = i === 0 ? " ⭐ MENOR PREÇO" : "";
+
+          li.innerText = `${p.nome} - R$ ${p.preco.toFixed(2)} - ${local}${destaque}`;
           lista.appendChild(li);
         });
     }
-  </script<script>
-let nichoAtual = "supermercado";
+  </script>
 
-function setNicho(nicho) {
-  nichoAtual = nicho;
-  document.getElementById("resultado").innerHTML = "";
-}
-
-async function buscar() {
-  const termo = document.getElementById("busca").value.toLowerCase();
-  const res = await fetch("data.json");
-  const data = await res.json();
-
-  const lista = document.getElementById("resultado");
-  lista.innerHTML = "";
-
-  const itens = data[nichoAtual];
-
-  itens
-    .filter(p => p.nome.toLowerCase().includes(termo))
-    .sort((a,b) => a.preco - b.preco)
-    .forEach((p,i) => {
-      const li = document.createElement("li");
-
-      const local = p.loja || p.posto;
-      const destaque = i === 0 ? " ⭐ MENOR PREÇO" : "";
-
-      li.innerText = `${p.nome} - R$ ${p.preco} - ${local}${destaque}`;
-      lista.appendChild(li);
-    });
-}
-</script>
-<script>
-let nichoAtual = "supermercado";
-
-function setNicho(nicho) {
-  nichoAtual = nicho;
-  document.getElementById("resultado").innerHTML = "";
-}
-
-async function buscar() {
-  const termo = document.getElementById("busca").value.toLowerCase();
-  const res = await fetch("data.json");
-  const data = await res.json();
-
-  const lista = document.getElementById("resultado");
-  lista.innerHTML = "";
-
-  const itens = data[nichoAtual];
-
-  if (!itens) {
-    lista.innerHTML = "<li>Nenhum dado encontrado.</li>";
-    return;
-  }
-
-  const filtrados = itens.filter(p =>
-    p.nome.toLowerCase().includes(termo)
-  );
-
-  filtrados
-    .sort((a, b) => a.preco - b.preco)
-    .forEach((p, i) => {
-      const li = document.createElement("li");
-      const local = p.loja || p.posto;
-      const destaque = i === 0 ? " ⭐ MENOR PREÇO" : "";
-
-      li.innerText = `${p.nome} - R$ ${p.preco} - ${local}${destaque}`;
-      lista.appendChild(li);
-    });
-}
-</script>
-
+</body>
 </html>
