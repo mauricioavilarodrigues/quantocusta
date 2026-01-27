@@ -103,20 +103,11 @@ function setCategoriaFarmacia(c,b){
   buscar();
 }
 
+function mostrarDialogo(msg){
+  alert(msg);
+}
+
 async function buscar(){
-  if(!nichoAtual) return;
-  if(nichoAtual=="combustivel" && !tipoAtual) return;
-  if(nichoAtual=="supermercado" && !categoriaAtual) return;
-  if(nichoAtual=="farmacia" && !categoriaFarmaciaAtual) return;
-
-  const termo = busca.value.toLowerCase();
-  const res = await fetch("data.json");
-  const data = await res.json();
-
-  let itens = data[nichoAtual].filter(p =>
-    p.nome.toLowerCase().includes(termo) 
-
-    async function buscar(){
 
   if (!nichoAtual) {
     mostrarDialogo("Por favor, selecione Supermercado, Combustível ou Farmácia.");
@@ -138,9 +129,13 @@ async function buscar(){
     return;
   }
 
-  mostrarDialogo("Agora você pode digitar o produto para buscar.");
-  });
-  }
+  const termo = busca.value.toLowerCase();
+  const res = await fetch("data.json");
+  const data = await res.json();
+
+  let itens = data[nichoAtual].filter(p =>
+    p.nome.toLowerCase().includes(termo)
+  );
 
   if(nichoAtual=="combustivel")
     itens = itens.filter(p => p.nome.toLowerCase().includes(tipoAtual.toLowerCase()));
