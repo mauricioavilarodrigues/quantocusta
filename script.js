@@ -48,12 +48,14 @@ document.addEventListener("DOMContentLoaded", function() {
 function validarBusca() {
 
   if (!nichoSelecionado) {
-    alert("Por favor, selecione Supermercado, Combustível ou Farmácia.");
-    return;
+  document.getElementById("mensagem").innerText =
+  "Por favor, selecione Supermercado, Combustível ou Farmácia.";
+return;
   }
 
   if (!categoriaSelecionada) {
-    alert("Por favor, selecione uma categoria.");
+    document.getElementById("mensagem").innerText =
+    "Por favor, selecione o tipo de combustível.";
     return;
   }
 
