@@ -4,6 +4,7 @@
       "nome": "Arroz 1kg",
       "preco": 5.97,
       "loja": "Guanabara",
+      "tipo": "alimento",
       "data_coleta": "2026-01-24",
       "validade": "2026-02-01"
     },
@@ -11,6 +12,7 @@
       "nome": "Leite 1L",
       "preco": 4.50,
       "loja": "Carrefour",
+      "tipo": "alimento",
       "data_coleta": "2026-01-24",
       "validade": "2026-01-28"
     },
@@ -18,6 +20,7 @@
       "nome": "Leite 1L",
       "preco": 5.98,
       "loja": "Stok",
+      "tipo": "alimento",
       "data_coleta": "2026-01-24",
       "validade": "2026-01-28"
     },
@@ -25,6 +28,7 @@
       "nome": "Arroz 1kg",
       "preco": 5.95,
       "loja": "Ecomix",
+      "tipo": "alimento",
       "data_coleta": "2026-01-24",
       "validade": "2026-01-28"
     }
