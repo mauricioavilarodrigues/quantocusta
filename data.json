@@ -1,75 +1,101 @@
 {
   "supermercado": [
     {
+      "id": 1,
       "nome": "Arroz 1kg",
       "preco": 5.97,
       "loja": "Guanabara",
       "tipo": "alimento",
+      "cidade": "Rio Grande",
       "data_coleta": "2026-01-24",
       "validade": "2026-02-01"
     },
     {
+      "id": 2,
       "nome": "Leite 1L",
       "preco": 4.50,
       "loja": "Carrefour",
       "tipo": "alimento",
+      "cidade": "Rio Grande",
       "data_coleta": "2026-01-24",
       "validade": "2026-01-28"
     },
     {
+      "id": 3,
       "nome": "Leite 1L",
       "preco": 5.98,
       "loja": "Stok",
       "tipo": "alimento",
+      "cidade": "Rio Grande",
       "data_coleta": "2026-01-24",
       "validade": "2026-01-28"
     },
     {
+      "id": 4,
       "nome": "Arroz 1kg",
       "preco": 5.95,
       "loja": "Ecomix",
       "tipo": "alimento",
+      "cidade": "Rio Grande",
       "data_coleta": "2026-01-24",
       "validade": "2026-01-28"
     }
   ],
-
   "combustivel": [
     {
+      "id": 5,
       "nome": "Gasolina Comum",
       "preco": 5.85,
       "posto": "Buffon",
+      "cidade": "Rio Grande",
       "data_coleta": "2026-01-26"
     },
     {
+      "id": 6,
       "nome": "Gasolina Aditivada",
       "preco": 6.10,
       "posto": "Buffon",
+      "cidade": "Rio Grande",
       "data_coleta": "2026-01-26"
     },
     {
+      "id": 7,
       "nome": "Gasolina Comum",
       "preco": 5.95,
       "posto": "SIM",
+      "cidade": "Rio Grande",
       "data_coleta": "2026-01-26"
     },
     {
+      "id": 8,
       "nome": "Gasolina Aditivada",
       "preco": 6.20,
       "posto": "SIM",
+      "cidade": "Rio Grande",
       "data_coleta": "2026-01-26"
     },
     {
+      "id": 9,
       "nome": "Gasolina Comum",
       "preco": 5.70,
       "posto": "Shell",
+      "cidade": "Rio Grande",
       "data_coleta": "2026-01-26"
     },
     {
+      "id": 10,
       "nome": "Gasolina Aditivada",
       "preco": 6.08,
       "posto": "Shell",
+      "cidade": "Rio Grande",
       "data_coleta": "2026-01-26"
     }
-  ]
-}
+  ],
+  "farmacia": [
+    {
+      "id": 11,
+      "nome": "Dipirona",
+      "preco": 4.50,
+      "loja": "Farmácia Y",
+      "tipo": "remedio",
+      "cidade": "Ri
