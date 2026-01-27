@@ -1,3 +1,6 @@
+let nichoSelecionado = "";
+let categoriaSelecionada = "";
+
 const produtos = [
   { nome: "Arroz", preco: 0.00, loja: "Mercado Central" },
   { nome: "Feijão", preco: 0.00, loja: "Super Bom" },
