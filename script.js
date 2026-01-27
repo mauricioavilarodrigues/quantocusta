@@ -54,16 +54,15 @@ document.addEventListener("DOMContentLoaded", function() {
 
 function validarBusca() {
 
-  if (nichoSelecionado === "") {
-    alert("Por favor, selecione um tipo de estabelecimento (Supermercado, Combustível ou Farmácia).");
+  if (!nichoSelecionado) {
+    alert("Por favor, selecione Supermercado, Combustível ou Farmácia.");
     return;
   }
 
-  if (categoriaSelecionada === "") {
+  if (!categoriaSelecionada) {
     alert("Por favor, selecione uma categoria.");
     return;
   }
 
-  alert("Agora digite o item que deseja buscar.");
+  alert("Agora você pode digitar o produto para buscar.");
 }
-
