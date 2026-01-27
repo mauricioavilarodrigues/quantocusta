@@ -13,6 +13,13 @@
     <button onclick="setNicho('combustivel')">⛽ Combustível</button>
   </div>
 
+  <!-- Filtro supermercado -->
+  <div id="filtroSupermercado" style="display:none; margin-left:20px; margin-top:8px;">
+    <button onclick="setCategoria('alimento')">🥦 Alimentos</button>
+    <button onclick="setCategoria('limpeza')">🧼 Limpeza</button>
+  </div>
+
+  <!-- Filtro combustível -->
   <div id="filtroCombustivel" style="display:none; margin-left:20px; margin-top:8px;">
     <button onclick="setTipo('Comum')">Comum</button>
     <button onclick="setTipo('Aditivada')">Aditivada</button>
@@ -28,15 +35,22 @@
   <script>
     let nichoAtual = "supermercado";
     let tipoAtual = "";
+    let categoriaAtual = "";
 
     function setNicho(nicho) {
       nichoAtual = nicho;
       tipoAtual = "";
+      categoriaAtual = "";
+
+      document.getElementById("filtroCombustivel").style.display = "none";
+      document.getElementById("filtroSupermercado").style.display = "none";
 
       if (nicho === "combustivel") {
         document.getElementById("filtroCombustivel").style.display = "block";
-      } else {
-        document.getElementById("filtroCombustivel").style.display = "none";
+      }
+
+      if (nicho === "supermercado") {
+        document.getElementById("filtroSupermercado").style.display = "block";
       }
 
       buscar();
@@ -44,6 +58,11 @@
 
     function setTipo(tipo) {
       tipoAtual = tipo;
+      buscar();
+    }
+
+    function setCategoria(cat) {
+      categoriaAtual = cat;
       buscar();
     }
 
@@ -69,6 +88,12 @@
       if (nichoAtual === "combustivel" && tipoAtual) {
         filtrados = filtrados.filter(p =>
           p.nome.toLowerCase().includes(tipoAtual.toLowerCase())
+        );
+      }
+
+      if (nichoAtual === "supermercado" && categoriaAtual) {
+        filtrados = filtrados.filter(p =>
+          p.tipo === categoriaAtual
         );
       }
 
