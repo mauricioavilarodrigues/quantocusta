@@ -16,6 +16,7 @@ li{background:white;margin:6px 0;padding:10px;border-radius:10px;display:flex;ju
 .preco{color:#4f5dff;font-weight:bold}
 .caixa{background:white;padding:12px;border-radius:12px;margin-top:20px;max-width:600px;margin:auto}
 .menor{border:2px solid #4f5dff}
+.quantidade{width:40px;margin-left:10px;text-align:center;border-radius:6px;padding:2px}
 </style>
 </head>
 
@@ -23,12 +24,14 @@ li{background:white;margin:6px 0;padding:10px;border-radius:10px;display:flex;ju
 
 <h1>💰 quantocusta</h1>
 
+<!-- Nichos -->
 <div class="topo">
 <button onclick="setNicho('supermercado',this)">🛒 Supermercado</button>
 <button onclick="setNicho('combustivel',this)">⛽ Combustível</button>
 <button onclick="setNicho('farmacia',this)">💊 Farmácia</button>
 </div>
 
+<!-- Filtros -->
 <div id="filtroSupermercado" class="filtros" style="display:none;">
 <button onclick="setCategoria('alimento',this)">🥦 Alimentos</button>
 <button onclick="setCategoria('limpeza',this)">🧼 Limpeza</button>
@@ -44,6 +47,12 @@ li{background:white;margin:6px 0;padding:10px;border-radius:10px;display:flex;ju
 <button onclick="setCategoriaFarmacia('higiene',this)">🧴 Higiene</button>
 </div>
 
+<!-- Filtro por cidade -->
+<div class="filtros">
+<input id="cidade" placeholder="Cidade..." oninput="buscar()">
+</div>
+
+<!-- Busca -->
 <div class="busca">
 <input id="busca" placeholder="Buscar...">
 <button onclick="buscar()">Buscar</button>
@@ -51,75 +60,114 @@ li{background:white;margin:6px 0;padding:10px;border-radius:10px;display:flex;ju
 
 <ul id="resultado"></ul>
 
+<!-- Cesta -->
 <div class="caixa">
-<button onclick="compararCesta()">🧺 Comparar cesta</button>
+<h3>🧺 Cesta</h3>
+<ul id="cestaLista"></ul>
+<button onclick="compararCesta()">Comparar cesta</button>
 <div id="cestaResultado"></div>
 </div>
 
 <script>
 let nichoAtual="",tipoAtual="",categoriaAtual="",categoriaFarmaciaAtual="";
-let cesta=[];
+let cesta={}; // chave = produto.id, valor = {produto, quantidade}
 
-function limparAtivos(grupo){
-document.querySelectorAll(grupo+" button").forEach(b=>b.classList.remove("ativo"));
-}
+// limpar botões ativos
+function limparAtivos(grupo){document.querySelectorAll(grupo+" button").forEach(b=>b.classList.remove("ativo"));}
 
+// seleção de nicho e filtros
 function setNicho(n,b){
-nichoAtual=n;tipoAtual="";categoriaAtual="";categoriaFarmaciaAtual="";
-document.getElementById("resultado").innerHTML="";
-limparAtivos(".topo");b.classList.add("ativo");
-["Supermercado","Combustivel","Farmacia"].forEach(f=>document.getElementById("filtro"+f).style.display="none");
-if(n=="supermercado")filtroSupermercado.style.display="flex";
-if(n=="combustivel")filtroCombustivel.style.display="flex";
-if(n=="farmacia")filtroFarmacia.style.display="flex";
+    nichoAtual=n;tipoAtual="";categoriaAtual="";categoriaFarmaciaAtual="";
+    document.getElementById("resultado").innerHTML="";
+    limparAtivos(".topo"); b.classList.add("ativo");
+    ["Supermercado","Combustivel","Farmacia"].forEach(f=>document.getElementById("filtro"+f).style.display="none");
+    if(n=="supermercado")filtroSupermercado.style.display="flex";
+    if(n=="combustivel")filtroCombustivel.style.display="flex";
+    if(n=="farmacia")filtroFarmacia.style.display="flex";
 }
 
 function setTipo(t,b){tipoAtual=t;limparAtivos("#filtroCombustivel");b.classList.add("ativo");buscar();}
 function setCategoria(c,b){categoriaAtual=c;limparAtivos("#filtroSupermercado");b.classList.add("ativo");buscar();}
 function setCategoriaFarmacia(c,b){categoriaFarmaciaAtual=c;limparAtivos("#filtroFarmacia");b.classList.add("ativo");buscar();}
 
+// busca de produtos
 async function buscar(){
-if(!nichoAtual)return;
-if(nichoAtual=="combustivel"&&!tipoAtual)return;
-if(nichoAtual=="supermercado"&&!categoriaAtual)return;
-if(nichoAtual=="farmacia"&&!categoriaFarmaciaAtual)return;
+    if(!nichoAtual)return;
+    if(nichoAtual=="combustivel"&&!tipoAtual)return;
+    if(nichoAtual=="supermercado"&&!categoriaAtual)return;
+    if(nichoAtual=="farmacia"&&!categoriaFarmaciaAtual)return;
 
-const termo=busca.value.toLowerCase();
-const res=await fetch("data.json");
-const data=await res.json();
-let itens=data[nichoAtual].filter(p=>p.nome.toLowerCase().includes(termo));
+    const termo=busca.value.toLowerCase();
+    const cidadeFiltro=document.getElementById("cidade").value.toLowerCase();
+    
+    // buscar via API ou JSON local
+    const res=await fetch("data.json");
+    const data=await res.json();
 
-if(nichoAtual=="combustivel")itens=itens.filter(p=>p.nome.includes(tipoAtual));
-if(nichoAtual=="supermercado")itens=itens.filter(p=>p.tipo==categoriaAtual);
-if(nichoAtual=="farmacia")itens=itens.filter(p=>p.tipo==categoriaFarmaciaAtual);
+    let itens=data[nichoAtual].filter(p=>{
+        let ok=true;
+        if(termo && !p.nome.toLowerCase().includes(termo)) ok=false;
+        if(nichoAtual=="combustivel" && tipoAtual && !p.nome.includes(tipoAtual)) ok=false;
+        if(nichoAtual=="supermercado" && categoriaAtual && p.tipo!=categoriaAtual) ok=false;
+        if(nichoAtual=="farmacia" && categoriaFarmaciaAtual && p.tipo!=categoriaFarmaciaAtual) ok=false;
+        if(cidadeFiltro && !p.cidade.toLowerCase().includes(cidadeFiltro)) ok=false;
+        return ok;
+    });
 
-resultado.innerHTML="";
-itens.forEach(p=>{
-const li=document.createElement("li");
-li.innerHTML=`<span><input type="checkbox" onchange='addCesta(${JSON.stringify(p)})'> ${p.nome}<br><small>${p.loja||p.posto}</small></span>
-<span class="preco">R$ ${p.preco.toFixed(2)}</span>`;
-resultado.appendChild(li);
-});
+    mostrarResultados(itens);
 }
 
-function addCesta(p){
-cesta.push(p);
+// mostrar resultados
+function mostrarResultados(itens){
+    const resultado=document.getElementById("resultado");
+    resultado.innerHTML="";
+    itens.forEach(p=>{
+        const li=document.createElement("li");
+        li.innerHTML=`<span>
+            <input type="number" min="0" value="${cesta[p.id]?.quantidade||0}" class="quantidade" onchange='atualizarCesta(${JSON.stringify(p)}, this.value)'> 
+            ${p.nome}<br><small>${p.loja||p.posto} - ${p.cidade}</small>
+        </span>
+        <span class="preco">R$ ${p.preco.toFixed(2)}</span>`;
+        resultado.appendChild(li);
+    });
 }
 
+// adicionar/atualizar cesta
+function atualizarCesta(p, q){
+    q=parseInt(q);
+    if(q>0)cesta[p.id]={produto:p, quantidade:q};
+    else delete cesta[p.id];
+    mostrarCesta();
+}
+
+// mostrar cesta
+function mostrarCesta(){
+    const lista=document.getElementById("cestaLista");
+    lista.innerHTML="";
+    for(let k in cesta){
+        let item=cesta[k];
+        let li=document.createElement("li");
+        li.innerHTML=`${item.produto.nome} x${item.quantidade} - R$ ${(item.produto.preco*item.quantidade).toFixed(2)}`;
+        lista.appendChild(li);
+    }
+}
+
+// comparar cesta
 function compararCesta(){
-let porLoja={};
-cesta.forEach(p=>{
-let l=p.loja||p.posto;
-porLoja[l]=(porLoja[l]||0)+p.preco;
-});
-let html="<h3>Resultado da cesta</h3>";
-let menor=Infinity;
-for(let l in porLoja) menor=Math.min(menor,porLoja[l]);
-for(let l in porLoja){
-let cls=porLoja[l]==menor?"menor":"";
-html+=`<div class="${cls}">${l}: R$ ${porLoja[l].toFixed(2)}</div>`;
-}
-cestaResultado.innerHTML=html;
+    let porLoja={};
+    for(let k in cesta){
+        let item=cesta[k];
+        let l=item.produto.loja||item.produto.posto;
+        porLoja[l]=(porLoja[l]||0)+(item.produto.preco*item.quantidade);
+    }
+    let html="<h3>Resultado da cesta</h3>";
+    let menor=Infinity;
+    for(let l in porLoja) menor=Math.min(menor,porLoja[l]);
+    for(let l in porLoja){
+        let cls=porLoja[l]==menor?"menor":"";
+        html+=`<div class="${cls}">${l}: R$ ${porLoja[l].toFixed(2)}</div>`;
+    }
+    document.getElementById("cestaResultado").innerHTML=html;
 }
 </script>
 
