@@ -1,20 +1,8 @@
 @@ -1,63 +1,59 @@
 document.addEventListener("DOMContentLoaded", function() {
-
-  const inputBusca = document.getElementById("busca");
-
-  inputBusca.addEventListener("keypress", function(event) {
-    if (event.key === "Enter") {
-      buscar();
-    }
-  });
-
-});
-
-document.addEventListener("DOMContentLoaded", function() {
   const campoBusca = document.getElementById("busca");
 
-   campoBusca.addEventListener("keydown", function(event) {
+  campoBusca.addEventListener("keydown", function(event) {
     if (event.key === "Enter") {
       event.preventDefault();
       buscar();
