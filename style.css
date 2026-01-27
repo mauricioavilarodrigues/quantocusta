@@ -20,3 +20,13 @@ input {
   margin-bottom: 8px;
   border-radius: 5px;
 }
+
+.avaliacao {
+  margin-top: 6px;
+  font-size: 14px;
+}
+
+.avaliacao button {
+  margin-right: 5px;
+  cursor: pointer;
+}
