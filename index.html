@@ -79,10 +79,26 @@ function setCategoria(c,b){categoriaAtual=c;limparAtivos("#filtroSupermercado");
 function setCategoriaFarmacia(c,b){categoriaFarmaciaAtual=c;limparAtivos("#filtroFarmacia");b.classList.add("ativo");buscar();}
 
 async function buscar(){
-if(!nichoAtual)return;
-if(nichoAtual=="combustivel"&&!tipoAtual)return;
-if(nichoAtual=="supermercado"&&!categoriaAtual)return;
-if(nichoAtual=="farmacia"&&!categoriaFarmaciaAtual)return;
+
+  if(!nichoAtual){
+    alert("Por favor, selecione Supermercado, Combustível ou Farmácia.");
+    return;
+  }
+
+  if(nichoAtual=="combustivel" && !tipoAtual){
+    alert("Por favor, selecione o tipo de combustível.");
+    return;
+  }
+
+  if(nichoAtual=="supermercado" && !categoriaAtual){
+    alert("Por favor, selecione uma categoria do supermercado.");
+    return;
+  }
+
+  if(nichoAtual=="farmacia" && !categoriaFarmaciaAtual){
+    alert("Por favor, selecione uma categoria da farmácia.");
+    return;
+  }
 
 const termo=busca.value.toLowerCase();
 const res=await fetch("data.json");
