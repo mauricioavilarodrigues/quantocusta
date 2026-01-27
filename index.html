@@ -44,15 +44,12 @@ li{background:white;margin:6px 0;padding:10px;border-radius:10px;display:flex;ju
 <button onclick="setCategoriaFarmacia('higiene',this)">🧴 Higiene</button>
 </div>
 
-<!-- Adicionei form para capturar Enter -->
 <div class="busca">
-<form id="formBusca" onsubmit="buscar(); return false;">
+<form onsubmit="buscar(); return false;">
 <input id="busca" placeholder="Buscar...">
 <button type="submit">Buscar</button>
 </form>
 </div>
-
-<div id="mensagem" style="color:red; font-weight:bold; margin-top:10px;"></div>
 
 <ul id="resultado"></ul>
 
@@ -71,7 +68,7 @@ document.querySelectorAll(grupo+" button").forEach(b=>b.classList.remove("ativo"
 
 function setNicho(n,b){
 nichoAtual=n;tipoAtual="";categoriaAtual="";categoriaFarmaciaAtual="";
-document.getElementById("resultado").innerHTML="";
+resultado.innerHTML="";
 limparAtivos(".topo");b.classList.add("ativo");
 ["Supermercado","Combustivel","Farmacia"].forEach(f=>document.getElementById("filtro"+f).style.display="none");
 if(n=="supermercado")filtroSupermercado.style.display="flex";
@@ -84,26 +81,31 @@ function setCategoria(c,b){categoriaAtual=c;limparAtivos("#filtroSupermercado");
 function setCategoriaFarmacia(c,b){categoriaFarmaciaAtual=c;limparAtivos("#filtroFarmacia");b.classList.add("ativo");buscar();}
 
 async function buscar(){
-  if(!nichoAtual){
-    alert("Por favor, selecione Supermercado, Combustível ou Farmácia.");
-    return;
-  }
-  if(nichoAtual=="combustivel" && !tipoAtual){
-    alert("Por favor, selecione o tipo de combustível.");
-    return;
-  }
-  if(nichoAtual=="supermercado" && !categoriaAtual){
-    alert("Por favor, selecione uma categoria do supermercado.");
-    return;
-  }
-  if(nichoAtual=="farmacia" && !categoriaFarmaciaAtual){
-    alert("Por favor, selecione uma categoria da farmácia.");
-    return;
-  }
 
-const termo=document.getElementById("busca").value.toLowerCase();
+if(!nichoAtual){
+setNicho("supermercado", document.querySelector(".topo button"));
+}
+
+// AUTO-SELEÇÃO INTELIGENTE
+if(nichoAtual=="combustivel" && !tipoAtual){
+let b=document.querySelector("#filtroCombustivel button");
+setTipo(b.innerText,b);
+}
+
+if(nichoAtual=="supermercado" && !categoriaAtual){
+let b=document.querySelector("#filtroSupermercado button");
+setCategoria("alimento",b);
+}
+
+if(nichoAtual=="farmacia" && !categoriaFarmaciaAtual){
+let b=document.querySelector("#filtroFarmacia button");
+setCategoriaFarmacia("remedio",b);
+}
+
+const termo=busca.value.toLowerCase();
 const res=await fetch("data.json");
 const data=await res.json();
+
 let itens=data[nichoAtual].filter(p=>p.nome.toLowerCase().includes(termo));
 
 if(nichoAtual=="combustivel")itens=itens.filter(p=>p.nome.includes(tipoAtual));
@@ -133,7 +135,7 @@ let html="<h3>Resultado da cesta</h3>";
 let menor=Infinity;
 for(let l in porLoja) menor=Math.min(menor,porLoja[l]);
 for(let l in porLoja){
-let cls=porLoja[l]==menor?"menor":""; 
+let cls=porLoja[l]==menor?"menor":"";
 html+=`<div class="${cls}">${l}: R$ ${porLoja[l].toFixed(2)}</div>`;
 }
 cestaResultado.innerHTML=html;
