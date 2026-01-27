@@ -81,7 +81,6 @@ async function buscar(){
 function validarBusca() {
 
   if (!nichoSelecionado) {
-  document.getElementById("mensagem").innerText =
   "Por favor, selecione Supermercado, Combustível ou Farmácia.";
 return;
   }
@@ -89,7 +88,6 @@ return;
   if(nichoAtual=="farmacia" && !categoriaFarmaciaAtual){
     alert("Por favor, selecione uma categoria da farmácia.");
   if (!categoriaSelecionada) {
-    document.getElementById("mensagem").innerText =
     "Por favor, selecione o tipo de combustível.";
     return;
   }
