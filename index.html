@@ -11,6 +11,7 @@
   <div>
     <button onclick="setNicho('supermercado')">🛒 Supermercado</button>
     <button onclick="setNicho('combustivel')">⛽ Combustível</button>
+    <button onclick="setNicho('farmacia')">💊 Farmácia</button>
   </div>
 
   <!-- Filtro supermercado -->
@@ -25,6 +26,12 @@
     <button onclick="setTipo('Aditivada')">Aditivada</button>
   </div>
 
+  <!-- Filtro farmácia -->
+  <div id="filtroFarmacia" style="display:none; margin-left:20px; margin-top:8px;">
+    <button onclick="setCategoriaFarmacia('remedio')">💊 Remédios</button>
+    <button onclick="setCategoriaFarmacia('higiene')">🧴 Higiene</button>
+  </div>
+
   <br>
 
   <input id="busca" placeholder="Buscar produto...">
@@ -36,16 +43,19 @@
     let nichoAtual = "";
     let tipoAtual = "";
     let categoriaAtual = "";
+    let categoriaFarmaciaAtual = "";
 
     function setNicho(nicho) {
       nichoAtual = nicho;
       tipoAtual = "";
       categoriaAtual = "";
+      categoriaFarmaciaAtual = "";
 
       document.getElementById("resultado").innerHTML = "";
 
       document.getElementById("filtroCombustivel").style.display = "none";
       document.getElementById("filtroSupermercado").style.display = "none";
+      document.getElementById("filtroFarmacia").style.display = "none";
 
       if (nicho === "combustivel") {
         document.getElementById("filtroCombustivel").style.display = "block";
@@ -53,6 +63,10 @@
 
       if (nicho === "supermercado") {
         document.getElementById("filtroSupermercado").style.display = "block";
+      }
+
+      if (nicho === "farmacia") {
+        document.getElementById("filtroFarmacia").style.display = "block";
       }
     }
 
@@ -66,11 +80,17 @@
       buscar();
     }
 
+    function setCategoriaFarmacia(cat) {
+      categoriaFarmaciaAtual = cat;
+      buscar();
+    }
+
     async function buscar() {
       if (!nichoAtual) return;
 
       if (nichoAtual === "combustivel" && !tipoAtual) return;
       if (nichoAtual === "supermercado" && !categoriaAtual) return;
+      if (nichoAtual === "farmacia" && !categoriaFarmaciaAtual) return;
 
       const termo = document.getElementById("busca").value.toLowerCase();
       const res = await fetch("data.json");
@@ -94,6 +114,12 @@
       if (nichoAtual === "supermercado") {
         filtrados = filtrados.filter(p =>
           p.tipo === categoriaAtual
+        );
+      }
+
+      if (nichoAtual === "farmacia") {
+        filtrados = filtrados.filter(p =>
+          p.tipo === categoriaFarmaciaAtual
         );
       }
 
