@@ -190,15 +190,114 @@ li {
 </div>
 
 <!-- Mapa -->
+<!-- MAPA -->
 <div id="map"></div>
 
 <!-- Leaflet JS -->
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
-<!-- Script funcional -->
 <script>
-let nichoAtual="",tipoAtual="",categoriaAtual="",categoriaFarmaciaAtual="";
-let cesta=[];
+// Inicializa o mapa
+const map = L.map('map').setView([-32.035,-52.098],13);
+
+// TileLayer neutro
+L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{
+    attribution:'© OpenStreetMap'
+}).addTo(map);
+
+let markersLayer = L.layerGroup().addTo(map);
+let usuarioPosicao=null;
+let pontos=[];
+
+// Marcador do usuário
+map.locate({setView:true,maxZoom:15});
+map.on("locationfound", e=>{
+    usuarioPosicao=e.latlng;
+    L.circleMarker(usuarioPosicao,{
+        radius:8,
+        color:'#4f5dff',
+        fillColor:'#4f5dff',
+        fillOpacity:0.8
+    }).addTo(map).bindPopup("<b>Você está aqui</b>").openPopup();
+});
+
+// Coordenadas fictícias para postos
+const coords = {
+    "Buffon":[-32.035,-52.095],
+    "SIM":[-32.032,-52.105],
+    "Shell":[-32.040,-52.090]
+};
+
+// Função para carregar marcadores do JSON
+async function carregarMapa(){
+    const res = await fetch("data.json");
+    const data = await res.json();
+
+    markersLayer.clearLayers();
+    pontos=[];
+
+    data.combustivel.forEach(p=>{
+        const c = coords[p.posto];
+        if(!c) return;
+
+        // Marcador colorido corporativo
+        const marker = L.marker(c,{
+            icon: L.icon({
+                iconUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png',
+                iconSize:[25,41],
+                iconAnchor:[12,41],
+                popupAnchor:[1,-34]
+            })
+        }).addTo(markersLayer);
+
+        // Pop-up com estilo corporativo
+        const popupContent = `
+            <div style="font-family:Segoe UI;font-size:0.95em;color:#212529;">
+                <b style="color:#4f5dff;">${p.posto}</b><br>
+                ${p.nome}<br>
+                <span style="font-weight:bold;">R$ ${p.preco.toFixed(2)}</span>
+            </div>
+        `;
+
+        marker.bindPopup(popupContent);
+
+        pontos.push({lat:c[0], lng:c[1], nome:p.posto, preco:p.preco, marker});
+    });
+}
+
+// Função de distância e melhor opção
+function distancia(lat1, lon1, lat2, lon2){
+    const R=6371;
+    const dLat=(lat2-lat1)*Math.PI/180;
+    const dLon=(lon2-lon1)*Math.PI/180;
+    const a=Math.sin(dLat/2)**2 + Math.cos(lat1*Math.PI/180)*Math.cos(lat2*Math.PI/180)*Math.sin(dLon/2)**2;
+    return R*2*Math.atan2(Math.sqrt(a),Math.sqrt(1-a));
+}
+
+function acharMelhorOpcao(){
+    if(!usuarioPosicao) return alert("Localização não encontrada.");
+    const pesoDistancia=2;
+    pontos.forEach(p=>{
+        p.distancia = distancia(usuarioPosicao.lat,usuarioPosicao.lng,p.lat,p.lng);
+        p.score = p.preco + (p.distancia*pesoDistancia);
+    });
+    pontos.sort((a,b)=>a.score-b.score);
+    const melhor = pontos[0];
+    melhor.marker.openPopup();
+    map.setView([melhor.lat,melhor.lng],16);
+
+    alert(
+        `🏆 Melhor opção:\n\n`+
+        `${melhor.nome}\n`+
+        `Preço: R$ ${melhor.preco}\n`+
+        `Distância: ${melhor.distancia.toFixed(2)} km\n`+
+        `Score: ${melhor.score.toFixed(2)}`
+    );
+}
+
+// Carrega mapa ao iniciar
+carregarMapa();
+</script>
 
 /* ===== CONTROLES ===== */
 function limparAtivos(grupo){
