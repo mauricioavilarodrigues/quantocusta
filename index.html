@@ -5,6 +5,10 @@
 <title>quantocusta</title>
 <meta name="viewport" content="width=device-width, initial-scale=1">
 
+<!-- LEAFLET -->
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
 <style>
 body{font-family:Arial;background:#f6f7fb;padding:20px}
 h1{text-align:center}
@@ -60,14 +64,38 @@ li{background:white;margin:6px 0;padding:10px;border-radius:10px;display:flex;ju
 
 <div id="map" style="height:350px; max-width:600px; margin:20px auto; border-radius:12px;"></div>
 
-<div class="caixa">
-<button onclick="compararCesta()">🧺 Comparar cesta</button>
-<div id="cestaResultado"></div>
-</div>
-
 <script>
 let nichoAtual="",tipoAtual="",categoriaAtual="",categoriaFarmaciaAtual="";
 let cesta=[];
+
+// MAPA
+let map = L.map('map').setView([-32.0349, -52.0986], 13);
+
+L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+  attribution: '© OpenStreetMap'
+}).addTo(map);
+
+let marcadores = [];
+
+function atualizarMapa(itens){
+  marcadores.forEach(m => map.removeLayer(m));
+  marcadores = [];
+
+  itens.forEach(p=>{
+    if(!p.lat || !p.lng) return;
+
+    let m = L.marker([p.lat,p.lng])
+      .addTo(map)
+      .bindPopup(`<b>${p.loja||p.posto}</b><br>${p.nome}`);
+
+    marcadores.push(m);
+  });
+
+  if(marcadores.length){
+    let grupo = new L.featureGroup(marcadores);
+    map.fitBounds(grupo.getBounds().pad(0.3));
+  }
+}
 
 function limparAtivos(grupo){
   document.querySelectorAll(grupo+" button").forEach(b=>b.classList.remove("ativo"));
@@ -89,69 +117,28 @@ function setNicho(n,b){
   if(n=="farmacia")filtroFarmacia.style.display="flex";
 }
 
-function setTipo(t,b){
-  tipoAtual=t;
-  limparAtivos("#filtroCombustivel");
-  b.classList.add("ativo");
-  buscar();
-}
+function setTipo(t,b){tipoAtual=t;limparAtivos("#filtroCombustivel");b.classList.add("ativo");buscar();}
+function setCategoria(c,b){categoriaAtual=c;limparAtivos("#filtroSupermercado");b.classList.add("ativo");buscar();}
+function setCategoriaFarmacia(c,b){categoriaFarmaciaAtual=c;limparAtivos("#filtroFarmacia");b.classList.add("ativo");buscar();}
 
-function setCategoria(c,b){
-  categoriaAtual=c;
-  limparAtivos("#filtroSupermercado");
-  b.classList.add("ativo");
-  buscar();
-}
-
-function setCategoriaFarmacia(c,b){
-  categoriaFarmaciaAtual=c;
-  limparAtivos("#filtroFarmacia");
-  b.classList.add("ativo");
-  buscar();
-}
-
-function mostrarDialogo(msg){
-  alert(msg);
-}
+function mostrarDialogo(msg){alert(msg);}
 
 async function buscar(){
 
-  if (!nichoAtual) {
-    mostrarDialogo("Por favor, selecione Supermercado, Combustível ou Farmácia.");
-    return;
-  }
-
-  if (nichoAtual === "combustivel" && !tipoAtual) {
-    mostrarDialogo("Por favor, selecione o tipo de combustível.");
-    return;
-  }
-
-  if (nichoAtual === "supermercado" && !categoriaAtual) {
-    mostrarDialogo("Por favor, selecione uma categoria do supermercado.");
-    return;
-  }
-
-  if (nichoAtual === "farmacia" && !categoriaFarmaciaAtual) {
-    mostrarDialogo("Por favor, selecione uma categoria da farmácia.");
-    return;
-  }
+  if (!nichoAtual){mostrarDialogo("Selecione um nicho.");return;}
+  if (nichoAtual==="combustivel" && !tipoAtual){mostrarDialogo("Selecione o tipo.");return;}
+  if (nichoAtual==="supermercado" && !categoriaAtual){mostrarDialogo("Selecione a categoria.");return;}
+  if (nichoAtual==="farmacia" && !categoriaFarmaciaAtual){mostrarDialogo("Selecione a categoria.");return;}
 
   const termo = busca.value.toLowerCase();
   const res = await fetch("data.json");
   const data = await res.json();
 
-  let itens = data[nichoAtual].filter(p =>
-    p.nome.toLowerCase().includes(termo)
-  );
+  let itens = data[nichoAtual].filter(p=>p.nome.toLowerCase().includes(termo));
 
-  if(nichoAtual=="combustivel")
-    itens = itens.filter(p => p.nome.toLowerCase().includes(tipoAtual.toLowerCase()));
-
-  if(nichoAtual=="supermercado")
-    itens = itens.filter(p => p.tipo == categoriaAtual);
-
-  if(nichoAtual=="farmacia")
-    itens = itens.filter(p => p.tipo == categoriaFarmaciaAtual);
+  if(nichoAtual=="combustivel") itens = itens.filter(p=>p.nome.toLowerCase().includes(tipoAtual.toLowerCase()));
+  if(nichoAtual=="supermercado") itens = itens.filter(p=>p.tipo==categoriaAtual);
+  if(nichoAtual=="farmacia") itens = itens.filter(p=>p.tipo==categoriaFarmaciaAtual);
 
   resultado.innerHTML="";
 
@@ -163,15 +150,14 @@ async function buscar(){
         ${p.nome}<br>
         <small>${p.loja||p.posto}</small>
       </span>
-      <span class="preco">R$ ${p.preco.toFixed(2)}</span>
-    `;
+      <span class="preco">R$ ${p.preco.toFixed(2)}</span>`;
     resultado.appendChild(li);
   });
+
+  atualizarMapa(itens);
 }
 
-function addCesta(p){
-  cesta.push(p);
-}
+function addCesta(p){cesta.push(p);}
 
 function compararCesta(){
   let porLoja={};
