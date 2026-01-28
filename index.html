@@ -62,7 +62,7 @@ li{background:white;margin:6px 0;padding:10px;border-radius:10px;display:flex;ju
 </div>
 
 <div class="caixa">
-  <button onclick="acharMaisProximo()">📍 Encontrar mais próximo</button>
+  <button onclick="acharMelhorOpcao()">📍 Melhor opção perto de você</button>
 </div>
 
 <div id="map"></div>
@@ -185,7 +185,7 @@ function compararCesta(){
   cestaResultado.innerHTML=html;
 }
 
-/* ===== MAPA + LOCALIZAÇÃO ===== */
+/* ===== MAPA + INTELIGÊNCIA ===== */
 
 const map = L.map('map').setView([-32.035, -52.098], 13);
 
@@ -194,13 +194,13 @@ L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
 }).addTo(map);
 
 let markersLayer = L.layerGroup().addTo(map);
-let usuarioPosicao = null;
-let pontos = [];
+let usuarioPosicao=null;
+let pontos=[];
 
 map.locate({setView:true,maxZoom:15});
 
 map.on("locationfound", e=>{
-  usuarioPosicao = e.latlng;
+  usuarioPosicao=e.latlng;
 
   L.circleMarker(usuarioPosicao,{radius:8})
     .addTo(map)
@@ -208,35 +208,35 @@ map.on("locationfound", e=>{
     .openPopup();
 });
 
-const coords = {
+const coords={
   "Buffon": [-32.035, -52.095],
   "SIM": [-32.032, -52.105],
   "Shell": [-32.040, -52.090]
 };
 
 async function carregarMapa(){
-  const res = await fetch("data.json");
-  const data = await res.json();
+  const res=await fetch("data.json");
+  const data=await res.json();
 
   markersLayer.clearLayers();
-  pontos = [];
+  pontos=[];
 
   data.combustivel.forEach(p=>{
-    const c = coords[p.posto];
+    const c=coords[p.posto];
     if(!c) return;
 
-    const marker = L.marker(c).addTo(markersLayer);
+    const marker=L.marker(c).addTo(markersLayer);
     marker.bindPopup(`<b>${p.posto}</b><br>${p.nome}<br>R$ ${p.preco}`);
 
-    pontos.push({lat:c[0],lng:c[1],nome:p.posto,marker});
+    pontos.push({lat:c[0],lng:c[1],nome:p.posto,preco:p.preco,marker});
   });
 }
 
 function distancia(lat1, lon1, lat2, lon2) {
-  const R = 6371;
-  const dLat = (lat2-lat1)*Math.PI/180;
-  const dLon = (lon2-lon1)*Math.PI/180;
-  const a =
+  const R=6371;
+  const dLat=(lat2-lat1)*Math.PI/180;
+  const dLon=(lon2-lon1)*Math.PI/180;
+  const a=
     Math.sin(dLat/2)*Math.sin(dLat/2)+
     Math.cos(lat1*Math.PI/180)*
     Math.cos(lat2*Math.PI/180)*
@@ -244,19 +244,30 @@ function distancia(lat1, lon1, lat2, lon2) {
   return R*2*Math.atan2(Math.sqrt(a),Math.sqrt(1-a));
 }
 
-function acharMaisProximo(){
+function acharMelhorOpcao(){
   if(!usuarioPosicao) return alert("Localização não encontrada.");
 
-  let menor=null, escolhido=null;
+  const pesoDistancia=2;
 
   pontos.forEach(p=>{
-    const d = distancia(usuarioPosicao.lat,usuarioPosicao.lng,p.lat,p.lng);
-    if(menor===null||d<menor){menor=d;escolhido=p;}
+    p.distancia=distancia(usuarioPosicao.lat,usuarioPosicao.lng,p.lat,p.lng);
+    p.score=p.preco+(p.distancia*pesoDistancia);
   });
 
-  escolhido.marker.openPopup();
-  map.setView([escolhido.lat,escolhido.lng],16);
-  alert(`Mais próximo: ${escolhido.nome} (${menor.toFixed(2)} km)`);
+  pontos.sort((a,b)=>a.score-b.score);
+
+  const melhor=pontos[0];
+
+  melhor.marker.openPopup();
+  map.setView([melhor.lat,melhor.lng],16);
+
+  alert(
+    `🏆 Melhor opção:\n\n`+
+    `${melhor.nome}\n`+
+    `Preço: R$ ${melhor.preco}\n`+
+    `Distância: ${melhor.distancia.toFixed(2)} km\n`+
+    `Score: ${melhor.score.toFixed(2)}`
+  );
 }
 
 carregarMapa();
