@@ -1,38 +1,30 @@
 {
   "supermercado": [
-    {"id":1,"nome":"Arroz 1kg","preco":5.97,"loja":"Guanabara","tipo":"alimento","cidade":"Rio Grande","data_coleta":"2026-01-24","validade":"2026-02-01"},
-    {"id":2,"nome":"Leite 1L","preco":4.50,"loja":"Carrefour","tipo":"alimento","cidade":"Rio Grande","data_coleta":"2026-01-24","validade":"2026-01-28"},
-    {"id":3,"nome":"Leite 1L","preco":5.98,"loja":"Stok","tipo":"alimento","cidade":"Rio Grande","data_coleta":"2026-01-24","validade":"2026-01-28"},
-    {"id":4,"nome":"Arroz 1kg","preco":5.95,"loja":"Ecomix","tipo":"alimento","cidade":"Rio Grande","data_coleta":"2026-01-24","validade":"2026-01-28"},
-    {"id":5,"nome":"Feijão Carioca 1kg","preco":8.50,"loja":"Guanabara","tipo":"alimento","cidade":"Rio Grande","data_coleta":"2026-01-24","validade":"2026-02-02"},
-    {"id":6,"nome":"Macarrão 500g","preco":3.20,"loja":"Carrefour","tipo":"alimento","cidade":"Rio Grande","data_coleta":"2026-01-24","validade":"2026-02-10"},
-    {"id":7,"nome":"Óleo de Soja 900ml","preco":6.00,"loja":"Stok","tipo":"alimento","cidade":"Rio Grande","data_coleta":"2026-01-24","validade":"2026-02-05"},
-    {"id":8,"nome":"Detergente Líquido 500ml","preco":2.80,"loja":"Ecomix","tipo":"limpeza","cidade":"Rio Grande","data_coleta":"2026-01-24","validade":"2026-03-01"},
-    {"id":9,"nome":"Sabão em Pó 1kg","preco":9.50,"loja":"Guanabara","tipo":"limpeza","cidade":"Rio Grande","data_coleta":"2026-01-24","validade":"2026-03-05"},
-    {"id":10,"nome":"Água Mineral 1,5L","preco":2.50,"loja":"Carrefour","tipo":"alimento","cidade":"Rio Grande","data_coleta":"2026-01-24","validade":"2026-02-15"}
+    {"id":1,"nome":"Arroz 1kg","preco":5.97,"loja":"Guanabara","lat":-32.0325,"lng":-52.0951,"tipo":"alimento","cidade":"Rio Grande"},
+    {"id":2,"nome":"Leite 1L","preco":4.50,"loja":"Carrefour","lat":-32.0342,"lng":-52.0989,"tipo":"alimento","cidade":"Rio Grande"},
+    {"id":3,"nome":"Leite 1L","preco":5.98,"loja":"Stok","lat":-32.0368,"lng":-52.1012,"tipo":"alimento","cidade":"Rio Grande"},
+    {"id":4,"nome":"Arroz 1kg","preco":5.95,"loja":"Ecomix","lat":-32.0314,"lng":-52.0925,"tipo":"alimento","cidade":"Rio Grande"},
+    {"id":5,"nome":"Feijão Carioca 1kg","preco":8.50,"loja":"Guanabara","lat":-32.0325,"lng":-52.0951,"tipo":"alimento","cidade":"Rio Grande"},
+    {"id":6,"nome":"Macarrão 500g","preco":3.20,"loja":"Carrefour","lat":-32.0342,"lng":-52.0989,"tipo":"alimento","cidade":"Rio Grande"},
+    {"id":7,"nome":"Óleo de Soja 900ml","preco":6.00,"loja":"Stok","lat":-32.0368,"lng":-52.1012,"tipo":"alimento","cidade":"Rio Grande"},
+    {"id":8,"nome":"Detergente Líquido 500ml","preco":2.80,"loja":"Ecomix","lat":-32.0314,"lng":-52.0925,"tipo":"limpeza","cidade":"Rio Grande"},
+    {"id":9,"nome":"Sabão em Pó 1kg","preco":9.50,"loja":"Guanabara","lat":-32.0325,"lng":-52.0951,"tipo":"limpeza","cidade":"Rio Grande"},
+    {"id":10,"nome":"Água Mineral 1,5L","preco":2.50,"loja":"Carrefour","lat":-32.0342,"lng":-52.0989,"tipo":"alimento","cidade":"Rio Grande"}
   ],
+
   "combustivel": [
-    {"id":11,"nome":"Gasolina Comum","preco":5.85,"posto":"Buffon","cidade":"Rio Grande","data_coleta":"2026-01-26"},
-    {"id":12,"nome":"Gasolina Aditivada","preco":6.10,"posto":"Buffon","cidade":"Rio Grande","data_coleta":"2026-01-26"},
-    {"id":13,"nome":"Gasolina Comum","preco":5.95,"posto":"SIM","cidade":"Rio Grande","data_coleta":"2026-01-26"},
-    {"id":14,"nome":"Gasolina Aditivada","preco":6.20,"posto":"SIM","cidade":"Rio Grande","data_coleta":"2026-01-26"},
-    {"id":15,"nome":"Gasolina Comum","preco":5.70,"posto":"Shell","cidade":"Rio Grande","data_coleta":"2026-01-26"},
-    {"id":16,"nome":"Gasolina Aditivada","preco":6.08,"posto":"Shell","cidade":"Rio Grande","data_coleta":"2026-01-26"},
-    {"id":17,"nome":"Etanol","preco":4.90,"posto":"Buffon","cidade":"Rio Grande","data_coleta":"2026-01-26"},
-    {"id":18,"nome":"Etanol","preco":4.95,"posto":"SIM","cidade":"Rio Grande","data_coleta":"2026-01-26"},
-    {"id":19,"nome":"Diesel S10","preco":5.60,"posto":"Shell","cidade":"Rio Grande","data_coleta":"2026-01-26"},
-    {"id":20,"nome":"Diesel S10","preco":5.65,"posto":"Buffon","cidade":"Rio Grande","data_coleta":"2026-01-26"}
+    {"id":11,"nome":"Gasolina Comum","preco":5.85,"posto":"Buffon","lat":-32.0331,"lng":-52.1008},
+    {"id":12,"nome":"Gasolina Aditivada","preco":6.10,"posto":"Buffon","lat":-32.0331,"lng":-52.1008},
+    {"id":13,"nome":"Gasolina Comum","preco":5.95,"posto":"SIM","lat":-32.0389,"lng":-52.0937},
+    {"id":14,"nome":"Gasolina Aditivada","preco":6.20,"posto":"SIM","lat":-32.0389,"lng":-52.0937},
+    {"id":15,"nome":"Gasolina Comum","preco":5.70,"posto":"Shell","lat":-32.0302,"lng":-52.0973},
+    {"id":16,"nome":"Gasolina Aditivada","preco":6.08,"posto":"Shell","lat":-32.0302,"lng":-52.0973}
   ],
+
   "farmacia": [
-    {"id":21,"nome":"Dipirona","preco":4.50,"loja":"Farmácia Y","tipo":"remedio","cidade":"Rio Grande","data_coleta":"2026-01-26"},
-    {"id":22,"nome":"Shampoo","preco":12.90,"loja":"Farmácia Z","tipo":"higiene","cidade":"Rio Grande","data_coleta":"2026-01-26"},
-    {"id":23,"nome":"Sabonete","preco":3.50,"loja":"Farmácia Y","tipo":"higiene","cidade":"Rio Grande","data_coleta":"2026-01-26"},
-    {"id":24,"nome":"Paracetamol 500mg","preco":5.80,"loja":"Farmácia Z","tipo":"remedio","cidade":"Rio Grande","data_coleta":"2026-01-26"},
-    {"id":25,"nome":"Creme Dental 90g","preco":6.20,"loja":"Farmácia Y","tipo":"higiene","cidade":"Rio Grande","data_coleta":"2026-01-26"},
-    {"id":26,"nome":"Escova de Dente","preco":7.50,"loja":"Farmácia Z","tipo":"higiene","cidade":"Rio Grande","data_coleta":"2026-01-26"},
-    {"id":27,"nome":"Ibuprofeno 400mg","preco":8.20,"loja":"Farmácia Y","tipo":"remedio","cidade":"Rio Grande","data_coleta":"2026-01-26"},
-    {"id":28,"nome":"Vitamina C 500mg","preco":10.50,"loja":"Farmácia Z","tipo":"remedio","cidade":"Rio Grande","data_coleta":"2026-01-26"},
-    {"id":29,"nome":"Hidratante 200ml","preco":15.00,"loja":"Farmácia Y","tipo":"higiene","cidade":"Rio Grande","data_coleta":"2026-01-26"},
-    {"id":30,"nome":"Protetor Solar 120ml","preco":25.00,"loja":"Farmácia Z","tipo":"higiene","cidade":"Rio Grande","data_coleta":"2026-01-26"}
+    {"id":21,"nome":"Dipirona","preco":4.50,"loja":"Farmácia Y","lat":-32.0357,"lng":-52.0995,"tipo":"remedio"},
+    {"id":22,"nome":"Shampoo","preco":12.90,"loja":"Farmácia Z","lat":-32.0372,"lng":-52.0944,"tipo":"higiene"},
+    {"id":23,"nome":"Sabonete","preco":3.50,"loja":"Farmácia Y","lat":-32.0357,"lng":-52.0995,"tipo":"higiene"},
+    {"id":24,"nome":"Paracetamol","preco":5.80,"loja":"Farmácia Z","lat":-32.0372,"lng":-52.0944,"tipo":"remedio"}
   ]
 }
