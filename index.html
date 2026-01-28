@@ -61,6 +61,10 @@ li{background:white;margin:6px 0;padding:10px;border-radius:10px;display:flex;ju
   <div id="cestaResultado"></div>
 </div>
 
+<div class="caixa">
+  <button onclick="acharMaisProximo()">📍 Encontrar mais próximo</button>
+</div>
+
 <div id="map"></div>
 
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
@@ -107,144 +111,4 @@ function setCategoria(c,b){
 
 function setCategoriaFarmacia(c,b){
   categoriaFarmaciaAtual=c;
-  limparAtivos("#filtroFarmacia");
-  b.classList.add("ativo");
-  buscar();
-}
-
-/* ===== BUSCA ===== */
-
-async function buscar(){
-
-  if (!nichoAtual) return alert("Selecione um nicho.");
-  if (nichoAtual === "combustivel" && !tipoAtual) return alert("Selecione o tipo.");
-  if (nichoAtual === "supermercado" && !categoriaAtual) return alert("Selecione a categoria.");
-  if (nichoAtual === "farmacia" && !categoriaFarmaciaAtual) return alert("Selecione a categoria.");
-
-  const termo = busca.value.toLowerCase();
-  const res = await fetch("data.json");
-  const data = await res.json();
-
-  let itens = data[nichoAtual].filter(p =>
-    p.nome.toLowerCase().includes(termo)
-  );
-
-  if(nichoAtual=="combustivel")
-    itens = itens.filter(p => p.nome.toLowerCase().includes(tipoAtual.toLowerCase()));
-
-  if(nichoAtual=="supermercado")
-    itens = itens.filter(p => p.tipo == categoriaAtual);
-
-  if(nichoAtual=="farmacia")
-    itens = itens.filter(p => p.tipo == categoriaFarmaciaAtual);
-
-  resultado.innerHTML="";
-
-  itens.forEach(p=>{
-    const li=document.createElement("li");
-    li.innerHTML=`
-      <span>
-        <input type="checkbox" onchange='addCesta(${JSON.stringify(p)})'>
-        ${p.nome}<br>
-        <small>${p.loja||p.posto}</small>
-      </span>
-      <span class="preco">R$ ${p.preco.toFixed(2)}</span>
-    `;
-    resultado.appendChild(li);
-  });
-}
-
-/* ===== CESTA ===== */
-
-function addCesta(p){
-  cesta.push(p);
-}
-
-function compararCesta(){
-  let porLoja={};
-
-  cesta.forEach(p=>{
-    let l=p.loja||p.posto;
-    porLoja[l]=(porLoja[l]||0)+p.preco;
-  });
-
-  let html="<h3>Resultado da cesta</h3>";
-  let menor=Infinity;
-
-  for(let l in porLoja) menor=Math.min(menor,porLoja[l]);
-
-  for(let l in porLoja){
-    let cls=porLoja[l]==menor?"menor":"";
-    html+=`<div class="${cls}">${l}: R$ ${porLoja[l].toFixed(2)}</div>`;
-  }
-
-  cestaResultado.innerHTML=html;
-}
-
-/* ===== MAPA ===== */
-
-const map = L.map('map').setView([-32.035, -52.098], 13);
-
-L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-  attribution: '© OpenStreetMap'
-}).addTo(map);
-
-let markersLayer = L.layerGroup().addTo(map);
-
-// coords reais exemplo Rio Grande
-const coords = {
-  "Buffon": [-32.035, -52.095],
-  "SIM": [-32.032, -52.105],
-  "Shell": [-32.040, -52.090]
-};
-
-const normalIcon = L.icon({
-  iconUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png",
-  shadowUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png",
-  iconSize: [25,41],
-  iconAnchor: [12,41]
-});
-
-const menorPrecoIcon = L.icon({
-  iconUrl: "https://cdn-icons-png.flaticon.com/512/684/684908.png",
-  iconSize: [35,35],
-  iconAnchor: [17,35]
-});
-
-async function carregarMapa(){
-  const res = await fetch("data.json");
-  const data = await res.json();
-
-  markersLayer.clearLayers();
-
-  const precos = data.combustivel.map(p=>p.preco);
-  const menorPreco = Math.min(...precos);
-
-  data.combustivel.forEach(p=>{
-    const c = coords[p.posto];
-    if(!c) return;
-
-    const isMenor = p.preco === menorPreco;
-
-    const marker = L.marker(c,{
-      icon: isMenor ? menorPrecoIcon : normalIcon
-    }).addTo(markersLayer);
-
-    marker.bindPopup(`
-      <b>${p.posto}</b><br>
-      ${p.nome}<br>
-      <b>R$ ${p.preco}</b>
-      ${isMenor ? "<br>🏆 <b>MENOR PREÇO</b>" : ""}
-    `);
-
-    if(isMenor){
-      map.setView(c,15);
-    }
-  });
-}
-
-carregarMapa();
-</script>
-
-</body>
-</html>
+  limparAtivos("#filtroFar
