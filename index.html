@@ -171,13 +171,17 @@ function compararCesta(){
 
 /* ===== MAPA ===== */
 
+/* ===== MAPA ===== */
+
 const map = L.map('map').setView([-32.035, -52.098], 13);
 
+// camada base
 L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
- attribution: '© OpenStreetMap'
+  attribution: '© OpenStreetMap'
 }).addTo(map);
 
-L.marker([-32.035, -52.098]).addTo(map).bindPopup("Centro");
-L.marker([-32.030,
-]);
+// marcadores exemplo (Rio Grande)
+L.marker([-32.035, -52.098]).addTo(map).bindPopup("Centro - Rio Grande");
+L.marker([-32.032, -52.105]).addTo(map).bindPopup("Supermercado Exemplo");
+L.marker([-32.040, -52.090]).addTo(map).bindPopup("Farmácia Exemplo");
 
