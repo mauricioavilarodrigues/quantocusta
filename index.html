@@ -2,30 +2,11 @@
 <html lang="pt-br">
 <head>
 <meta charset="UTF-8">
-<title>quantocusta</title>
-<meta name="viewport" content="width=device-width, initial-scale=1">
-
-<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
-
-<style>
-body{font-family:Arial;background:#f6f7fb;padding:20px}
-h1{text-align:center}
-.topo,.filtros,.busca{display:flex;justify-content:center;gap:8px;flex-wrap:wrap;margin-bottom:12px}
-button{border:none;padding:10px 16px;border-radius:20px;background:#e0e3ff;font-weight:bold;cursor:pointer}
-button.ativo{background:#4f5dff;color:white}
-ul{list-style:none;padding:0;max-width:600px;margin:auto}
-li{background:white;margin:6px 0;padding:10px;border-radius:10px;display:flex;justify-content:space-between;align-items:center}
-.preco{color:#4f5dff;font-weight:bold}
-.caixa{background:white;padding:12px;border-radius:12px;margin-top:20px;max-width:600px;margin:auto}
-.menor{border:2px solid #4f5dff}
-#map{height:350px;max-width:600px;margin:20px auto;border-radius:12px}
-</style>
-</head><!DOCTYPE html>
-<html lang="pt-br">
-<head>
-<meta charset="UTF-8">
 <title>Quantocusta</title>
 <meta name="viewport" content="width=device-width, initial-scale=1">
+
+<!-- Leaflet CSS -->
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
 
 <!-- CSS corporativo / dashboard style -->
 <style>
@@ -38,8 +19,8 @@ li{background:white;margin:6px 0;padding:10px;border-radius:10px;display:flex;ju
 
 body {
     font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
-    background-color: #f8f9fa; /* fundo neutro */
-    color: #212529; /* texto escuro */
+    background-color: #f8f9fa;
+    color: #212529;
     padding: 20px;
 }
 
@@ -58,6 +39,7 @@ h1 {
     justify-content: center;
     gap: 15px;
     margin-bottom: 20px;
+    flex-wrap: wrap;
 }
 
 /* Inputs e selects estilo dashboard */
@@ -95,38 +77,57 @@ button:hover {
     transform: scale(1.02);
 }
 
-/* Tabela estilo corporativo */
-table {
-    width: 100%;
-    border-collapse: collapse;
-    margin-top: 25px;
-    font-size: 0.95em;
-    box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+button.ativo {
+    background-color: #4f5dff;
+    color: #fff;
 }
 
-th, td {
-    padding: 12px 15px;
-    text-align: left;
-    border-bottom: 1px solid #dee2e6;
+/* Lista de resultados */
+ul {
+    list-style: none;
+    padding: 0;
+    max-width: 600px;
+    margin: auto;
 }
 
-th {
-    background-color: #e9ecef;
-    font-weight: 600;
-    color: #212529;
+li {
+    background: #fff;
+    margin: 6px 0;
+    padding: 10px;
+    border-radius: 10px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
 }
 
-tbody tr:hover {
-    background-color: #f1f3f5;
+.preco {
+    color: #4f5dff;
+    font-weight: bold;
+}
+
+/* Caixa de ações */
+.caixa {
+    background: #fff;
+    padding: 12px;
+    border-radius: 12px;
+    margin-top: 20px;
+    max-width: 600px;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.menor {
+    border: 2px solid #4f5dff;
 }
 
 /* Mapa */
 #map {
     width: 100%;
+    max-width: 600px;
     height: 400px;
-    border: 2px solid #212529; /* borda discreta */
-    border-radius: 0;
-    margin-top: 20px;
+    margin: 20px auto;
+    border: 2px solid #212529;
+    border-radius: 6px;
 }
 
 /* Responsividade */
@@ -138,77 +139,47 @@ tbody tr:hover {
     }
 }
 </style>
-
 </head>
-<body>
-
-<h1>Quantocusta</h1>
-
-<div class="topo">
-    <input type="text" placeholder="Buscar produto...">
-    <button>Buscar</button>
-</div>
-
-<div class="filtros">
-    <select>
-        <option value="">Todas as categorias</option>
-    </select>
-</div>
-
-<div id="map"></div>
-
-<table>
-    <thead>
-        <tr>
-            <th>Produto</th>
-            <th>Preço</th>
-            <th>Loja</th>
-            <th>Cidade</th>
-        </tr>
-    </thead>
-    <tbody>
-        <!-- Dados inseridos via JS -->
-    </tbody>
-</table>
-
-</body>
-</html>
-
 
 <body>
 
-<h1>💰 quantocusta</h1>
+<h1>💰 Quantocusta</h1>
 
+<!-- Seletor de nichos -->
 <div class="topo">
-<button onclick="setNicho('supermercado',this)">🛒 Supermercado</button>
-<button onclick="setNicho('combustivel',this)">⛽ Combustível</button>
-<button onclick="setNicho('farmacia',this)">💊 Farmácia</button>
+    <button onclick="setNicho('supermercado',this)">🛒 Supermercado</button>
+    <button onclick="setNicho('combustivel',this)">⛽ Combustível</button>
+    <button onclick="setNicho('farmacia',this)">💊 Farmácia</button>
 </div>
 
+<!-- Filtros -->
 <div id="filtroSupermercado" class="filtros" style="display:none;">
-<button onclick="setCategoria('alimento',this)">🥦 Alimentos</button>
-<button onclick="setCategoria('limpeza',this)">🧼 Limpeza</button>
+    <button onclick="setCategoria('alimento',this)">🥦 Alimentos</button>
+    <button onclick="setCategoria('limpeza',this)">🧼 Limpeza</button>
 </div>
 
 <div id="filtroCombustivel" class="filtros" style="display:none;">
-<button onclick="setTipo('Comum',this)">Comum</button>
-<button onclick="setTipo('Aditivada',this)">Aditivada</button>
+    <button onclick="setTipo('Comum',this)">Comum</button>
+    <button onclick="setTipo('Aditivada',this)">Aditivada</button>
 </div>
 
 <div id="filtroFarmacia" class="filtros" style="display:none;">
-<button onclick="setCategoriaFarmacia('remedio',this)">💊 Remédios</button>
-<button onclick="setCategoriaFarmacia('higiene',this)">🧴 Higiene</button>
+    <button onclick="setCategoriaFarmacia('remedio',this)">💊 Remédios</button>
+    <button onclick="setCategoriaFarmacia('higiene',this)">🧴 Higiene</button>
 </div>
 
+<!-- Busca -->
 <div class="busca">
 <form onsubmit="buscar(); return false;">
-<input id="busca" placeholder="Buscar...">
-<button type="submit">Buscar</button>
+    <input id="busca" placeholder="Buscar...">
+    <button type="submit">Buscar</button>
 </form>
 </div>
 
+<!-- Resultados -->
 <ul id="resultado"></ul>
 
+<!-- Ações -->
 <div class="caixa">
   <button onclick="compararCesta()">🧺 Comparar cesta</button>
   <div id="cestaResultado"></div>
@@ -218,16 +189,18 @@ tbody tr:hover {
   <button onclick="acharMelhorOpcao()">📍 Melhor opção perto de você</button>
 </div>
 
+<!-- Mapa -->
 <div id="map"></div>
 
+<!-- Leaflet JS -->
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
+<!-- Script funcional -->
 <script>
 let nichoAtual="",tipoAtual="",categoriaAtual="",categoriaFarmaciaAtual="";
 let cesta=[];
 
 /* ===== CONTROLES ===== */
-
 function limparAtivos(grupo){
   document.querySelectorAll(grupo+" button").forEach(b=>b.classList.remove("ativo"));
 }
@@ -238,41 +211,20 @@ function setNicho(n,b){
   resultado.innerHTML="";
   limparAtivos(".topo");
   b.classList.add("ativo");
-
   ["Supermercado","Combustivel","Farmacia"].forEach(f=>{
     document.getElementById("filtro"+f).style.display="none";
   });
-
   if(n=="supermercado") filtroSupermercado.style.display="flex";
   if(n=="combustivel") filtroCombustivel.style.display="flex";
   if(n=="farmacia") filtroFarmacia.style.display="flex";
 }
 
-function setTipo(t,b){
-  tipoAtual=t;
-  limparAtivos("#filtroCombustivel");
-  b.classList.add("ativo");
-  buscar();
-}
-
-function setCategoria(c,b){
-  categoriaAtual=c;
-  limparAtivos("#filtroSupermercado");
-  b.classList.add("ativo");
-  buscar();
-}
-
-function setCategoriaFarmacia(c,b){
-  categoriaFarmaciaAtual=c;
-  limparAtivos("#filtroFarmacia");
-  b.classList.add("ativo");
-  buscar();
-}
+function setTipo(t,b){tipoAtual=t;limparAtivos("#filtroCombustivel");b.classList.add("ativo");buscar();}
+function setCategoria(c,b){categoriaAtual=c;limparAtivos("#filtroSupermercado");b.classList.add("ativo");buscar();}
+function setCategoriaFarmacia(c,b){categoriaFarmaciaAtual=c;limparAtivos("#filtroFarmacia");b.classList.add("ativo");buscar();}
 
 /* ===== BUSCA ===== */
-
 async function buscar(){
-
   if (!nichoAtual) return alert("Selecione um nicho.");
   if (nichoAtual === "combustivel" && !tipoAtual) return alert("Selecione o tipo.");
   if (nichoAtual === "supermercado" && !categoriaAtual) return alert("Selecione a categoria.");
@@ -282,169 +234,98 @@ async function buscar(){
   const res = await fetch("data.json");
   const data = await res.json();
 
-  let itens = data[nichoAtual].filter(p =>
-    p.nome.toLowerCase().includes(termo)
-  );
+  let itens = data[nichoAtual].filter(p => p.nome.toLowerCase().includes(termo));
 
-  if(nichoAtual=="combustivel")
-    itens = itens.filter(p => p.nome.toLowerCase().includes(tipoAtual.toLowerCase()));
-
-  if(nichoAtual=="supermercado")
-    itens = itens.filter(p => p.tipo == categoriaAtual);
-
-  if(nichoAtual=="farmacia")
-    itens = itens.filter(p => p.tipo == categoriaFarmaciaAtual);
+  if(nichoAtual=="combustivel") itens = itens.filter(p => p.nome.toLowerCase().includes(tipoAtual.toLowerCase()));
+  if(nichoAtual=="supermercado") itens = itens.filter(p => p.tipo == categoriaAtual);
+  if(nichoAtual=="farmacia") itens = itens.filter(p => p.tipo == categoriaFarmaciaAtual);
 
   resultado.innerHTML="";
-
-  itens.forEach((p, index)=>{
-  const li = document.createElement("li");
-
-  li.innerHTML = `
-    <span>
-      <input type="checkbox" onchange='addCesta(${JSON.stringify(p)})'>
-      ${p.nome}<br>
-      <small>${p.loja||p.posto}</small>
-    </span>
-
-    <span class="preco">R$ ${p.preco.toFixed(2)}</span>
-
-    <div class="avaliacao">
-      <strong>Este preço confere com o da loja?</strong><br>
-      <button onclick="confirmarPreco(${index})">👍 Confere</button>
-      <button onclick="negarPreco(${index})">❌ Não confere</button>
-      <div id="feedback-${index}"></div>
-    </div>
-  `;
-
-  resultado.appendChild(li);
-});
+  itens.forEach((p,index)=>{
+    const li=document.createElement("li");
+    li.innerHTML = `
+      <span>
+        <input type="checkbox" onchange='addCesta(${JSON.stringify(p)})'>
+        ${p.nome}<br><small>${p.loja||p.posto}</small>
+      </span>
+      <span class="preco">R$ ${p.preco.toFixed(2)}</span>
+      <div class="avaliacao">
+        <strong>Este preço confere com o da loja?</strong><br>
+        <button onclick="confirmarPreco(${index})">👍 Confere</button>
+        <button onclick="negarPreco(${index})">❌ Não confere</button>
+        <div id="feedback-${index}"></div>
+      </div>
+    `;
+    resultado.appendChild(li);
+  });
 }
 
 /* ===== CESTA ===== */
-
-function addCesta(p){
-  cesta.push(p);
-}
-
+function addCesta(p){cesta.push(p);}
 function compararCesta(){
   let porLoja={};
-
-  cesta.forEach(p=>{
-    let l=p.loja||p.posto;
-    porLoja[l]=(porLoja[l]||0)+p.preco;
-  });
-
+  cesta.forEach(p=>{let l=p.loja||p.posto; porLoja[l]=(porLoja[l]||0)+p.preco;});
   let html="<h3>Resultado da cesta</h3>";
   let menor=Infinity;
-
   for(let l in porLoja) menor=Math.min(menor,porLoja[l]);
-
   for(let l in porLoja){
     let cls=porLoja[l]==menor?"menor":"";
     html+=`<div class="${cls}">${l}: R$ ${porLoja[l].toFixed(2)}</div>`;
   }
-
   cestaResultado.innerHTML=html;
 }
 
 /* ===== MAPA + INTELIGÊNCIA ===== */
-
-const map = L.map('map').setView([-32.035, -52.098], 13);
-
-L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-  attribution: '© OpenStreetMap'
-}).addTo(map);
-
-let markersLayer = L.layerGroup().addTo(map);
+const map=L.map('map').setView([-32.035,-52.098],13);
+L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{attribution:'© OpenStreetMap'}).addTo(map);
+let markersLayer=L.layerGroup().addTo(map);
 let usuarioPosicao=null;
 let pontos=[];
 
 map.locate({setView:true,maxZoom:15});
-
 map.on("locationfound", e=>{
   usuarioPosicao=e.latlng;
-
-  L.circleMarker(usuarioPosicao,{radius:8})
-    .addTo(map)
-    .bindPopup("Você está aqui")
-    .openPopup();
+  L.circleMarker(usuarioPosicao,{radius:8}).addTo(map).bindPopup("Você está aqui").openPopup();
 });
 
-const coords={
-  "Buffon": [-32.035, -52.095],
-  "SIM": [-32.032, -52.105],
-  "Shell": [-32.040, -52.090]
-};
+const coords={"Buffon":[-32.035,-52.095],"SIM":[-32.032,-52.105],"Shell":[-32.040,-52.090]};
 
 async function carregarMapa(){
   const res=await fetch("data.json");
   const data=await res.json();
-
   markersLayer.clearLayers();
   pontos=[];
-
   data.combustivel.forEach(p=>{
-    const c=coords[p.posto];
-    if(!c) return;
-
+    const c=coords[p.posto]; if(!c) return;
     const marker=L.marker(c).addTo(markersLayer);
     marker.bindPopup(`<b>${p.posto}</b><br>${p.nome}<br>R$ ${p.preco}`);
-
     pontos.push({lat:c[0],lng:c[1],nome:p.posto,preco:p.preco,marker});
   });
 }
 
-function distancia(lat1, lon1, lat2, lon2) {
+function distancia(lat1, lon1, lat2, lon2){
   const R=6371;
   const dLat=(lat2-lat1)*Math.PI/180;
   const dLon=(lon2-lon1)*Math.PI/180;
-  const a=
-    Math.sin(dLat/2)*Math.sin(dLat/2)+
-    Math.cos(lat1*Math.PI/180)*
-    Math.cos(lat2*Math.PI/180)*
-    Math.sin(dLon/2)*Math.sin(dLon/2);
+  const a=Math.sin(dLat/2)**2+Math.cos(lat1*Math.PI/180)*Math.cos(lat2*Math.PI/180)*Math.sin(dLon/2)**2;
   return R*2*Math.atan2(Math.sqrt(a),Math.sqrt(1-a));
 }
 
 function acharMelhorOpcao(){
   if(!usuarioPosicao) return alert("Localização não encontrada.");
-
   const pesoDistancia=2;
-
-  pontos.forEach(p=>{
-    p.distancia=distancia(usuarioPosicao.lat,usuarioPosicao.lng,p.lat,p.lng);
-    p.score=p.preco+(p.distancia*pesoDistancia);
-  });
-
+  pontos.forEach(p=>{p.distancia=distancia(usuarioPosicao.lat,usuarioPosicao.lng,p.lat,p.lng); p.score=p.preco+(p.distancia*pesoDistancia);});
   pontos.sort((a,b)=>a.score-b.score);
-
   const melhor=pontos[0];
-
   melhor.marker.openPopup();
   map.setView([melhor.lat,melhor.lng],16);
-
-  alert(
-    `🏆 Melhor opção:\n\n`+
-    `${melhor.nome}\n`+
-    `Preço: R$ ${melhor.preco}\n`+
-    `Distância: ${melhor.distancia.toFixed(2)} km\n`+
-    `Score: ${melhor.score.toFixed(2)}`
-  );
+  alert(`🏆 Melhor opção:\n\n${melhor.nome}\nPreço: R$ ${melhor.preco}\nDistância: ${melhor.distancia.toFixed(2)} km\nScore: ${melhor.score.toFixed(2)}`);
 }
 
 carregarMapa();
 
-function confirmarPreco(index){
-  document.getElementById(`feedback-${index}`).innerText =
-    "Obrigado por confirmar o preço 👍";
-}
-
-function negarPreco(index){
-  document.getElementById(`feedback-${index}`).innerText =
-    "Preço contestado. Obrigado pela colaboração ❌";
-}
-
+function confirmarPreco(index){document.getElementById(`feedback-${index}`).innerText="Obrigado por confirmar o preço 👍";}
+function negarPreco(index){document.getElementById(`feedback-${index}`).innerText="Preço contestado. Obrigado pela colaboração ❌";}
 </script>
 
 </body>
