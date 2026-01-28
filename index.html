@@ -69,6 +69,8 @@ li{background:white;margin:6px 0;padding:10px;border-radius:10px;display:flex;ju
 let nichoAtual="",tipoAtual="",categoriaAtual="",categoriaFarmaciaAtual="";
 let cesta=[];
 
+/* ===== CONTROLES ===== */
+
 function limparAtivos(grupo){
   document.querySelectorAll(grupo+" button").forEach(b=>b.classList.remove("ativo"));
 }
@@ -84,9 +86,9 @@ function setNicho(n,b){
     document.getElementById("filtro"+f).style.display="none";
   });
 
-  if(n=="supermercado")filtroSupermercado.style.display="flex";
-  if(n=="combustivel")filtroCombustivel.style.display="flex";
-  if(n=="farmacia")filtroFarmacia.style.display="flex";
+  if(n=="supermercado") filtroSupermercado.style.display="flex";
+  if(n=="combustivel") filtroCombustivel.style.display="flex";
+  if(n=="farmacia") filtroFarmacia.style.display="flex";
 }
 
 function setTipo(t,b){
@@ -109,6 +111,8 @@ function setCategoriaFarmacia(c,b){
   b.classList.add("ativo");
   buscar();
 }
+
+/* ===== BUSCA ===== */
 
 async function buscar(){
 
@@ -150,6 +154,8 @@ async function buscar(){
   });
 }
 
+/* ===== CESTA ===== */
+
 function addCesta(p){
   cesta.push(p);
 }
@@ -177,8 +183,6 @@ function compararCesta(){
 
 /* ===== MAPA ===== */
 
-/* ===== MAPA ===== */
-
 const map = L.map('map').setView([-32.035, -52.098], 13);
 
 L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
@@ -187,52 +191,60 @@ L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
 
 let markersLayer = L.layerGroup().addTo(map);
 
-// ícones
+// coords reais exemplo Rio Grande
+const coords = {
+  "Buffon": [-32.035, -52.095],
+  "SIM": [-32.032, -52.105],
+  "Shell": [-32.040, -52.090]
+};
+
 const normalIcon = L.icon({
   iconUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png",
   shadowUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png",
-  iconSize: [25, 41],
-  iconAnchor: [12, 41]
+  iconSize: [25,41],
+  iconAnchor: [12,41]
 });
 
 const menorPrecoIcon = L.icon({
   iconUrl: "https://cdn-icons-png.flaticon.com/512/684/684908.png",
-  iconSize: [35, 35],
-  iconAnchor: [17, 35]
+  iconSize: [35,35],
+  iconAnchor: [17,35]
 });
 
-async function carregarMapa() {
+async function carregarMapa(){
   const res = await fetch("data.json");
   const data = await res.json();
 
   markersLayer.clearLayers();
 
-  // ===== menor preço combustível =====
-  const precos = data.combustivel.map(p => p.preco);
+  const precos = data.combustivel.map(p=>p.preco);
   const menorPreco = Math.min(...precos);
 
-  data.combustivel.forEach(p => {
-    if (p.lat && p.lng) {
-      const isMenor = p.preco === menorPreco;
-      const nome = p.posto;
+  data.combustivel.forEach(p=>{
+    const c = coords[p.posto];
+    if(!c) return;
 
-      const marker = L.marker([p.lat, p.lng], {
-        icon: isMenor ? menorPrecoIcon : normalIcon
-      }).addTo(markersLayer);
+    const isMenor = p.preco === menorPreco;
 
-      marker.bindPopup(`
-        <b>${nome}</b><br>
-        ${p.nome}<br>
-        <b>R$ ${p.preco}</b>
-        ${isMenor ? "<br>🏆 <b>MENOR PREÇO</b>" : ""}
-      `);
+    const marker = L.marker(c,{
+      icon: isMenor ? menorPrecoIcon : normalIcon
+    }).addTo(markersLayer);
 
-      // se for menor, já centraliza
-      if (isMenor) {
-        map.setView([p.lat, p.lng], 15);
-      }
+    marker.bindPopup(`
+      <b>${p.posto}</b><br>
+      ${p.nome}<br>
+      <b>R$ ${p.preco}</b>
+      ${isMenor ? "<br>🏆 <b>MENOR PREÇO</b>" : ""}
+    `);
+
+    if(isMenor){
+      map.setView(c,15);
     }
   });
 }
 
 carregarMapa();
+</script>
+
+</body>
+</html>
