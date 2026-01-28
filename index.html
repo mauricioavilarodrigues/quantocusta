@@ -10,134 +10,22 @@
 
 <!-- CSS corporativo / dashboard style -->
 <style>
-/* Reset */
-* {
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
-}
-
-body {
-    font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
-    background-color: #f8f9fa;
-    color: #212529;
-    padding: 20px;
-}
-
-/* Título principal */
-h1 {
-    text-align: center;
-    font-size: 2em;
-    margin-bottom: 30px;
-    font-weight: 600;
-    color: #212529;
-}
-
-/* Containers */
-.topo, .filtros, .busca {
-    display: flex;
-    justify-content: center;
-    gap: 15px;
-    margin-bottom: 20px;
-    flex-wrap: wrap;
-}
-
-/* Inputs e selects estilo dashboard */
-input[type="text"], select {
-    padding: 10px 14px;
-    font-size: 1em;
-    border: 1px solid #ced4da;
-    border-radius: 0;
-    background-color: #fff;
-    color: #212529;
-    transition: border-color 0.3s, box-shadow 0.3s;
-}
-
-input[type="text"]:focus, select:focus {
-    border-color: #495057;
-    outline: none;
-    box-shadow: 0 0 0 2px rgba(73,80,87,0.2);
-}
-
-/* Botões minimalistas */
-button {
-    padding: 10px 18px;
-    font-size: 1em;
-    background-color: #212529;
-    color: #fff;
-    border: none;
-    border-radius: 0;
-    cursor: pointer;
-    font-weight: 500;
-    transition: background-color 0.3s, transform 0.2s;
-}
-
-button:hover {
-    background-color: #495057;
-    transform: scale(1.02);
-}
-
-button.ativo {
-    background-color: #4f5dff;
-    color: #fff;
-}
-
-/* Lista de resultados */
-ul {
-    list-style: none;
-    padding: 0;
-    max-width: 600px;
-    margin: auto;
-}
-
-li {
-    background: #fff;
-    margin: 6px 0;
-    padding: 10px;
-    border-radius: 10px;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-}
-
-.preco {
-    color: #4f5dff;
-    font-weight: bold;
-}
-
-/* Caixa de ações */
-.caixa {
-    background: #fff;
-    padding: 12px;
-    border-radius: 12px;
-    margin-top: 20px;
-    max-width: 600px;
-    margin-left: auto;
-    margin-right: auto;
-}
-
-.menor {
-    border: 2px solid #4f5dff;
-}
-
-/* Mapa */
-#map {
-    width: 100%;
-    max-width: 600px;
-    height: 400px;
-    margin: 20px auto;
-    border: 2px solid #212529;
-    border-radius: 6px;
-}
-
-/* Responsividade */
-@media (max-width: 768px) {
-    .topo, .filtros, .busca {
-        flex-direction: column;
-        align-items: stretch;
-        gap: 10px;
-    }
-}
+* {margin:0; padding:0; box-sizing:border-box;}
+body {font-family:"Segoe UI", Tahoma, Geneva, Verdana, sans-serif; background:#f8f9fa; color:#212529; padding:20px;}
+h1 {text-align:center; font-size:2em; margin-bottom:30px; font-weight:600; color:#212529;}
+.topo, .filtros, .busca {display:flex; justify-content:center; gap:15px; margin-bottom:20px; flex-wrap:wrap;}
+input[type="text"], select {padding:10px 14px; font-size:1em; border:1px solid #ced4da; background:#fff; color:#212529; transition:border-color 0.3s, box-shadow 0.3s;}
+input[type="text"]:focus, select:focus {border-color:#495057; outline:none; box-shadow:0 0 0 2px rgba(73,80,87,0.2);}
+button {padding:10px 18px; font-size:1em; background:#212529; color:#fff; border:none; cursor:pointer; font-weight:500; transition:0.3s;}
+button:hover {background:#495057; transform:scale(1.02);}
+button.ativo {background:#4f5dff; color:#fff;}
+ul {list-style:none; padding:0; max-width:600px; margin:auto;}
+li {background:#fff; margin:6px 0; padding:10px; border-radius:10px; display:flex; justify-content:space-between; align-items:center;}
+.preco {color:#4f5dff; font-weight:bold;}
+.caixa {background:#fff; padding:12px; border-radius:12px; margin-top:20px; max-width:600px; margin:auto;}
+.menor {border:2px solid #4f5dff;}
+#map {width:100%; max-width:600px; height:400px; margin:20px auto; border:2px solid #212529; border-radius:6px;}
+@media (max-width:768px){.topo, .filtros, .busca{flex-direction:column; align-items:stretch; gap:10px;}}
 </style>
 </head>
 
@@ -145,14 +33,12 @@ li {
 
 <h1>💰 Quantocusta</h1>
 
-<!-- Seletor de nichos -->
 <div class="topo">
     <button onclick="setNicho('supermercado',this)">🛒 Supermercado</button>
     <button onclick="setNicho('combustivel',this)">⛽ Combustível</button>
     <button onclick="setNicho('farmacia',this)">💊 Farmácia</button>
 </div>
 
-<!-- Filtros -->
 <div id="filtroSupermercado" class="filtros" style="display:none;">
     <button onclick="setCategoria('alimento',this)">🥦 Alimentos</button>
     <button onclick="setCategoria('limpeza',this)">🧼 Limpeza</button>
@@ -168,108 +54,122 @@ li {
     <button onclick="setCategoriaFarmacia('higiene',this)">🧴 Higiene</button>
 </div>
 
-<!-- Busca -->
 <div class="busca">
-<form onsubmit="buscar(); return false;">
-    <input id="busca" placeholder="Buscar...">
-    <button type="submit">Buscar</button>
-</form>
+    <form onsubmit="buscar(); return false;">
+        <input id="busca" placeholder="Buscar...">
+        <button type="submit">Buscar</button>
+    </form>
 </div>
 
-<!-- Resultados -->
 <ul id="resultado"></ul>
 
-<!-- Ações -->
 <div class="caixa">
-  <button onclick="compararCesta()">🧺 Comparar cesta</button>
-  <div id="cestaResultado"></div>
+    <button onclick="compararCesta()">🧺 Comparar cesta</button>
+    <div id="cestaResultado"></div>
 </div>
 
 <div class="caixa">
-  <button onclick="acharMelhorOpcao()">📍 Melhor opção perto de você</button>
+    <button onclick="acharMelhorOpcao()">📍 Melhor opção perto de você</button>
 </div>
 
-<!-- Mapa -->
-<!-- MAPA -->
 <div id="map"></div>
 
-<!-- Leaflet JS -->
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-
 <script>
-// Inicializa o mapa
-const map = L.map('map').setView([-32.035,-52.098],13);
+// ===== VARIÁVEIS =====
+let nichoAtual="", tipoAtual="", categoriaAtual="", categoriaFarmaciaAtual="";
+let cesta=[];
+let markersLayer, usuarioPosicao=null, pontos=[];
 
-// TileLayer neutro
-L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{
-    attribution:'© OpenStreetMap'
-}).addTo(map);
+// ===== CONTROLES =====
+function limparAtivos(grupo){ document.querySelectorAll(grupo+" button").forEach(b=>b.classList.remove("ativo")); }
+function setNicho(n,b){
+    nichoAtual=n; tipoAtual=""; categoriaAtual=""; categoriaFarmaciaAtual=""; resultado.innerHTML="";
+    limparAtivos(".topo"); b.classList.add("ativo");
+    ["Supermercado","Combustivel","Farmacia"].forEach(f=>document.getElementById("filtro"+f).style.display="none");
+    if(n=="supermercado") filtroSupermercado.style.display="flex";
+    if(n=="combustivel") filtroCombustivel.style.display="flex";
+    if(n=="farmacia") filtroFarmacia.style.display="flex";
+}
+function setTipo(t,b){ tipoAtual=t; limparAtivos("#filtroCombustivel"); b.classList.add("ativo"); buscar(); }
+function setCategoria(c,b){ categoriaAtual=c; limparAtivos("#filtroSupermercado"); b.classList.add("ativo"); buscar(); }
+function setCategoriaFarmacia(c,b){ categoriaFarmaciaAtual=c; limparAtivos("#filtroFarmacia"); b.classList.add("ativo"); buscar(); }
 
-let markersLayer = L.layerGroup().addTo(map);
-let usuarioPosicao=null;
-let pontos=[];
+// ===== BUSCA =====
+async function buscar(){
+    if(!nichoAtual) return alert("Selecione um nicho.");
+    if(nichoAtual=="combustivel" && !tipoAtual) return alert("Selecione o tipo.");
+    if(nichoAtual=="supermercado" && !categoriaAtual) return alert("Selecione a categoria.");
+    if(nichoAtual=="farmacia" && !categoriaFarmaciaAtual) return alert("Selecione a categoria.");
 
-// Marcador do usuário
-map.locate({setView:true,maxZoom:15});
-map.on("locationfound", e=>{
-    usuarioPosicao=e.latlng;
-    L.circleMarker(usuarioPosicao,{
-        radius:8,
-        color:'#4f5dff',
-        fillColor:'#4f5dff',
-        fillOpacity:0.8
-    }).addTo(map).bindPopup("<b>Você está aqui</b>").openPopup();
-});
+    const termo=busca.value.toLowerCase();
+    const res=await fetch("data.json");
+    const data=await res.json();
+    let itens=data[nichoAtual].filter(p=>p.nome.toLowerCase().includes(termo));
 
-// Coordenadas fictícias para postos
-const coords = {
-    "Buffon":[-32.035,-52.095],
-    "SIM":[-32.032,-52.105],
-    "Shell":[-32.040,-52.090]
-};
+    if(nichoAtual=="combustivel") itens=itens.filter(p=>p.nome.toLowerCase().includes(tipoAtual.toLowerCase()));
+    if(nichoAtual=="supermercado") itens=itens.filter(p=>p.tipo==categoriaAtual);
+    if(nichoAtual=="farmacia") itens=itens.filter(p=>p.tipo==categoriaFarmaciaAtual);
 
-// Função para carregar marcadores do JSON
-async function carregarMapa(){
-    const res = await fetch("data.json");
-    const data = await res.json();
-
-    markersLayer.clearLayers();
-    pontos=[];
-
-    data.combustivel.forEach(p=>{
-        const c = coords[p.posto];
-        if(!c) return;
-
-        // Marcador colorido corporativo
-        const marker = L.marker(c,{
-            icon: L.icon({
-                iconUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png',
-                iconSize:[25,41],
-                iconAnchor:[12,41],
-                popupAnchor:[1,-34]
-            })
-        }).addTo(markersLayer);
-
-        // Pop-up com estilo corporativo
-        const popupContent = `
-            <div style="font-family:Segoe UI;font-size:0.95em;color:#212529;">
-                <b style="color:#4f5dff;">${p.posto}</b><br>
-                ${p.nome}<br>
-                <span style="font-weight:bold;">R$ ${p.preco.toFixed(2)}</span>
+    resultado.innerHTML="";
+    itens.forEach((p,index)=>{
+        const li=document.createElement("li");
+        li.innerHTML=`
+            <span><input type="checkbox" onchange='addCesta(${JSON.stringify(p)})'> ${p.nome}<br><small>${p.loja||p.posto}</small></span>
+            <span class="preco">R$ ${p.preco.toFixed(2)}</span>
+            <div class="avaliacao"><strong>Este preço confere?</strong><br>
+                <button onclick="confirmarPreco(${index})">👍 Confere</button>
+                <button onclick="negarPreco(${index})">❌ Não confere</button>
+                <div id="feedback-${index}"></div>
             </div>
         `;
-
-        marker.bindPopup(popupContent);
-
-        pontos.push({lat:c[0], lng:c[1], nome:p.posto, preco:p.preco, marker});
+        resultado.appendChild(li);
     });
 }
 
-// Função de distância e melhor opção
+// ===== CESTA =====
+function addCesta(p){ cesta.push(p); }
+function compararCesta(){
+    let porLoja={};
+    cesta.forEach(p=>{ let l=p.loja||p.posto; porLoja[l]=(porLoja[l]||0)+p.preco; });
+    let html="<h3>Resultado da cesta</h3>"; let menor=Infinity;
+    for(let l in porLoja) menor=Math.min(menor, porLoja[l]);
+    for(let l in porLoja){ let cls=porLoja[l]==menor?"menor":""; html+=`<div class="${cls}">${l}: R$ ${porLoja[l].toFixed(2)}</div>`; }
+    cestaResultado.innerHTML=html;
+}
+
+// ===== MAPA =====
+markersLayer=L.layerGroup().addTo(L.map('map'));
+const map=L.map('map').setView([-32.035,-52.098],13);
+L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{attribution:'© OpenStreetMap'}).addTo(map);
+markersLayer=L.layerGroup().addTo(map);
+
+// Marcador usuário
+map.locate({setView:true,maxZoom:15});
+map.on("locationfound", e=>{
+    usuarioPosicao=e.latlng;
+    L.circleMarker(usuarioPosicao,{radius:8, color:'#4f5dff', fillColor:'#4f5dff', fillOpacity:0.8})
+      .addTo(map).bindPopup("<b>Você está aqui</b>").openPopup();
+});
+
+// Coordenadas fictícias
+const coords={"Buffon":[-32.035,-52.095],"SIM":[-32.032,-52.105],"Shell":[-32.040,-52.090]};
+
+// Carrega mapa
+async function carregarMapa(){
+    const res=await fetch("data.json"); const data=await res.json();
+    markersLayer.clearLayers(); pontos=[];
+    data.combustivel.forEach(p=>{
+        const c=coords[p.posto]; if(!c) return;
+        const marker=L.marker(c).addTo(markersLayer);
+        marker.bindPopup(`<div style="font-family:Segoe UI;color:#212529;"><b style="color:#4f5dff;">${p.posto}</b><br>${p.nome}<br><strong>R$ ${p.preco.toFixed(2)}</strong></div>`);
+        pontos.push({lat:c[0],lng:c[1],nome:p.posto,preco:p.preco,marker});
+    });
+}
+carregarMapa();
+
 function distancia(lat1, lon1, lat2, lon2){
-    const R=6371;
-    const dLat=(lat2-lat1)*Math.PI/180;
-    const dLon=(lon2-lon1)*Math.PI/180;
+    const R=6371, dLat=(lat2-lat1)*Math.PI/180, dLon=(lon2-lon1)*Math.PI/180;
     const a=Math.sin(dLat/2)**2 + Math.cos(lat1*Math.PI/180)*Math.cos(lat2*Math.PI/180)*Math.sin(dLon/2)**2;
     return R*2*Math.atan2(Math.sqrt(a),Math.sqrt(1-a));
 }
@@ -277,154 +177,14 @@ function distancia(lat1, lon1, lat2, lon2){
 function acharMelhorOpcao(){
     if(!usuarioPosicao) return alert("Localização não encontrada.");
     const pesoDistancia=2;
-    pontos.forEach(p=>{
-        p.distancia = distancia(usuarioPosicao.lat,usuarioPosicao.lng,p.lat,p.lng);
-        p.score = p.preco + (p.distancia*pesoDistancia);
-    });
-    pontos.sort((a,b)=>a.score-b.score);
-    const melhor = pontos[0];
-    melhor.marker.openPopup();
-    map.setView([melhor.lat,melhor.lng],16);
-
-    alert(
-        `🏆 Melhor opção:\n\n`+
-        `${melhor.nome}\n`+
-        `Preço: R$ ${melhor.preco}\n`+
-        `Distância: ${melhor.distancia.toFixed(2)} km\n`+
-        `Score: ${melhor.score.toFixed(2)}`
-    );
+    pontos.forEach(p=>{ p.distancia=distancia(usuarioPosicao.lat,usuarioPosicao.lng,p.lat,p.lng); p.score=p.preco+(p.distancia*pesoDistancia); });
+    pontos.sort((a,b)=>a.score-b.score); const melhor=pontos[0];
+    melhor.marker.openPopup(); map.setView([melhor.lat,melhor.lng],16);
+    alert(`🏆 Melhor opção:\n\n${melhor.nome}\nPreço: R$ ${melhor.preco}\nDistância: ${melhor.distancia.toFixed(2)} km\nScore: ${melhor.score.toFixed(2)}`);
 }
 
-// Carrega mapa ao iniciar
-carregarMapa();
-</script>
-
-/* ===== CONTROLES ===== */
-function limparAtivos(grupo){
-  document.querySelectorAll(grupo+" button").forEach(b=>b.classList.remove("ativo"));
-}
-
-function setNicho(n,b){
-  nichoAtual=n;
-  tipoAtual="";categoriaAtual="";categoriaFarmaciaAtual="";
-  resultado.innerHTML="";
-  limparAtivos(".topo");
-  b.classList.add("ativo");
-  ["Supermercado","Combustivel","Farmacia"].forEach(f=>{
-    document.getElementById("filtro"+f).style.display="none";
-  });
-  if(n=="supermercado") filtroSupermercado.style.display="flex";
-  if(n=="combustivel") filtroCombustivel.style.display="flex";
-  if(n=="farmacia") filtroFarmacia.style.display="flex";
-}
-
-function setTipo(t,b){tipoAtual=t;limparAtivos("#filtroCombustivel");b.classList.add("ativo");buscar();}
-function setCategoria(c,b){categoriaAtual=c;limparAtivos("#filtroSupermercado");b.classList.add("ativo");buscar();}
-function setCategoriaFarmacia(c,b){categoriaFarmaciaAtual=c;limparAtivos("#filtroFarmacia");b.classList.add("ativo");buscar();}
-
-/* ===== BUSCA ===== */
-async function buscar(){
-  if (!nichoAtual) return alert("Selecione um nicho.");
-  if (nichoAtual === "combustivel" && !tipoAtual) return alert("Selecione o tipo.");
-  if (nichoAtual === "supermercado" && !categoriaAtual) return alert("Selecione a categoria.");
-  if (nichoAtual === "farmacia" && !categoriaFarmaciaAtual) return alert("Selecione a categoria.");
-
-  const termo = busca.value.toLowerCase();
-  const res = await fetch("data.json");
-  const data = await res.json();
-
-  let itens = data[nichoAtual].filter(p => p.nome.toLowerCase().includes(termo));
-
-  if(nichoAtual=="combustivel") itens = itens.filter(p => p.nome.toLowerCase().includes(tipoAtual.toLowerCase()));
-  if(nichoAtual=="supermercado") itens = itens.filter(p => p.tipo == categoriaAtual);
-  if(nichoAtual=="farmacia") itens = itens.filter(p => p.tipo == categoriaFarmaciaAtual);
-
-  resultado.innerHTML="";
-  itens.forEach((p,index)=>{
-    const li=document.createElement("li");
-    li.innerHTML = `
-      <span>
-        <input type="checkbox" onchange='addCesta(${JSON.stringify(p)})'>
-        ${p.nome}<br><small>${p.loja||p.posto}</small>
-      </span>
-      <span class="preco">R$ ${p.preco.toFixed(2)}</span>
-      <div class="avaliacao">
-        <strong>Este preço confere com o da loja?</strong><br>
-        <button onclick="confirmarPreco(${index})">👍 Confere</button>
-        <button onclick="negarPreco(${index})">❌ Não confere</button>
-        <div id="feedback-${index}"></div>
-      </div>
-    `;
-    resultado.appendChild(li);
-  });
-}
-
-/* ===== CESTA ===== */
-function addCesta(p){cesta.push(p);}
-function compararCesta(){
-  let porLoja={};
-  cesta.forEach(p=>{let l=p.loja||p.posto; porLoja[l]=(porLoja[l]||0)+p.preco;});
-  let html="<h3>Resultado da cesta</h3>";
-  let menor=Infinity;
-  for(let l in porLoja) menor=Math.min(menor,porLoja[l]);
-  for(let l in porLoja){
-    let cls=porLoja[l]==menor?"menor":"";
-    html+=`<div class="${cls}">${l}: R$ ${porLoja[l].toFixed(2)}</div>`;
-  }
-  cestaResultado.innerHTML=html;
-}
-
-/* ===== MAPA + INTELIGÊNCIA ===== */
-const map=L.map('map').setView([-32.035,-52.098],13);
-L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{attribution:'© OpenStreetMap'}).addTo(map);
-let markersLayer=L.layerGroup().addTo(map);
-let usuarioPosicao=null;
-let pontos=[];
-
-map.locate({setView:true,maxZoom:15});
-map.on("locationfound", e=>{
-  usuarioPosicao=e.latlng;
-  L.circleMarker(usuarioPosicao,{radius:8}).addTo(map).bindPopup("Você está aqui").openPopup();
-});
-
-const coords={"Buffon":[-32.035,-52.095],"SIM":[-32.032,-52.105],"Shell":[-32.040,-52.090]};
-
-async function carregarMapa(){
-  const res=await fetch("data.json");
-  const data=await res.json();
-  markersLayer.clearLayers();
-  pontos=[];
-  data.combustivel.forEach(p=>{
-    const c=coords[p.posto]; if(!c) return;
-    const marker=L.marker(c).addTo(markersLayer);
-    marker.bindPopup(`<b>${p.posto}</b><br>${p.nome}<br>R$ ${p.preco}`);
-    pontos.push({lat:c[0],lng:c[1],nome:p.posto,preco:p.preco,marker});
-  });
-}
-
-function distancia(lat1, lon1, lat2, lon2){
-  const R=6371;
-  const dLat=(lat2-lat1)*Math.PI/180;
-  const dLon=(lon2-lon1)*Math.PI/180;
-  const a=Math.sin(dLat/2)**2+Math.cos(lat1*Math.PI/180)*Math.cos(lat2*Math.PI/180)*Math.sin(dLon/2)**2;
-  return R*2*Math.atan2(Math.sqrt(a),Math.sqrt(1-a));
-}
-
-function acharMelhorOpcao(){
-  if(!usuarioPosicao) return alert("Localização não encontrada.");
-  const pesoDistancia=2;
-  pontos.forEach(p=>{p.distancia=distancia(usuarioPosicao.lat,usuarioPosicao.lng,p.lat,p.lng); p.score=p.preco+(p.distancia*pesoDistancia);});
-  pontos.sort((a,b)=>a.score-b.score);
-  const melhor=pontos[0];
-  melhor.marker.openPopup();
-  map.setView([melhor.lat,melhor.lng],16);
-  alert(`🏆 Melhor opção:\n\n${melhor.nome}\nPreço: R$ ${melhor.preco}\nDistância: ${melhor.distancia.toFixed(2)} km\nScore: ${melhor.score.toFixed(2)}`);
-}
-
-carregarMapa();
-
-function confirmarPreco(index){document.getElementById(`feedback-${index}`).innerText="Obrigado por confirmar o preço 👍";}
-function negarPreco(index){document.getElementById(`feedback-${index}`).innerText="Preço contestado. Obrigado pela colaboração ❌";}
+function confirmarPreco(index){ document.getElementById(`feedback-${index}`).innerText="Obrigado por confirmar o preço 👍"; }
+function negarPreco(index){ document.getElementById(`feedback-${index}`).innerText="Preço contestado. Obrigado pela colaboração ❌"; }
 </script>
 
 </body>
