@@ -113,11 +113,8 @@ function setCategoriaFarmacia(c,b){
 async function buscar(){
 
   if (!nichoAtual) return alert("Selecione um nicho.");
-
   if (nichoAtual === "combustivel" && !tipoAtual) return alert("Selecione o tipo.");
-
   if (nichoAtual === "supermercado" && !categoriaAtual) return alert("Selecione a categoria.");
-
   if (nichoAtual === "farmacia" && !categoriaFarmaciaAtual) return alert("Selecione a categoria.");
 
   const termo = busca.value.toLowerCase();
@@ -127,6 +124,15 @@ async function buscar(){
   let itens = data[nichoAtual].filter(p =>
     p.nome.toLowerCase().includes(termo)
   );
+
+  if(nichoAtual=="combustivel")
+    itens = itens.filter(p => p.nome.toLowerCase().includes(tipoAtual.toLowerCase()));
+
+  if(nichoAtual=="supermercado")
+    itens = itens.filter(p => p.tipo == categoriaAtual);
+
+  if(nichoAtual=="farmacia")
+    itens = itens.filter(p => p.tipo == categoriaFarmaciaAtual);
 
   resultado.innerHTML="";
 
@@ -171,17 +177,17 @@ function compararCesta(){
 
 /* ===== MAPA ===== */
 
-/* ===== MAPA ===== */
-
 const map = L.map('map').setView([-32.035, -52.098], 13);
 
-// camada base
 L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
   attribution: '© OpenStreetMap'
 }).addTo(map);
 
-// marcadores exemplo (Rio Grande)
 L.marker([-32.035, -52.098]).addTo(map).bindPopup("Centro - Rio Grande");
 L.marker([-32.032, -52.105]).addTo(map).bindPopup("Supermercado Exemplo");
 L.marker([-32.040, -52.090]).addTo(map).bindPopup("Farmácia Exemplo");
 
+</script>
+
+</body>
+</html>
