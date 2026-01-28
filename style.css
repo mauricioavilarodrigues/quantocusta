@@ -21,12 +21,11 @@ input {
   border-radius: 5px;
 }
 
-.avaliacao {
-  margin-top: 6px;
+.avaliacao{
+  margin-top: 8px;
   font-size: 14px;
 }
 
-.avaliacao button {
+.avaliacao button{
   margin-right: 5px;
-  cursor: pointer;
 }
