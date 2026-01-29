@@ -117,3 +117,14 @@ function confirmarPreco(index){
 function negarPreco(index){ 
     document.getElementById(`feedback-${index}`).innerText="Preço contestado. Obrigado pela colaboração ❌"; 
 }
+async function testarAPI(){
+  try {
+    const r = await fetch("http://localhost:3000/produtos");
+    const dados = await r.json();
+    console.log("✅ API conectada:", dados);
+  } catch(e){
+    console.error("❌ Erro ao conectar API:", e);
+  }
+}
+
+testarAPI();
