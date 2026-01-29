@@ -136,6 +136,7 @@ function compararCesta(){
 }
 
 // ===== MAPA =====
+document.addEventListener("DOMContentLoaded", () => {
 const map = L.map('map').setView([-32.035,-52.098],13);
 L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{attribution:'© OpenStreetMap'}).addTo(map);
 markersLayer=L.layerGroup().addTo(map);
