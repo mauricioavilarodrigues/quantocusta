@@ -1,33 +1,12 @@
 body {
-  font-family: Arial, sans-serif;
+  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif; /* ALTERAÇÃO */
   padding: 20px;
   background-color: #f2f2f2;
 }
 
 h1 {
   color: #2c3e50;
-}
-
-input {
-  padding: 8px;
-  width: 250px;
-  margin-bottom: 15px;
-}
-
-.produto {
-  background: white;
-  padding: 10px;
-  margin-bottom: 8px;
-  border-radius: 5px;
-}
-
-.avaliacao{
-  margin-top: 8px;
-  font-size: 14px;
-}
-
-.avaliacao button{
-  margin-right: 5px;
+  font-family: inherit; /* garante herdar a fonte do body */
 }
 
 nav {
@@ -40,6 +19,7 @@ nav a {
   margin-right: 15px;
   text-decoration: none;
   font-weight: bold;
+  font-family: inherit; /* garante herdar a fonte do body */
 }
 
 nav a:hover {
