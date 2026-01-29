@@ -1,12 +1,48 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
 body {
-  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif; /* ALTERAÇÃO */
+  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
   padding: 20px;
   background-color: #f2f2f2;
+  color: #212529;
 }
 
 h1 {
   color: #2c3e50;
-  font-family: inherit; /* garante herdar a fonte do body */
+  font-family: inherit;
+  text-align: center;
+  font-size: 2em;
+  margin-bottom: 30px;
+  font-weight: 600;
+}
+
+input {
+  padding: 8px;
+  width: 250px;
+  margin-bottom: 15px;
+  font-family: inherit;
+}
+
+.produto {
+  background: white;
+  padding: 10px;
+  margin-bottom: 8px;
+  border-radius: 5px;
+}
+
+.avaliacao {
+  margin-top: 8px;
+  font-size: 14px;
+  font-family: inherit;
+}
+
+.avaliacao button {
+  margin-right: 5px;
+  font-family: inherit;
 }
 
 nav {
@@ -19,9 +55,10 @@ nav a {
   margin-right: 15px;
   text-decoration: none;
   font-weight: bold;
-  font-family: inherit; /* garante herdar a fonte do body */
+  font-family: inherit;
 }
 
 nav a:hover {
   text-decoration: underline;
 }
+
