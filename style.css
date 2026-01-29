@@ -1,48 +1,26 @@
-* {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
-}
-
 body {
   font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
-  padding: 20px;
-  background-color: #f2f2f2;
+  background: #f8f9fa;
   color: #212529;
+  padding: 20px;
+  margin: 0;
 }
 
 h1 {
-  color: #2c3e50;
-  font-family: inherit;
   text-align: center;
   font-size: 2em;
   margin-bottom: 30px;
   font-weight: 600;
-}
-
-input {
-  padding: 8px;
-  width: 250px;
-  margin-bottom: 15px;
+  color: #212529;
   font-family: inherit;
 }
 
-.produto {
-  background: white;
-  padding: 10px;
-  margin-bottom: 8px;
-  border-radius: 5px;
-}
-
-.avaliacao {
-  margin-top: 8px;
-  font-size: 14px;
-  font-family: inherit;
-}
-
-.avaliacao button {
-  margin-right: 5px;
-  font-family: inherit;
+.topo, .filtros, .busca {
+  display: flex;
+  justify-content: center;
+  gap: 15px;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
 }
 
 nav {
@@ -62,3 +40,6 @@ nav a:hover {
   text-decoration: underline;
 }
 
+.container {
+  padding: 20px;
+}
