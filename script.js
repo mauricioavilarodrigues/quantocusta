@@ -77,6 +77,7 @@ const coords={"Buffon":[-32.035,-52.095],"SIM":[-32.032,-52.105],"Shell":[-32.04
 async function carregarMapa(){
     const res=await fetch("data.json"); 
     const data=await res.json();
+
     markersLayer.clearLayers(); 
     pontos=[];
     data.combustivel.forEach(p=>{
