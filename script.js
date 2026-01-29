@@ -24,7 +24,8 @@ async function buscar(){
     if(nichoAtual=="farmacia" && !categoriaFarmaciaAtual) return alert("Selecione a categoria.");
 
     const termo=busca.value.toLowerCase();
-    const res = await fetch("http://localhost:3000/produtos");
+    const res = await fetchdata.data.json
+
     const data = await res.json();
     let itens = data[nichoAtual].filter(p=>p.nome.toLowerCase().includes(termo));
 
