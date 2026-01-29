@@ -24,9 +24,10 @@ async function buscar(){
     if(nichoAtual=="farmacia" && !categoriaFarmaciaAtual) return alert("Selecione a categoria.");
 
     const termo=busca.value.toLowerCase();
-    const res=await fetch("data.json");
-    const data=await res.json();
-    let itens=data[nichoAtual].filter(p=>p.nome.toLowerCase().includes(termo));
+    const res = await fetch("http://localhost:3000/produtos");
+    const data = await res.json();
+    let itens = data[nichoAtual].filter(p=>p.nome.toLowerCase().includes(termo));
+
 
     if(nichoAtual=="combustivel") itens=itens.filter(p=>p.nome.toLowerCase().includes(tipoAtual.toLowerCase()));
     if(nichoAtual=="supermercado") itens=itens.filter(p=>p.tipo==categoriaAtual);
