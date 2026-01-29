@@ -6,7 +6,8 @@ const API_URL = "http://localhost:3000/produtos";
 // ===============================
 // ELEMENTOS
 // ===============================
-const lista = document.getElementById("listaProdutos");
+const lista = document.getElementById("resultado");
+
 const inputBusca = document.getElementById("busca");
 
 // ===============================
