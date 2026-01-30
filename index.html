@@ -1,72 +1,309 @@
 <!DOCTYPE html>
 <html lang="pt-br">
 <head>
-<meta charset="UTF-8">
-<title>Quantocusta</title>
-<meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta charset="UTF-8" />
+  <title>Quantocusta - Globo</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
 
-<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
-<link rel="stylesheet" href="style.css">
+  <!-- Mapbox GL JS -->
+  <link href="https://api.mapbox.com/mapbox-gl-js/v2.15.0/mapbox-gl.css" rel="stylesheet">
+  <script src="https://api.mapbox.com/mapbox-gl-js/v2.15.0/mapbox-gl.js"></script>
 
+  <style>
+    body { margin:0; font-family: Arial, sans-serif; background:#0b1220; }
+    #map { width: 100vw; height: 100vh; }
+
+    .hud {
+      position: absolute;
+      top: 12px;
+      left: 12px;
+      z-index: 10;
+      display: flex;
+      gap: 10px;
+      align-items: center;
+      padding: 10px 12px;
+      border-radius: 12px;
+      background: rgba(10, 14, 24, 0.72);
+      color: #e9eefc;
+      border: 1px solid rgba(255,255,255,.12);
+      backdrop-filter: blur(10px);
+      box-shadow: 0 10px 30px rgba(0,0,0,.35);
+    }
+
+    .hud input {
+      width: 220px;
+      padding: 8px 10px;
+      border-radius: 10px;
+      border: 1px solid rgba(255,255,255,.18);
+      background: rgba(255,255,255,.06);
+      color: #fff;
+      outline: none;
+    }
+    .hud button {
+      padding: 8px 10px;
+      border-radius: 10px;
+      border: 1px solid rgba(255,255,255,.18);
+      background: rgba(255,255,255,.08);
+      color: #fff;
+      cursor: pointer;
+    }
+    .hud button:hover { background: rgba(255,255,255,.12); }
+
+    .note {
+      position: absolute;
+      bottom: 12px;
+      left: 12px;
+      z-index: 10;
+      max-width: 520px;
+      padding: 10px 12px;
+      border-radius: 12px;
+      background: rgba(10, 14, 24, 0.72);
+      color: #cfe0ff;
+      border: 1px solid rgba(255,255,255,.12);
+      backdrop-filter: blur(10px);
+      font-size: 12px;
+      line-height: 1.35;
+    }
+    .note code { color:#fff; }
+  </style>
 </head>
 
 <body>
-<nav>
-  <a href="index.html">Início</a>
-  <a href="quem-somos.html">Quem somos</a>
-  <a href="parceiro.html">Seja parceiro</a>
-  <a href="contato.html">Fale conosco</a>
-</nav>
+  <div class="hud">
+    <strong>Globo</strong>
+    <input id="busca" placeholder="Filtrar por nome/loja/cidade/tipo..." />
+    <button id="btnRecarregar">Recarregar</button>
+    <button id="btnGiro">Pausar giro</button>
+  </div>
 
-<h1>💰 Quantocusta</h1>
+  <div id="map"></div>
 
-<div class="topo">
-    <button onclick="setNicho('supermercado',this)">🛒 Supermercado</button>
-    <button onclick="setNicho('combustivel',this)">⛽ Combustível</button>
-    <button onclick="setNicho('farmacia',this)">💊 Farmácia</button>
-</div>
+  <div class="note">
+    1) Coloque seu token em <code>MAPBOX_TOKEN</code>.<br>
+    2) Seus pontos precisam ter <code>lat</code> e <code>lng</code> (ou <code>latitude</code>/<code>longitude</code>).<br>
+    3) Por padrão ele tenta buscar os pontos de <code>data.json</code> ou <code>/api/locais</code>.
+  </div>
 
-<div id="filtroSupermercado" class="filtros" style="display:none;">
-    <button onclick="setCategoria('alimento',this)">🥦 Alimentos</button>
-    <button onclick="setCategoria('limpeza',this)">🧼 Limpeza</button>
-</div>
+  <script>
+    // =========================
+    // 1) CONFIGURAÇÃO DO TOKEN
+    // =========================
+    const MAPBOX_TOKEN = "COLE_SEU_TOKEN_MAPBOX_AQUI";
+    mapboxgl.accessToken = MAPBOX_TOKEN;
 
-<div id="filtroCombustivel" class="filtros" style="display:none;">
-    <button onclick="setTipo('Comum',this)">Comum</button>
-    <button onclick="setTipo('Aditivada',this)">Aditivada</button>
-</div>
+    // =========================
+    // 2) CRIA O MAPA (GLOBO)
+    // =========================
+    const map = new mapboxgl.Map({
+      container: "map",
+      style: "mapbox://styles/mapbox/streets-v12",
+      projection: "globe",
+      zoom: 1.6,
+      center: [-55, -14] // Brasil
+    });
 
-<div id="filtroFarmacia" class="filtros" style="display:none;">
-    <button onclick="setCategoriaFarmacia('remedio',this)">💊 Remédios</button>
-    <button onclick="setCategoriaFarmacia('higiene',this)">🧴 Higiene</button>
-</div>
+    // atmosfera/fog (fica bonito no globo)
+    map.on("style.load", () => {
+      map.setFog({});
+    });
 
-<div class="busca">
-    <form onsubmit="buscar(); return false;">
-        <input id="busca" placeholder="Buscar...">
-        <button type="submit">Buscar</button>
-    </form>
-</div>
+    // Controles básicos
+    map.addControl(new mapboxgl.NavigationControl({ visualizePitch: true }), "bottom-right");
 
-<ul id="resultado"></ul>
+    // =========================
+    // 3) AUTO-ROTATE (GLOBO GIRANDO)
+    // =========================
+    let giroAtivo = true;
+    let userInteracting = false;
+    let lastTime = 0;
 
-<div class="caixa">
-    <button onclick="compararCesta()">🧺 Comparar cesta</button>
-    <div id="cestaResultado"></div>
-</div>
+    // velocidade: graus por segundo (ajuste se quiser)
+    const ROTATION_SPEED = 6;
 
-<div class="caixa">
-    <button onclick="acharMelhorOpcao()">📍 Melhor opção perto de você</button>
-</div>
+    function spinGlobe(timestamp) {
+      if (!lastTime) lastTime = timestamp;
+      const delta = (timestamp - lastTime) / 1000; // segundos
+      lastTime = timestamp;
 
-<div class="caixa">
-    <h3>Mapa de Localização</h3>
-    <div id="map"></div>
-</div>
+      if (giroAtivo && !userInteracting) {
+        const c = map.getCenter();
+        c.lng -= ROTATION_SPEED * delta;
+        map.setCenter(c);
+      }
 
-<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+      requestAnimationFrame(spinGlobe);
+    }
 
-<script src="script.js"></script>
+    // Pausa giro quando usuário mexe
+    function startInteracting() { userInteracting = true; }
+    function stopInteracting() {
+      userInteracting = false;
+      lastTime = 0; // reseta pra não dar salto
+    }
 
+    map.on("mousedown", startInteracting);
+    map.on("dragstart", startInteracting);
+    map.on("zoomstart", startInteracting);
+    map.on("rotatestart", startInteracting);
+    map.on("pitchstart", startInteracting);
+
+    map.on("mouseup", stopInteracting);
+    map.on("dragend", stopInteracting);
+    map.on("zoomend", stopInteracting);
+    map.on("rotateend", stopInteracting);
+    map.on("pitchend", stopInteracting);
+
+    requestAnimationFrame(spinGlobe);
+
+    document.getElementById("btnGiro").addEventListener("click", () => {
+      giroAtivo = !giroAtivo;
+      document.getElementById("btnGiro").textContent = giroAtivo ? "Pausar giro" : "Retomar giro";
+      lastTime = 0;
+    });
+
+    // =========================
+    // 4) MARCADORES DINÂMICOS
+    // =========================
+    let markers = [];
+    let dadosOriginais = [];
+
+    function clearMarkers() {
+      markers.forEach(m => m.remove());
+      markers = [];
+    }
+
+    function normalizePoint(p) {
+      // aceita lat/lng ou latitude/longitude
+      const lat = (p.lat ?? p.latitude);
+      const lng = (p.lng ?? p.lon ?? p.longitude);
+      if (typeof lat !== "number" || typeof lng !== "number") return null;
+
+      return {
+        id: p.id ?? crypto.randomUUID?.() ?? String(Math.random()),
+        nome: p.nome ?? p.title ?? "Sem nome",
+        loja: p.loja ?? p.store ?? "",
+        tipo: p.tipo ?? p.category ?? "",
+        cidade: p.cidade ?? p.city ?? "",
+        endereco: p.endereco ?? p.address ?? "",
+        lat, lng,
+        ...p
+      };
+    }
+
+    function addMarkers(points) {
+      clearMarkers();
+
+      points.forEach(p => {
+        const popupHtml = `
+          <div style="min-width:220px">
+            <div style="font-weight:700; font-size:14px; margin-bottom:6px">${escapeHtml(p.nome)}</div>
+            ${p.loja ? `<div><b>Loja:</b> ${escapeHtml(p.loja)}</div>` : ""}
+            ${p.tipo ? `<div><b>Tipo:</b> ${escapeHtml(p.tipo)}</div>` : ""}
+            ${p.cidade ? `<div><b>Cidade:</b> ${escapeHtml(p.cidade)}</div>` : ""}
+            ${p.endereco ? `<div><b>Endereço:</b> ${escapeHtml(p.endereco)}</div>` : ""}
+            <div style="opacity:.75; margin-top:6px; font-size:12px">(${p.lat.toFixed(5)}, ${p.lng.toFixed(5)})</div>
+          </div>
+        `;
+
+        const marker = new mapboxgl.Marker({ color: "#ff4d4d" })
+          .setLngLat([p.lng, p.lat])
+          .setPopup(new mapboxgl.Popup({ offset: 18 }).setHTML(popupHtml))
+          .addTo(map);
+
+        markers.push(marker);
+      });
+
+      // Ajusta o mapa pra enquadrar pontos (se tiver)
+      if (points.length > 0) {
+        const bounds = new mapboxgl.LngLatBounds();
+        points.forEach(p => bounds.extend([p.lng, p.lat]));
+        map.fitBounds(bounds, { padding: 80, maxZoom: 14, duration: 900 });
+      }
+    }
+
+    function escapeHtml(str) {
+      return String(str).replace(/[&<>"']/g, s => ({
+        "&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"
+      }[s]));
+    }
+
+    async function fetchJson(url) {
+      const res = await fetch(url, { cache: "no-store" });
+      if (!res.ok) throw new Error(`HTTP ${res.status} em ${url}`);
+      return res.json();
+    }
+
+    async function carregarLocais() {
+      // tenta várias fontes, sem te travar se uma falhar
+      const fontes = [
+        "data.json",        // GitHub Pages / estático
+        "/data.json",       // variação
+        "/api/locais",      // backend node (sugestão)
+        "http://localhost:3000/api/locais" // dev local
+      ];
+
+      let raw = null;
+      let lastErr = null;
+
+      for (const f of fontes) {
+        try {
+          raw = await fetchJson(f);
+          console.log("✅ Dados carregados de:", f);
+          break;
+        } catch (e) {
+          lastErr = e;
+        }
+      }
+
+      if (!raw) {
+        console.error("❌ Não consegui carregar dados de nenhuma fonte.", lastErr);
+        alert("Não consegui carregar os pontos. Veja o console (F12).");
+        return;
+      }
+
+      // Aceita:
+      // - array direto: [{...}]
+      // - objeto com lista: { locais:[...]} ou {comercios:[...]}
+      const list =
+        Array.isArray(raw) ? raw :
+        Array.isArray(raw.locais) ? raw.locais :
+        Array.isArray(raw.comercios) ? raw.comercios :
+        Array.isArray(raw.supermercado) ? raw.supermercado :
+        [];
+
+      const norm = list
+        .map(normalizePoint)
+        .filter(Boolean);
+
+      dadosOriginais = norm;
+
+      if (norm.length === 0) {
+        alert("Dados carregaram, mas nenhum item tem lat/lng. Você precisa adicionar coordenadas.");
+        console.warn("Exemplo de item válido:", { nome:"Loja X", lat:-23.55, lng:-46.63, cidade:"São Paulo" });
+      }
+
+      addMarkers(norm);
+    }
+
+    // filtro simples
+    function aplicarFiltro() {
+      const q = document.getElementById("busca").value.trim().toLowerCase();
+      if (!q) {
+        addMarkers(dadosOriginais);
+        return;
+      }
+      const filtrado = dadosOriginais.filter(p => {
+        const hay = `${p.nome} ${p.loja} ${p.tipo} ${p.cidade} ${p.endereco}`.toLowerCase();
+        return hay.includes(q);
+      });
+      addMarkers(filtrado);
+    }
+
+    document.getElementById("busca").addEventListener("input", aplicarFiltro);
+    document.getElementById("btnRecarregar").addEventListener("click", carregarLocais);
+
+    // carrega quando o mapa estiver pronto
+    map.on("load", carregarLocais);
+  </script>
 </body>
 </html>
