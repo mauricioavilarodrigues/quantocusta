@@ -96,15 +96,14 @@ function addCesta(p) {
   cesta.push(p);
 }
 
-// ===== MAPA =====
-// ===== MAPA =====
-const map = L.map("map").setView([-32.035, -52.098], 13); // Rio Grande - RS (centro)
+// ===== MAPA (RIO GRANDE – ESTIMADO ANP) =====
+const map = L.map("map").setView([-32.035, -52.098], 13);
 
 L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
   attribution: "© OpenStreetMap"
 }).addTo(map);
 
-const markersLayer = L.layerGroup().addTo(map);
+markersLayer = L.layerGroup().addTo(map);
 
 function brMoney(n){
   if (n === null || n === undefined || Number.isNaN(n)) return "-";
@@ -118,29 +117,35 @@ async function carregarMapaRioGrandeEstimado(){
 
     markersLayer.clearLayers();
 
-    const c = [-32.035, -52.098]; // centro Rio Grande
+    const centro = [-32.035, -52.098];
     const comb = dados.combustiveis;
 
-    // Monta popup com os principais (pode ajustar depois)
     const html =
       "<b>Rio Grande (estimado)</b><br>" +
-      "<small>Base: " + dados.cidade_base + " | ANP " + dados.periodo.data_inicial + " a " + dados.periodo.data_final + "</small><br><br>" +
-      "<b>Gasolina Comum:</b> " + brMoney(comb.gasolina_comum?.preco_medio) + "<br>" +
-      "<b>Gasolina Aditivada:</b> " + brMoney(comb.gasolina_aditivada?.preco_medio) + "<br>" +
-      "<b>Etanol:</b> " + brMoney(comb.etanol_hidratado?.preco_medio) + "<br>" +
-      "<b>Diesel:</b> " + brMoney(comb.oleo_diesel?.preco_medio) + "<br>" +
-      "<b>Diesel S10:</b> " + brMoney(comb.oleo_diesel_s10?.preco_medio) + "<br>" +
-      "<b>GNV:</b> " + brMoney(comb.gnv?.preco_medio) + "<br>" +
-      "<b>GLP:</b> " + brMoney(comb.glp?.preco_medio) + "<br><br>" +
+      "<small>Base: " + dados.cidade_base +
+      " | ANP " + dados.periodo.data_inicial +
+      " a " + dados.periodo.data_final + "</small><br><br>" +
+      "<b>Gasolina Comum:</b> " + brMoney(comb.gasolina_comum.preco_medio) + "<br>" +
+      "<b>Gasolina Aditivada:</b> " + brMoney(comb.gasolina_aditivada.preco_medio) + "<br>" +
+      "<b>Etanol:</b> " + brMoney(comb.etanol_hidratado.preco_medio) + "<br>" +
+      "<b>Diesel:</b> " + brMoney(comb.oleo_diesel.preco_medio) + "<br>" +
+      "<b>Diesel S10:</b> " + brMoney(comb.oleo_diesel_s10.preco_medio) + "<br>" +
+      "<b>GNV:</b> " + brMoney(comb.gnv.preco_medio) + "<br>" +
+      "<b>GLP:</b> " + brMoney(comb.glp.preco_medio) + "<br><br>" +
       "<small>" + dados.aviso + "</small>";
 
-    L.marker(c).addTo(markersLayer).bindPopup(html).openPopup();
-  }catch(e){
-    console.error("Erro ao carregar preços estimados:", e);
+    L.marker(centro)
+      .addTo(markersLayer)
+      .bindPopup(html)
+      .openPopup();
+
+  } catch (e) {
+    console.error("Erro ao carregar mapa ANP:", e);
   }
 }
 
 carregarMapaRioGrandeEstimado();
+
 
   const res = await fetch("data.json");
   const data = await res.json();
