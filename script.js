@@ -135,12 +135,16 @@ async function carregarMapaRioGrandeEstimado() {
     // ✅ REMOVIDO openPopup() para não “tampar” o colaborativo
     L.marker(centro)
       .addTo(markersLayer)
+      .bindPopup(html)
+      .openPopup();
       .bindPopup(html);
 
   } catch (e) {
     console.error("Erro ao carregar mapa:", e);
   }
 }
+
+carregarMapaRioGrandeEstimado();
 
 // ===============================
 // FEEDBACK
@@ -155,6 +159,8 @@ function negarPreco(index) {
     "Preço contestado.";
 }
 
+console.log("script.js carregado corretamente");
+// ===== PREÇOS COLABORATIVOS (FORMULÁRIO) =====
 // ===============================
 // PREÇOS COLABORATIVOS (FORMULÁRIO)
 // ===============================
@@ -172,11 +178,19 @@ async function carregarPrecosColaborativos() {
 
     const centroRioGrande = [-32.035, -52.098];
 
+   dados.precos.forEach(p => {
+  // transforma "6,2" em 6.2 e garante número
+  const precoNum = Number(String(p.preco).replace(",", "."));
     dados.precos.forEach(p => {
       console.log("➡️ adicionando marcador colaborativo:", p);
 
       const precoNum = Number(String(p.preco).replace(",", "."));
 
+  const popup =
+    "<b>" + p.posto + "</b><br>" +
+    p.produto + "<br>" +
+    "Preço: " + (isNaN(precoNum) ? "—" : ("R$ " + precoNum.toFixed(2).replace(".", ","))) + "<br>" +
+    "<small>Data: " + p.data + "</small>";
       const popup =
         "<b>✅ Comunidade</b><br>" +
         "<b>" + p.posto + "</b><br>" +
@@ -184,6 +198,10 @@ async function carregarPrecosColaborativos() {
         "Preço: " + (isNaN(precoNum) ? "—" : ("R$ " + precoNum.toFixed(2).replace(".", ","))) + "<br>" +
         "<small>Data: " + p.data + "</small>";
 
+  L.marker(centroRioGrande)
+    .addTo(markersLayer)
+    .bindPopup(popup);
+});
       // ✅ deslocamento pequeno só para você ver que é outro marcador
       const lat = centroRioGrande[0] + 0.002;
       const lng = centroRioGrande[1] + 0.002;
@@ -198,6 +216,8 @@ async function carregarPrecosColaborativos() {
   }
 }
 
+// chama a função
+carregarPrecosColaborativos();
 console.log("✅ script.js carregado corretamente");
 
 // Ordem: primeiro estimado (limpa), depois colaborativo (adiciona)
