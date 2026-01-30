@@ -1,10 +1,6 @@
 // ===============================
 // VARIÁVEIS GLOBAIS
 // ===============================
-let nichoAtual = "";
-let tipoAtual = "";
-let categoriaAtual = "";
-let categoriaFarmaciaAtual = "";
 
 let cesta = [];
 let markersLayer = null;
