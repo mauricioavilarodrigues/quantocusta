@@ -112,6 +112,7 @@ async function carregarMapaRioGrandeEstimado() {
     const res = await fetch("precos_estimados_rio_grande_anp.json");
     const dados = await res.json();
 
+    // limpa tudo e recria os marcadores (estimado + colaborativo depois)
     markersLayer.clearLayers();
 
     const centro = [-32.035, -52.098];
@@ -131,17 +132,15 @@ async function carregarMapaRioGrandeEstimado() {
       "<b>GLP:</b> " + brMoney(c.glp.preco_medio) + "<br><br>" +
       "<small>" + dados.aviso + "</small>";
 
+    // ✅ REMOVIDO openPopup() para não “tampar” o colaborativo
     L.marker(centro)
       .addTo(markersLayer)
-      .bindPopup(html)
-      .openPopup();
+      .bindPopup(html);
 
   } catch (e) {
     console.error("Erro ao carregar mapa:", e);
   }
 }
-
-carregarMapaRioGrandeEstimado();
 
 // ===============================
 // FEEDBACK
@@ -156,12 +155,15 @@ function negarPreco(index) {
     "Preço contestado.";
 }
 
-console.log("script.js carregado corretamente");
-// ===== PREÇOS COLABORATIVOS (FORMULÁRIO) =====
+// ===============================
+// PREÇOS COLABORATIVOS (FORMULÁRIO)
+// ===============================
 async function carregarPrecosColaborativos() {
   try {
     const res = await fetch("precos_colaborativos.json");
     const dados = await res.json();
+
+    console.log("📌 dados colaborativos:", dados);
 
     if (!dados.precos || dados.precos.length === 0) {
       console.warn("Nenhum preço colaborativo encontrado");
@@ -170,26 +172,33 @@ async function carregarPrecosColaborativos() {
 
     const centroRioGrande = [-32.035, -52.098];
 
-   dados.precos.forEach(p => {
-  // transforma "6,2" em 6.2 e garante número
-  const precoNum = Number(String(p.preco).replace(",", "."));
+    dados.precos.forEach(p => {
+      console.log("➡️ adicionando marcador colaborativo:", p);
 
-  const popup =
-    "<b>" + p.posto + "</b><br>" +
-    p.produto + "<br>" +
-    "Preço: " + (isNaN(precoNum) ? "—" : ("R$ " + precoNum.toFixed(2).replace(".", ","))) + "<br>" +
-    "<small>Data: " + p.data + "</small>";
+      const precoNum = Number(String(p.preco).replace(",", "."));
 
-  L.marker(centroRioGrande)
-    .addTo(markersLayer)
-    .bindPopup(popup);
-});
+      const popup =
+        "<b>✅ Comunidade</b><br>" +
+        "<b>" + p.posto + "</b><br>" +
+        p.produto + "<br>" +
+        "Preço: " + (isNaN(precoNum) ? "—" : ("R$ " + precoNum.toFixed(2).replace(".", ","))) + "<br>" +
+        "<small>Data: " + p.data + "</small>";
 
+      // ✅ deslocamento pequeno só para você ver que é outro marcador
+      const lat = centroRioGrande[0] + 0.002;
+      const lng = centroRioGrande[1] + 0.002;
+
+      L.marker([lat, lng])
+        .addTo(markersLayer)
+        .bindPopup(popup);
+    });
 
   } catch (e) {
     console.error("Erro ao carregar preços colaborativos:", e);
   }
 }
 
-// chama a função
-carregarPrecosColaborativos();
+console.log("✅ script.js carregado corretamente");
+
+// Ordem: primeiro estimado (limpa), depois colaborativo (adiciona)
+carregarMapaRioGrandeEstimado().then(() => carregarPrecosColaborativos());
