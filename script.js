@@ -1,17 +1,20 @@
-// ===== VARIÁVEIS =====
+// ===============================
+// VARIÁVEIS GLOBAIS
+// ===============================
 let nichoAtual = "";
 let tipoAtual = "";
 let categoriaAtual = "";
 let categoriaFarmaciaAtual = "";
 
 let cesta = [];
-let markersLayer;
-let usuarioPosicao = null;
-let pontos = [];
+let markersLayer = null;
 
-// ===== CONTROLES =====
+// ===============================
+// CONTROLES DE FILTRO
+// ===============================
 function limparAtivos(grupo) {
-  document.querySelectorAll(grupo + " button").forEach(b => b.classList.remove("ativo"));
+  document.querySelectorAll(grupo + " button")
+    .forEach(b => b.classList.remove("ativo"));
 }
 
 function setNicho(n, b) {
@@ -54,22 +57,19 @@ function setCategoriaFarmacia(c, b) {
   buscar();
 }
 
-// ===== BUSCA =====
+// ===============================
+// BUSCA (DATA.JSON)
+// ===============================
 async function buscar() {
   if (!nichoAtual) return alert("Selecione um nicho.");
-  if (nichoAtual === "combustivel" && !tipoAtual) return alert("Selecione o tipo.");
-  if (nichoAtual === "supermercado" && !categoriaAtual) return alert("Selecione a categoria.");
-  if (nichoAtual === "farmacia" && !categoriaFarmaciaAtual) return alert("Selecione a categoria.");
 
   const termo = busca.value.toLowerCase();
   const res = await fetch("data.json");
   const data = await res.json();
 
-  let itens = data[nichoAtual].filter(p => p.nome.toLowerCase().includes(termo));
-
-  if (nichoAtual === "combustivel") itens = itens.filter(p => p.nome.toLowerCase().includes(tipoAtual.toLowerCase()));
-  if (nichoAtual === "supermercado") itens = itens.filter(p => p.tipo === categoriaAtual);
-  if (nichoAtual === "farmacia") itens = itens.filter(p => p.tipo === categoriaFarmaciaAtual);
+  let itens = data[nichoAtual].filter(p =>
+    p.nome.toLowerCase().includes(termo)
+  );
 
   resultado.innerHTML = "";
 
@@ -79,24 +79,21 @@ async function buscar() {
     li.innerHTML =
       "<span><input type='checkbox'> " +
       p.nome +
-      "<br><small>" + (p.loja || p.posto) + "</small></span>" +
+      "<br><small>" + (p.loja || p.posto || "") + "</small></span>" +
       "<span class='preco'>R$ " + p.preco.toFixed(2) + "</span>" +
-      "<div class='avaliacao'><strong>Este preço confere?</strong><br>" +
+      "<div class='avaliacao'>" +
       "<button onclick='confirmarPreco(" + index + ")'>Confere</button>" +
-      "<button onclick='negarPreco(" + index + ")'>Nao confere</button>" +
+      "<button onclick='negarPreco(" + index + ")'>Não confere</button>" +
       "<div id='feedback-" + index + "'></div></div>";
 
     resultado.appendChild(li);
-    li.querySelector("input").addEventListener("change", () => addCesta(p));
+    li.querySelector("input").addEventListener("change", () => cesta.push(p));
   });
 }
 
-// ===== CESTA =====
-function addCesta(p) {
-  cesta.push(p);
-}
-
-// ===== MAPA (RIO GRANDE – ESTIMADO ANP) =====
+// ===============================
+// MAPA – RIO GRANDE (ANP ESTIMADO)
+// ===============================
 const map = L.map("map").setView([-32.035, -52.098], 13);
 
 L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
@@ -105,33 +102,33 @@ L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
 
 markersLayer = L.layerGroup().addTo(map);
 
-function brMoney(n){
-  if (n === null || n === undefined || Number.isNaN(n)) return "-";
+function brMoney(n) {
+  if (n === null || n === undefined || isNaN(n)) return "-";
   return "R$ " + Number(n).toFixed(2).replace(".", ",");
 }
 
-async function carregarMapaRioGrandeEstimado(){
-  try{
+async function carregarMapaRioGrandeEstimado() {
+  try {
     const res = await fetch("precos_estimados_rio_grande_anp.json");
     const dados = await res.json();
 
     markersLayer.clearLayers();
 
     const centro = [-32.035, -52.098];
-    const comb = dados.combustiveis;
+    const c = dados.combustiveis;
 
     const html =
       "<b>Rio Grande (estimado)</b><br>" +
       "<small>Base: " + dados.cidade_base +
       " | ANP " + dados.periodo.data_inicial +
       " a " + dados.periodo.data_final + "</small><br><br>" +
-      "<b>Gasolina Comum:</b> " + brMoney(comb.gasolina_comum.preco_medio) + "<br>" +
-      "<b>Gasolina Aditivada:</b> " + brMoney(comb.gasolina_aditivada.preco_medio) + "<br>" +
-      "<b>Etanol:</b> " + brMoney(comb.etanol_hidratado.preco_medio) + "<br>" +
-      "<b>Diesel:</b> " + brMoney(comb.oleo_diesel.preco_medio) + "<br>" +
-      "<b>Diesel S10:</b> " + brMoney(comb.oleo_diesel_s10.preco_medio) + "<br>" +
-      "<b>GNV:</b> " + brMoney(comb.gnv.preco_medio) + "<br>" +
-      "<b>GLP:</b> " + brMoney(comb.glp.preco_medio) + "<br><br>" +
+      "<b>Gasolina Comum:</b> " + brMoney(c.gasolina_comum.preco_medio) + "<br>" +
+      "<b>Gasolina Aditivada:</b> " + brMoney(c.gasolina_aditivada.preco_medio) + "<br>" +
+      "<b>Etanol:</b> " + brMoney(c.etanol_hidratado.preco_medio) + "<br>" +
+      "<b>Diesel:</b> " + brMoney(c.oleo_diesel.preco_medio) + "<br>" +
+      "<b>Diesel S10:</b> " + brMoney(c.oleo_diesel_s10.preco_medio) + "<br>" +
+      "<b>GNV:</b> " + brMoney(c.gnv.preco_medio) + "<br>" +
+      "<b>GLP:</b> " + brMoney(c.glp.preco_medio) + "<br><br>" +
       "<small>" + dados.aviso + "</small>";
 
     L.marker(centro)
@@ -140,38 +137,23 @@ async function carregarMapaRioGrandeEstimado(){
       .openPopup();
 
   } catch (e) {
-    console.error("Erro ao carregar mapa ANP:", e);
+    console.error("Erro ao carregar mapa:", e);
   }
 }
 
 carregarMapaRioGrandeEstimado();
 
-
-  const res = await fetch("data.json");
-  const data = await res.json();
-
-  markersLayer.clearLayers();
-  pontos = [];
-
-  data.combustivel.forEach(p => {
-    const c = coords[p.posto];
-    if (!c) return;
-
-    const marker = L.marker(c).addTo(markersLayer);
-    marker.bindPopup("<b>" + p.posto + "</b><br>" + p.nome + "<br>R$ " + p.preco.toFixed(2));
-    pontos.push({ lat: c[0], lng: c[1], nome: p.posto, preco: p.preco, marker });
-  });
-}
-
-carregarMapa();
-
-// ===== FEEDBACK =====
+// ===============================
+// FEEDBACK
+// ===============================
 function confirmarPreco(index) {
-  document.getElementById("feedback-" + index).innerText = "Obrigado por confirmar.";
+  document.getElementById("feedback-" + index).innerText =
+    "Obrigado por confirmar.";
 }
 
 function negarPreco(index) {
-  document.getElementById("feedback-" + index).innerText = "Preco contestado.";
+  document.getElementById("feedback-" + index).innerText =
+    "Preço contestado.";
 }
 
-console.log("script.js carregado com sucesso");
+console.log("script.js carregado corretamente");
