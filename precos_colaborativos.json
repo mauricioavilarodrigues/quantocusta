@@ -1,0 +1,13 @@
+{
+  "cidade": "Rio Grande",
+  "fonte": "colaborativa",
+  "atualizado_em": "2026-01-30",
+  "precos": [
+    {
+      "posto": "BUFFON",
+      "produto": "Gasolina Comum",
+      "preco": 6.20,
+      "data": "2026-01-30"
+    }
+  ]
+}
