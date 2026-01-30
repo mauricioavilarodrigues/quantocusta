@@ -28,9 +28,9 @@ function setNicho(n, b) {
     document.getElementById("filtro" + f).style.display = "none";
   });
 
-  if (n == "supermercado") filtroSupermercado.style.display = "flex";
-  if (n == "combustivel") filtroCombustivel.style.display = "flex";
-  if (n == "farmacia") filtroFarmacia.style.display = "flex";
+  if (n === "supermercado") filtroSupermercado.style.display = "flex";
+  if (n === "combustivel") filtroCombustivel.style.display = "flex";
+  if (n === "farmacia") filtroFarmacia.style.display = "flex";
 }
 
 function setTipo(t, b) {
@@ -57,9 +57,9 @@ function setCategoriaFarmacia(c, b) {
 // ===== BUSCA =====
 async function buscar() {
   if (!nichoAtual) return alert("Selecione um nicho.");
-  if (nichoAtual == "combustivel" && !tipoAtual) return alert("Selecione o tipo.");
-  if (nichoAtual == "supermercado" && !categoriaAtual) return alert("Selecione a categoria.");
-  if (nichoAtual == "farmacia" && !categoriaFarmaciaAtual) return alert("Selecione a categoria.");
+  if (nichoAtual === "combustivel" && !tipoAtual) return alert("Selecione o tipo.");
+  if (nichoAtual === "supermercado" && !categoriaAtual) return alert("Selecione a categoria.");
+  if (nichoAtual === "farmacia" && !categoriaFarmaciaAtual) return alert("Selecione a categoria.");
 
   const termo = busca.value.toLowerCase();
   const res = await fetch("data.json");
@@ -67,9 +67,9 @@ async function buscar() {
 
   let itens = data[nichoAtual].filter(p => p.nome.toLowerCase().includes(termo));
 
-  if (nichoAtual == "combustivel") itens = itens.filter(p => p.nome.toLowerCase().includes(tipoAtual.toLowerCase()));
-  if (nichoAtual == "supermercado") itens = itens.filter(p => p.tipo == categoriaAtual);
-  if (nichoAtual == "farmacia") itens = itens.filter(p => p.tipo == categoriaFarmaciaAtual);
+  if (nichoAtual === "combustivel") itens = itens.filter(p => p.nome.toLowerCase().includes(tipoAtual.toLowerCase()));
+  if (nichoAtual === "supermercado") itens = itens.filter(p => p.tipo === categoriaAtual);
+  if (nichoAtual === "farmacia") itens = itens.filter(p => p.tipo === categoriaFarmaciaAtual);
 
   resultado.innerHTML = "";
 
@@ -77,8 +77,7 @@ async function buscar() {
     const li = document.createElement("li");
 
     li.innerHTML =
-      "<span>" +
-      "<input type='checkbox'> " +
+      "<span><input type='checkbox'> " +
       p.nome +
       "<br><small>" + (p.loja || p.posto) + "</small></span>" +
       "<span class='preco'>R$ " + p.preco.toFixed(2) + "</span>" +
@@ -95,26 +94,6 @@ async function buscar() {
 // ===== CESTA =====
 function addCesta(p) {
   cesta.push(p);
-}
-
-function compararCesta() {
-  let porLoja = {};
-  cesta.forEach(p => {
-    let l = p.loja || p.posto;
-    porLoja[l] = (porLoja[l] || 0) + p.preco;
-  });
-
-  let html = "<h3>Resultado da cesta</h3>";
-  let menor = Infinity;
-
-  for (let l in porLoja) menor = Math.min(menor, porLoja[l]);
-
-  for (let l in porLoja) {
-    let cls = porLoja[l] == menor ? "menor" : "";
-    html += "<div class='" + cls + "'>" + l + ": R$ " + porLoja[l].toFixed(2) + "</div>";
-  }
-
-  cestaResultado.innerHTML = html;
 }
 
 // ===== MAPA =====
@@ -158,35 +137,6 @@ async function carregarMapa() {
 
 carregarMapa();
 
-function distancia(lat1, lon1, lat2, lon2) {
-  const R = 6371;
-  const dLat = (lat2 - lat1) * Math.PI / 180;
-  const dLon = (lon2 - lon1) * Math.PI / 180;
-  const a =
-    Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-    Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
-    Math.sin(dLon / 2) * Math.sin(dLon / 2);
-
-  return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-}
-
-function acharMelhorOpcao() {
-  if (!usuarioPosicao) return alert("Localizacao nao encontrada.");
-
-  pontos.forEach(p => {
-    p.distancia = distancia(usuarioPosicao.lat, usuarioPosicao.lng, p.lat, p.lng);
-    p.score = p.preco + p.distancia * 2;
-  });
-
-  pontos.sort((a, b) => a.score - b.score);
-
-  const melhor = pontos[0];
-  melhor.marker.openPopup();
-  map.setView([melhor.lat, melhor.lng], 16);
-
-  alert("Melhor opcao: " + melhor.nome + " | Preco: R$ " + melhor.preco);
-}
-
 // ===== FEEDBACK =====
 function confirmarPreco(index) {
   document.getElementById("feedback-" + index).innerText = "Obrigado por confirmar.";
@@ -196,15 +146,4 @@ function negarPreco(index) {
   document.getElementById("feedback-" + index).innerText = "Preco contestado.";
 }
 
-// ===== TESTE =====
-async function testarAPI() {
-  try {
-    const r = await fetch("data.json");
-    const dados = await r.json();
-    console.log("API conectada:", dados);
-  } catch (e) {
-    console.error("Erro ao conectar:", e);
-  }
-}
-
-testarAPI();
+console.log("script.js carregado com sucesso");
