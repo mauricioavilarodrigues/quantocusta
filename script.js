@@ -170,17 +170,21 @@ async function carregarPrecosColaborativos() {
 
     const centroRioGrande = [-32.035, -52.098];
 
-    dados.precos.forEach(p => {
-      const popup =
-        "<b>" + p.posto + "</b><br>" +
-        p.produto + "<br>" +
-        "Preço: R$ " + p.preco.toFixed(2).replace(".", ",") + "<br>" +
-        "<small>Data: " + p.data + "</small>";
+   dados.precos.forEach(p => {
+  // transforma "6,2" em 6.2 e garante número
+  const precoNum = Number(String(p.preco).replace(",", "."));
 
-      L.marker(centroRioGrande)
-        .addTo(markersLayer)
-        .bindPopup(popup);
-    });
+  const popup =
+    "<b>" + p.posto + "</b><br>" +
+    p.produto + "<br>" +
+    "Preço: " + (isNaN(precoNum) ? "—" : ("R$ " + precoNum.toFixed(2).replace(".", ","))) + "<br>" +
+    "<small>Data: " + p.data + "</small>";
+
+  L.marker(centroRioGrande)
+    .addTo(markersLayer)
+    .bindPopup(popup);
+});
+
 
   } catch (e) {
     console.error("Erro ao carregar preços colaborativos:", e);
