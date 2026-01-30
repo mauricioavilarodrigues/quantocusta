@@ -40,3 +40,116 @@ async function buscar(){
     itens.forEach((p,index)=>{
         const li=document.createElement("li");
 
+        li.innerHTML=`
+            <span>
+              <input type="checkbox">
+              ${p.nome}<br><small>${p.loja||p.posto}</small>
+            </span>
+            <span class="preco">R$ ${p.preco.toFixed(2)}</span>
+            <div class="avaliacao">
+                <strong>Este preço confere?</strong><br>
+                <button onclick="confirmarPreco(${index})">👍 Confere</button>
+                <button onclick="negarPreco(${index})">❌ Não confere</button>
+                <div id="feedback-${index}"></div>
+            </div>
+        `;
+
+        resultado.appendChild(li);
+        li.querySelector("input").addEventListener("change",()=>addCesta(p));
+    });
+}
+
+// ===== CESTA =====
+function addCesta(p){ cesta.push(p); }
+
+function compararCesta(){
+    let porLoja={};
+    cesta.forEach(p=>{ let l=p.loja||p.posto; porLoja[l]=(porLoja[l]||0)+p.preco; });
+    let html="<h3>Resultado da cesta</h3>"; 
+    let menor=Infinity;
+
+    for(let l in porLoja) menor=Math.min(menor, porLoja[l]);
+    for(let l in porLoja){ 
+        let cls=porLoja[l]==menor?"menor":""; 
+        html+=`<div class="${cls}">${l}: R$ ${porLoja[l].toFixed(2)}</div>`; 
+    }
+
+    cestaResultado.innerHTML=html;
+}
+
+// ===== MAPA =====
+const map = L.map('map').setView([-32.035,-52.098],13);
+L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{attribution:'© OpenStreetMap'}).addTo(map);
+markersLayer=L.layerGroup().addTo(map);
+
+map.locate({setView:true,maxZoom:15});
+map.on("locationfound", e=>{
+    usuarioPosicao=e.latlng;
+    L.circleMarker(usuarioPosicao,{radius:8, color:'#4f5dff', fillColor:'#4f5dff', fillOpacity:0.8})
+      .addTo(map).bindPopup("<b>Você está aqui</b>").openPopup();
+});
+
+const coords={"Buffon":[-32.035,-52.095],"SIM":[-32.032,-52.105],"Shell":[-32.040,-52.090]};
+
+async function carregarMapa(){
+   const res = await fetch("data.json");
+   const data = await res.json();
+
+    markersLayer.clearLayers(); 
+    pontos=[];
+
+    data.combustivel.forEach(p=>{
+        const c=coords[p.posto]; 
+        if(!c) return;
+
+        const marker = L.marker(c).addTo(markersLayer);
+        marker.bindPopup(`<b>${p.posto}</b><br>${p.nome}<br>R$ ${p.preco.toFixed(2)}`);
+        pontos.push({lat:c[0],lng:c[1],nome:p.posto,preco:p.preco,marker});
+    });
+}
+carregarMapa();
+
+function distancia(lat1, lon1, lat2, lon2){
+    const R=6371, dLat=(lat2-lat1)*Math.PI/180, dLon=(lon2-lon1)*Math.PI/180;
+    const a=Math.sin(dLat/2)**2 + Math.cos(lat1*Math.PI/180)*Math.cos(lat2*Math.PI/180)*Math.sin(dLon/2)**2;
+    return R*2*Math.atan2(Math.sqrt(a),Math.sqrt(1-a));
+}
+
+function acharMelhorOpcao(){
+    if(!usuarioPosicao) return alert("Localização não encontrada.");
+    const pesoDistancia=2;
+
+    pontos.forEach(p=>{ 
+        p.distancia=distancia(usuarioPosicao.lat,usuarioPosicao.lng,p.lat,p.lng); 
+        p.score=p.preco+(p.distancia*pesoDistancia); 
+    });
+
+    pontos.sort((a,b)=>a.score-b.score); 
+    const melhor=pontos[0];
+
+    melhor.marker.openPopup(); 
+    map.setView([melhor.lat,melhor.lng],16);
+    alert(`🏆 Melhor opção:\n${melhor.nome}\nPreço: R$ ${melhor.preco}`);
+}
+
+// ===== FEEDBACK =====
+function confirmarPreco(index){ 
+    document.getElementById(`feedback-${index}`).innerText="Obrigado por confirmar o preço 👍"; 
+}
+
+function negarPreco(index){ 
+    document.getElementById(`feedback-${index}`).innerText="Preço contestado. Obrigado pela colaboração ❌"; 
+}
+
+// ===== TESTE =====
+async function testarAPI(){
+  try {
+    const r = await fetch("data.json");
+    const dados = await r.json();
+    console.log("✅ API conectada:", dados);
+  } catch(e){
+    console.error("❌ Erro ao conectar API:", e);
+  }
+}
+
+testarAPI();
