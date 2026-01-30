@@ -1,221 +1,188 @@
 <!DOCTYPE html>
 <html lang="pt-br">
 <head>
-  <meta charset="UTF-8" />
-  <title>Quantocusta</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
+<meta charset="UTF-8">
+<title>Quantocusta</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
 
-  <!-- Leaflet CSS -->
-  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
 
-  <style>
-    /* Reset */
-    * { margin: 0; padding: 0; box-sizing: border-box; }
+<link rel="stylesheet" href="style.css">
 
-    body{
-      font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
-      background:#f6f7fb;
-      color:#212529;
-      padding: 18px;
-      /* Espaço pra barra inferior não cobrir conteúdo */
-      padding-bottom: 92px;
-    }
-
-    h1{
-      text-align:center;
-      font-size: 1.9em;
-      margin: 6px 0 16px;
-      font-weight: 700;
-    }
-
-    /* Linha de botões topo (nicho) */
-    .topo{
-      display:flex;
-      justify-content:center;
-      gap:10px;
-      flex-wrap:wrap;
-      margin-bottom: 12px;
-    }
-
-    /* Filtros por nicho */
-    .filtros, .busca{
-      display:flex;
-      justify-content:center;
-      gap:10px;
-      flex-wrap:wrap;
-      margin-bottom: 12px;
-    }
-
-    button{
-      border:none;
-      padding:10px 16px;
-      border-radius: 999px;
-      background:#e0e3ff;
-      font-weight: 700;
-      cursor:pointer;
-      transition: .15s ease;
-      white-space: nowrap;
-    }
-    button:hover{ filter: brightness(0.98); }
-    button.ativo{ background:#4f5dff; color:#fff; }
-
-    input{
-      border: 1px solid #d6d9ff;
-      border-radius: 999px;
-      padding: 10px 14px;
-      min-width: 260px;
-      outline: none;
-      background:#fff;
-    }
-
-    /* Caixa padrão */
-    .caixa{
-      background:#fff;
-      padding: 14px;
-      border-radius: 14px;
-      max-width: 820px;
-      margin: 14px auto 0;
-      box-shadow: 0 8px 20px rgba(0,0,0,0.06);
-    }
-
-    .caixa h3{
-      margin-bottom: 10px;
-      font-size: 1.05em;
-    }
-
-    /* Lista de resultados */
-    ul{ list-style:none; padding:0; margin:0; }
-    li{
-      background:#fff;
-      margin: 10px 0;
-      padding: 12px 12px;
-      border-radius: 12px;
-      display:flex;
-      justify-content:space-between;
-      align-items:center;
-      border: 1px solid #f0f0ff;
-    }
-    .preco{ color:#4f5dff; font-weight:800; }
-
-    /* Mapa */
-    #map{
-      width:100%;
-      height: 420px;
-      border-radius: 12px;
-      overflow:hidden;
-      border: 1px solid #eef0ff;
-    }
-
-    /* Barra inferior fixa */
-    #barra-inferior{
-      position: fixed;
-      bottom: 0;
-      left: 0;
-      width: 100%;
-      background: rgba(255,255,255,0.96);
-      border-top: 1px solid #e6e6ff;
-      display: flex;
-      justify-content: space-around;
-      align-items: center;
-      padding: 10px 8px;
-      z-index: 9999;
-      backdrop-filter: blur(8px);
-    }
-
-    #barra-inferior button{
-      background:#f2f3ff;
-      border: 1px solid #e6e8ff;
-      font-weight:800;
-      padding: 10px 12px;
-      border-radius: 14px;
-      min-width: 90px;
-    }
-
-    #barra-inferior button.ativo{
-      background:#4f5dff;
-      color:#fff;
-      border-color:#4f5dff;
-    }
-
-    @media (max-width: 520px){
-      input{ min-width: 180px; width: 100%; }
-      #map{ height: 360px; }
-      #barra-inferior button{ min-width: 80px; font-size: 0.95em; }
-    }
-  </style>
 </head>
 
 <body>
-  <h1>Quantocusta</h1>
+<nav>
+  <a href="index.html">Início</a>
+  <a href="quem-somos.html">Quem somos</a>
+  <a href="parceiro.html">Seja parceiro</a>
+  <a href="contato.html">Fale conosco</a>
+</nav>
 
-  <!-- NICHOS (topo) -->
-  <div class="topo">
-    <!-- seus handlers já devem existir no script.js -->
-    <button id="btnSupermercado">Supermercado</button>
-    <button id="btnCombustivel">Combustível</button>
-    <button id="btnFarmacia">Farmácia</button>
-  </div>
+<h1>💰 Quantocusta</h1>
 
-  <!-- FILTROS (os 3 ficam ocultos até o JS mostrar) -->
-  <div class="filtros" id="filtroSupermercado" style="display:none">
-    <button data-tipo="alimento">Alimentos</button>
-    <button data-tipo="limpeza">Limpeza</button>
-    <button data-tipo="higiene">Higiene</button>
-  </div>
+<!-- Seletor de nichos -->
+<div class="topo">
+    <button onclick="setNicho('supermercado',this)">🛒 Supermercado</button>
+    <button onclick="setNicho('combustivel',this)">⛽ Combustível</button>
+    <button onclick="setNicho('farmacia',this)">💊 Farmácia</button>
+</div>
 
-  <div class="filtros" id="filtroCombustivel" style="display:none">
-    <button data-tipo="gasolina">Gasolina</button>
-    <button data-tipo="etanol">Etanol</button>
-    <button data-tipo="diesel">Diesel</button>
-  </div>
+<!-- Filtros -->
+<div id="filtroSupermercado" class="filtros" style="display:none;">
+    <button onclick="setCategoria('alimento',this)">🥦 Alimentos</button>
+    <button onclick="setCategoria('limpeza',this)">🧼 Limpeza</button>
+</div>
 
-  <div class="filtros" id="filtroFarmacia" style="display:none">
-    <button data-tipo="medicamento">Medicamentos</button>
-    <button data-tipo="higiene">Higiene</button>
-    <button data-tipo="beleza">Beleza</button>
-  </div>
+<div id="filtroCombustivel" class="filtros" style="display:none;">
+    <button onclick="setTipo('Comum',this)">Comum</button>
+    <button onclick="setTipo('Aditivada',this)">Aditivada</button>
+</div>
 
-  <!-- BUSCA -->
-  <div class="busca">
-    <input id="buscaInput" type="text" placeholder="Buscar produto ou estabelecimento..." />
-    <button id="btnBuscar">Buscar</button>
-    <button id="btnLimpar">Limpar</button>
-  </div>
+<div id="filtroFarmacia" class="filtros" style="display:none;">
+    <button onclick="setCategoriaFarmacia('remedio',this)">💊 Remédios</button>
+    <button onclick="setCategoriaFarmacia('higiene',this)">🧴 Higiene</button>
+</div>
 
-  <!-- RESULTADOS -->
-  <div class="caixa">
-    <h3>Resultados</h3>
-    <ul id="resultado"></ul>
-  </div>
+<!-- Busca -->
+<div class="busca">
+    <form onsubmit="buscar(); return false;">
+        <input id="busca" placeholder="Buscar...">
+        <button type="submit">Buscar</button>
+    </form>
+</div>
 
-  <!-- MAPA -->
-  <div class="caixa">
+<!-- Resultados -->
+<ul id="resultado"></ul>
+
+<!-- Ações -->
+<div class="caixa">
+    <button onclick="compararCesta()">🧺 Comparar cesta</button>
+    <div id="cestaResultado"></div>
+</div>
+
+<div class="caixa">
+    <button onclick="acharMelhorOpcao()">📍 Melhor opção perto de você</button>
+</div>
+
+<!-- Mapa dentro do quadro -->
+<div class="caixa">
     <h3>Mapa de Localização</h3>
     <div id="map"></div>
-  </div>
+</div>
 
-  <!-- BARRA INFERIOR (VOLTOU, AGORA EM BAIXO) -->
-  <div id="barra-inferior">
-    <button id="navMapa" class="ativo" type="button">Mapa</button>
-    <button id="navLista" type="button">Lista</button>
-    <button id="navAvaliar" type="button">Avaliar</button>
-  </div>
+<!-- Leaflet JS -->
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script>
+// ===== VARIÁVEIS =====
+let nichoAtual="", tipoAtual="", categoriaAtual="", categoriaFarmaciaAtual="";
+let cesta=[], markersLayer, usuarioPosicao=null, pontos=[];
 
-  <!-- Leaflet JS (antes do seu script.js) -->
-  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+// ===== CONTROLES =====
+function limparAtivos(grupo){ document.querySelectorAll(grupo+" button").forEach(b=>b.classList.remove("ativo")); }
+function setNicho(n,b){
+    nichoAtual=n; tipoAtual=""; categoriaAtual=""; categoriaFarmaciaAtual=""; resultado.innerHTML="";
+    limparAtivos(".topo"); b.classList.add("ativo");
+    ["Supermercado","Combustivel","Farmacia"].forEach(f=>document.getElementById("filtro"+f).style.display="none");
+    if(n=="supermercado") filtroSupermercado.style.display="flex";
+    if(n=="combustivel") filtroCombustivel.style.display="flex";
+    if(n=="farmacia") filtroFarmacia.style.display="flex";
+}
+function setTipo(t,b){ tipoAtual=t; limparAtivos("#filtroCombustivel"); b.classList.add("ativo"); buscar(); }
+function setCategoria(c,b){ categoriaAtual=c; limparAtivos("#filtroSupermercado"); b.classList.add("ativo"); buscar(); }
+function setCategoriaFarmacia(c,b){ categoriaFarmaciaAtual=c; limparAtivos("#filtroFarmacia"); b.classList.add("ativo"); buscar(); }
 
-  <!-- Seu JS (ÚNICO lugar com a lógica) -->
-  <script src="script.js"></script>
+// ===== BUSCA =====
+async function buscar(){
+    if(!nichoAtual) return alert("Selecione um nicho.");
+    if(nichoAtual=="combustivel" && !tipoAtual) return alert("Selecione o tipo.");
+    if(nichoAtual=="supermercado" && !categoriaAtual) return alert("Selecione a categoria.");
+    if(nichoAtual=="farmacia" && !categoriaFarmaciaAtual) return alert("Selecione a categoria.");
 
-  <!-- (Opcional) Comportamento básico da barra inferior, sem interferir no seu script.js -->
-  <script>
-    // Isso só controla o visual "ativo" da barra inferior.
-    // A sua lógica real (mostrar/esconder mapa/lista/avaliação) pode ficar no script.js.
-    const navBtns = ["navMapa","navLista","navAvaliar"].map(id => document.getElementById(id));
-    navBtns.forEach(btn => btn.addEventListener("click", () => {
-      navBtns.forEach(b => b.classList.remove("ativo"));
-      btn.classList.add("ativo");
-    }));
-  </script>
+    const termo=busca.value.toLowerCase();
+    const res=await fetch("data.json");
+    const data=await res.json();
+    let itens=data[nichoAtual].filter(p=>p.nome.toLowerCase().includes(termo));
+
+    if(nichoAtual=="combustivel") itens=itens.filter(p=>p.nome.toLowerCase().includes(tipoAtual.toLowerCase()));
+    if(nichoAtual=="supermercado") itens=itens.filter(p=>p.tipo==categoriaAtual);
+    if(nichoAtual=="farmacia") itens=itens.filter(p=>p.tipo==categoriaFarmaciaAtual);
+
+    resultado.innerHTML="";
+    itens.forEach((p,index)=>{
+        const li=document.createElement("li");
+        li.innerHTML=`
+            <span><input type="checkbox" onchange='addCesta(${JSON.stringify(p)})'> ${p.nome}<br><small>${p.loja||p.posto}</small></span>
+            <span class="preco">R$ ${p.preco.toFixed(2)}</span>
+            <div class="avaliacao"><strong>Este preço confere?</strong><br>
+                <button onclick="confirmarPreco(${index})">👍 Confere</button>
+                <button onclick="negarPreco(${index})">❌ Não confere</button>
+                <div id="feedback-${index}"></div>
+            </div>
+        `;
+        resultado.appendChild(li);
+    });
+}
+
+// ===== CESTA =====
+function addCesta(p){ cesta.push(p); }
+function compararCesta(){
+    let porLoja={};
+    cesta.forEach(p=>{ let l=p.loja||p.posto; porLoja[l]=(porLoja[l]||0)+p.preco; });
+    let html="<h3>Resultado da cesta</h3>"; let menor=Infinity;
+    for(let l in porLoja) menor=Math.min(menor, porLoja[l]);
+    for(let l in porLoja){ let cls=porLoja[l]==menor?"menor":""; html+=`<div class="${cls}">${l}: R$ ${porLoja[l].toFixed(2)}</div>`; }
+    cestaResultado.innerHTML=html;
+}
+
+// ===== MAPA =====
+const map = L.map('map').setView([-32.035,-52.098],13);
+L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{attribution:'© OpenStreetMap'}).addTo(map);
+markersLayer=L.layerGroup().addTo(map);
+
+// Marcador do usuário
+map.locate({setView:true,maxZoom:15});
+map.on("locationfound", e=>{
+    usuarioPosicao=e.latlng;
+    L.circleMarker(usuarioPosicao,{radius:8, color:'#4f5dff', fillColor:'#4f5dff', fillOpacity:0.8})
+      .addTo(map).bindPopup("<b>Você está aqui</b>").openPopup();
+});
+
+// Coordenadas fictícias
+const coords={"Buffon":[-32.035,-52.095],"SIM":[-32.032,-52.105],"Shell":[-32.040,-52.090]};
+
+// Carrega marcadores
+async function carregarMapa(){
+    const res=await fetch("data.json"); const data=await res.json();
+    markersLayer.clearLayers(); pontos=[];
+    data.combustivel.forEach(p=>{
+        const c=coords[p.posto]; if(!c) return;
+        const marker = L.marker(c).addTo(markersLayer);
+        marker.bindPopup(`<b style="color:#4f5dff;">${p.posto}</b><br>${p.nome}<br>R$ ${p.preco.toFixed(2)}`);
+        pontos.push({lat:c[0],lng:c[1],nome:p.posto,preco:p.preco,marker});
+    });
+}
+carregarMapa();
+
+function distancia(lat1, lon1, lat2, lon2){
+    const R=6371, dLat=(lat2-lat1)*Math.PI/180, dLon=(lon2-lon1)*Math.PI/180;
+    const a=Math.sin(dLat/2)**2 + Math.cos(lat1*Math.PI/180)*Math.cos(lat2*Math.PI/180)*Math.sin(dLon/2)**2;
+    return R*2*Math.atan2(Math.sqrt(a),Math.sqrt(1-a));
+}
+
+function acharMelhorOpcao(){
+    if(!usuarioPosicao) return alert("Localização não encontrada.");
+    const pesoDistancia=2;
+    pontos.forEach(p=>{ p.distancia=distancia(usuarioPosicao.lat,usuarioPosicao.lng,p.lat,p.lng); p.score=p.preco+(p.distancia*pesoDistancia); });
+    pontos.sort((a,b)=>a.score-b.score); const melhor=pontos[0];
+    melhor.marker.openPopup(); map.setView([melhor.lat,melhor.lng],16);
+    alert(`🏆 Melhor opção:\n\n${melhor.nome}\nPreço: R$ ${melhor.preco}\nDistância: ${melhor.distancia.toFixed(2)} km\nScore: ${melhor.score.toFixed(2)}`);
+}
+
+function confirmarPreco(index){ document.getElementById(`feedback-${index}`).innerText="Obrigado por confirmar o preço 👍"; }
+function negarPreco(index){ document.getElementById(`feedback-${index}`).innerText="Preço contestado. Obrigado pela colaboração ❌"; }
+
+<script src="script.js"></script>
+
 </body>
 </html>
