@@ -24,7 +24,7 @@ async function buscar(){
     if(nichoAtual=="farmacia" && !categoriaFarmaciaAtual) return alert("Selecione a categoria.");
 
     const termo=busca.value.toLowerCase();
-    const res = await fetchdata.data.json
+    const res = await fetch("data.json")
 
     const data = await res.json();
     let itens = data[nichoAtual].filter(p=>p.nome.toLowerCase().includes(termo));
@@ -76,7 +76,7 @@ map.on("locationfound", e=>{
 const coords={"Buffon":[-32.035,-52.095],"SIM":[-32.032,-52.105],"Shell":[-32.040,-52.090]};
 
 async function carregarMapa(){
-   const res = await fetch("http://localhost:3000/produtos"); 
+   const res = await fetch("data.json"; 
    const data = await res.json();
 
 
@@ -120,7 +120,7 @@ function negarPreco(index){
 }
 async function testarAPI(){
   try {
-    const r = await fetch("http://localhost:3000/produtos");
+    const r = await fetch("data.json");
     const dados = await r.json();
     console.log("✅ API conectada:", dados);
   } catch(e){
