@@ -1,0 +1,54 @@
+{
+  "cidade_alvo": "Rio Grande - RS",
+  "cidade_base": "Porto Alegre - RS",
+  "fonte": "ANP - Levantamento de Preços de Combustíveis (CAPITAIS)",
+  "periodo": {
+    "data_inicial": "18/01/2026",
+    "data_final": "24/01/2026"
+  },
+  "combustiveis": {
+    "etanol_hidratado": {
+      "preco_medio": 5.06,
+      "preco_min": 4.49,
+      "preco_max": 6.39,
+      "unidade": "R$/l"
+    },
+    "gasolina_aditivada": {
+      "preco_medio": 6.5,
+      "preco_min": 5.87,
+      "preco_max": 6.99,
+      "unidade": "R$/l"
+    },
+    "gasolina_comum": {
+      "preco_medio": 6.3,
+      "preco_min": 5.86,
+      "preco_max": 6.69,
+      "unidade": "R$/l"
+    },
+    "glp": {
+      "preco_medio": 116.72,
+      "preco_min": 100.0,
+      "preco_max": 129.9,
+      "unidade": "R$/13kg"
+    },
+    "gnv": {
+      "preco_medio": 4.85,
+      "preco_min": 4.69,
+      "preco_max": 4.99,
+      "unidade": "R$/m³"
+    },
+    "oleo_diesel": {
+      "preco_medio": 6.04,
+      "preco_min": 5.96,
+      "preco_max": 6.24,
+      "unidade": "R$/l"
+    },
+    "oleo_diesel_s10": {
+      "preco_medio": 6.15,
+      "preco_min": 5.79,
+      "preco_max": 6.49,
+      "unidade": "R$/l"
+    }
+  },
+  "aviso": "Preços estimados para Rio Grande com base na média de Porto Alegre (capital). Pode variar por posto."
+}
