@@ -97,28 +97,51 @@ function addCesta(p) {
 }
 
 // ===== MAPA =====
-const map = L.map("map").setView([-32.035, -52.098], 13);
+// ===== MAPA =====
+const map = L.map("map").setView([-32.035, -52.098], 13); // Rio Grande - RS (centro)
 
 L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
   attribution: "© OpenStreetMap"
 }).addTo(map);
 
-markersLayer = L.layerGroup().addTo(map);
+const markersLayer = L.layerGroup().addTo(map);
 
-map.locate({ setView: true, maxZoom: 15 });
+function brMoney(n){
+  if (n === null || n === undefined || Number.isNaN(n)) return "-";
+  return "R$ " + Number(n).toFixed(2).replace(".", ",");
+}
 
-map.on("locationfound", e => {
-  usuarioPosicao = e.latlng;
-  L.circleMarker(usuarioPosicao, { radius: 8 }).addTo(map).bindPopup("Voce esta aqui").openPopup();
-});
+async function carregarMapaRioGrandeEstimado(){
+  try{
+    const res = await fetch("precos_estimados_rio_grande_anp.json");
+    const dados = await res.json();
 
-const coords = {
-  Buffon: [-32.035, -52.095],
-  SIM: [-32.032, -52.105],
-  Shell: [-32.04, -52.09]
-};
+    markersLayer.clearLayers();
 
-async function carregarMapa() {
+    const c = [-32.035, -52.098]; // centro Rio Grande
+    const comb = dados.combustiveis;
+
+    // Monta popup com os principais (pode ajustar depois)
+    const html =
+      "<b>Rio Grande (estimado)</b><br>" +
+      "<small>Base: " + dados.cidade_base + " | ANP " + dados.periodo.data_inicial + " a " + dados.periodo.data_final + "</small><br><br>" +
+      "<b>Gasolina Comum:</b> " + brMoney(comb.gasolina_comum?.preco_medio) + "<br>" +
+      "<b>Gasolina Aditivada:</b> " + brMoney(comb.gasolina_aditivada?.preco_medio) + "<br>" +
+      "<b>Etanol:</b> " + brMoney(comb.etanol_hidratado?.preco_medio) + "<br>" +
+      "<b>Diesel:</b> " + brMoney(comb.oleo_diesel?.preco_medio) + "<br>" +
+      "<b>Diesel S10:</b> " + brMoney(comb.oleo_diesel_s10?.preco_medio) + "<br>" +
+      "<b>GNV:</b> " + brMoney(comb.gnv?.preco_medio) + "<br>" +
+      "<b>GLP:</b> " + brMoney(comb.glp?.preco_medio) + "<br><br>" +
+      "<small>" + dados.aviso + "</small>";
+
+    L.marker(c).addTo(markersLayer).bindPopup(html).openPopup();
+  }catch(e){
+    console.error("Erro ao carregar preços estimados:", e);
+  }
+}
+
+carregarMapaRioGrandeEstimado();
+
   const res = await fetch("data.json");
   const data = await res.json();
 
