@@ -1,181 +1,204 @@
 // ===============================
-// QUANTOCUSTA - script.js (ALINHADO AO INDEX)
+// VARIÁVEIS GLOBAIS
 // ===============================
-(() => {
-  "use strict";
+let nichoAtual = "";
+let tipoAtual = "";
+let categoriaAtual = "";
+let categoriaFarmaciaAtual = "";
 
-  // ===============================
-  // DOM
-  // ===============================
-  const elBusca = document.getElementById("buscaInput");
-  const elResultado = document.getElementById("resultado");
+let cesta = [];
+let markersLayer = null;
 
-  const elFiltroSupermercado = document.getElementById("filtroSupermercado");
-  const elFiltroCombustivel = document.getElementById("filtroCombustivel");
-  const elFiltroFarmacia = document.getElementById("filtroFarmacia");
+// ===============================
+// CONTROLES DE FILTRO
+// ===============================
+function limparAtivos(grupo) {
+  document.querySelectorAll(grupo + " button")
+    .forEach(b => b.classList.remove("ativo"));
+}
 
-  if (!elBusca || !elResultado || !document.getElementById("map")) {
-    console.error("❌ HTML não compatível: falta buscaInput, resultado ou map");
-    return;
-  }
+function setNicho(n, b) {
+  nichoAtual = n;
+  tipoAtual = "";
+  categoriaAtual = "";
+  categoriaFarmaciaAtual = "";
+  resultado.innerHTML = "";
 
-  // ===============================
-  // ESTADO
-  // ===============================
-  let nichoAtual = "";
-  let tipoAtual = "";
-  let categoriaAtual = "";
-  let categoriaFarmaciaAtual = "";
+  limparAtivos(".topo");
+  b.classList.add("ativo");
 
-  let dataCache = null;
+  ["Supermercado", "Combustivel", "Farmacia"].forEach(f => {
+    document.getElementById("filtro" + f).style.display = "none";
+  });
 
-  // ===============================
-  // HELPERS
-  // ===============================
-  const safe = v => v ?? "";
-  const toNumber = v => Number(String(v).replace(",", "."));
-  const brMoney = n => isNaN(n) ? "—" : "R$ " + n.toFixed(2).replace(".", ",");
+  if (n === "supermercado") filtroSupermercado.style.display = "flex";
+  if (n === "combustivel") filtroCombustivel.style.display = "flex";
+  if (n === "farmacia") filtroFarmacia.style.display = "flex";
+}
 
-  function limparAtivos(selector) {
-    document.querySelectorAll(selector + " button")
-      .forEach(b => b.classList.remove("ativo"));
-  }
+function setTipo(t, b) {
+  tipoAtual = t;
+  limparAtivos("#filtroCombustivel");
+  b.classList.add("ativo");
+  buscar();
+}
 
-  async function getData() {
-    if (dataCache) return dataCache;
-    const r = await fetch("data.json", { cache: "no-store" });
-    dataCache = await r.json();
-    return dataCache;
-  }
+function setCategoria(c, b) {
+  categoriaAtual = c;
+  limparAtivos("#filtroSupermercado");
+  b.classList.add("ativo");
+  buscar();
+}
 
-  // ===============================
-  // CONTROLES (LIGADOS AOS BOTÕES DO INDEX)
-  // ===============================
-  document.getElementById("btnSupermercado").onclick = () => setNicho("supermercado");
-  document.getElementById("btnCombustivel").onclick = () => setNicho("combustivel");
-  document.getElementById("btnFarmacia").onclick = () => setNicho("farmacia");
+function setCategoriaFarmacia(c, b) {
+  categoriaFarmaciaAtual = c;
+  limparAtivos("#filtroFarmacia");
+  b.classList.add("ativo");
+  buscar();
+}
 
-  document.getElementById("btnBuscar").onclick = buscar;
-  document.getElementById("btnLimpar").onclick = () => {
-    elBusca.value = "";
-    elResultado.innerHTML = "";
-  };
+// ===============================
+// BUSCA (DATA.JSON)
+// ===============================
+async function buscar() {
+  if (!nichoAtual) return alert("Selecione um nicho.");
 
-  // ===============================
-  // FILTROS
-  // ===============================
-  function setNicho(n) {
-    nichoAtual = n;
-    tipoAtual = categoriaAtual = categoriaFarmaciaAtual = "";
-    elResultado.innerHTML = "";
+  const termo = busca.value.toLowerCase();
+  const res = await fetch("data.json");
+  const data = await res.json();
 
-    limparAtivos(".topo");
-    document.querySelector(`#btn${n.charAt(0).toUpperCase() + n.slice(1)}`)?.classList.add("ativo");
-
-    elFiltroSupermercado.style.display = "none";
-    elFiltroCombustivel.style.display = "none";
-    elFiltroFarmacia.style.display = "none";
-
-    if (n === "supermercado") elFiltroSupermercado.style.display = "flex";
-    if (n === "combustivel") elFiltroCombustivel.style.display = "flex";
-    if (n === "farmacia") elFiltroFarmacia.style.display = "flex";
-  }
-
-  elFiltroSupermercado.querySelectorAll("button").forEach(b =>
-    b.onclick = () => { categoriaAtual = b.dataset.tipo; buscar(); }
+  let itens = data[nichoAtual].filter(p =>
+    p.nome.toLowerCase().includes(termo)
   );
 
-  elFiltroCombustivel.querySelectorAll("button").forEach(b =>
-    b.onclick = () => { tipoAtual = b.dataset.tipo; buscar(); }
-  );
+  resultado.innerHTML = "";
 
-  elFiltroFarmacia.querySelectorAll("button").forEach(b =>
-    b.onclick = () => { categoriaFarmaciaAtual = b.dataset.tipo; buscar(); }
-  );
+  itens.forEach((p, index) => {
+    const li = document.createElement("li");
 
-  // ===============================
-  // BUSCA
-  // ===============================
-  async function buscar() {
-    if (!nichoAtual) return alert("Selecione um nicho.");
+    li.innerHTML =
+      "<span><input type='checkbox'> " +
+      p.nome +
+      "<br><small>" + (p.loja || p.posto || "") + "</small></span>" +
+      "<span class='preco'>R$ " + p.preco.toFixed(2) + "</span>" +
+      "<div class='avaliacao'>" +
+      "<button onclick='confirmarPreco(" + index + ")'>Confere</button>" +
+      "<button onclick='negarPreco(" + index + ")'>Não confere</button>" +
+      "<div id='feedback-" + index + "'></div></div>";
 
-    const termo = elBusca.value.toLowerCase().trim();
-    const data = await getData();
-    let itens = data[nichoAtual] || [];
+    resultado.appendChild(li);
+    li.querySelector("input").addEventListener("change", () => cesta.push(p));
+  });
+}
 
-    if (termo) itens = itens.filter(p => safe(p.nome).toLowerCase().includes(termo));
-    if (nichoAtual === "combustivel" && tipoAtual)
-      itens = itens.filter(p => safe(p.nome).toLowerCase().includes(tipoAtual));
-    if (nichoAtual === "supermercado" && categoriaAtual)
-      itens = itens.filter(p => p.tipo === categoriaAtual);
-    if (nichoAtual === "farmacia" && categoriaFarmaciaAtual)
-      itens = itens.filter(p => p.tipo === categoriaFarmaciaAtual);
+// ===============================
+// MAPA – RIO GRANDE (ANP ESTIMADO)
+// ===============================
+const map = L.map("map").setView([-32.035, -52.098], 13);
 
-    elResultado.innerHTML = "";
+L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+  attribution: "© OpenStreetMap"
+}).addTo(map);
 
-    if (!itens.length) {
-      elResultado.innerHTML = "<li>Nenhum resultado encontrado.</li>";
+markersLayer = L.layerGroup().addTo(map);
+
+function brMoney(n) {
+  if (n === null || n === undefined || isNaN(n)) return "-";
+  return "R$ " + Number(n).toFixed(2).replace(".", ",");
+}
+
+async function carregarMapaRioGrandeEstimado() {
+  try {
+    const res = await fetch("precos_estimados_rio_grande_anp.json");
+    const dados = await res.json();
+
+    // limpa tudo e recria os marcadores (estimado + colaborativo depois)
+    markersLayer.clearLayers();
+
+    const centro = [-32.035, -52.098];
+    const c = dados.combustiveis;
+
+    const html =
+      "<b>Rio Grande (estimado)</b><br>" +
+      "<small>Base: " + dados.cidade_base +
+      " | ANP " + dados.periodo.data_inicial +
+      " a " + dados.periodo.data_final + "</small><br><br>" +
+      "<b>Gasolina Comum:</b> " + brMoney(c.gasolina_comum.preco_medio) + "<br>" +
+      "<b>Gasolina Aditivada:</b> " + brMoney(c.gasolina_aditivada.preco_medio) + "<br>" +
+      "<b>Etanol:</b> " + brMoney(c.etanol_hidratado.preco_medio) + "<br>" +
+      "<b>Diesel:</b> " + brMoney(c.oleo_diesel.preco_medio) + "<br>" +
+      "<b>Diesel S10:</b> " + brMoney(c.oleo_diesel_s10.preco_medio) + "<br>" +
+      "<b>GNV:</b> " + brMoney(c.gnv.preco_medio) + "<br>" +
+      "<b>GLP:</b> " + brMoney(c.glp.preco_medio) + "<br><br>" +
+      "<small>" + dados.aviso + "</small>";
+
+    // ✅ REMOVIDO openPopup() para não “tampar” o colaborativo
+    L.marker(centro)
+      .addTo(markersLayer)
+      .bindPopup(html);
+
+  } catch (e) {
+    console.error("Erro ao carregar mapa:", e);
+  }
+}
+
+// ===============================
+// FEEDBACK
+// ===============================
+function confirmarPreco(index) {
+  document.getElementById("feedback-" + index).innerText =
+    "Obrigado por confirmar.";
+}
+
+function negarPreco(index) {
+  document.getElementById("feedback-" + index).innerText =
+    "Preço contestado.";
+}
+
+// ===============================
+// PREÇOS COLABORATIVOS (FORMULÁRIO)
+// ===============================
+async function carregarPrecosColaborativos() {
+  try {
+    const res = await fetch("precos_colaborativos.json");
+    const dados = await res.json();
+
+    console.log("📌 dados colaborativos:", dados);
+
+    if (!dados.precos || dados.precos.length === 0) {
+      console.warn("Nenhum preço colaborativo encontrado");
       return;
     }
 
-    itens.forEach((p, i) => {
-      const li = document.createElement("li");
-      li.innerHTML = `
-        <span>
-          ${safe(p.nome)}<br>
-          <small>${safe(p.loja || p.posto)}</small>
-        </span>
-        <span class="preco">${brMoney(toNumber(p.preco))}</span>
-      `;
-      elResultado.appendChild(li);
-    });
-  }
+    const centroRioGrande = [-32.035, -52.098];
 
-  // ===============================
-  // MAPA
-  // ===============================
-  const map = L.map("map").setView([-32.035, -52.098], 13);
+    dados.precos.forEach(p => {
+      console.log("➡️ adicionando marcador colaborativo:", p);
 
-  L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
-    attribution: "© OpenStreetMap"
-  }).addTo(map);
+      const precoNum = Number(String(p.preco).replace(",", "."));
 
-  const markersLayer = L.layerGroup().addTo(map);
+      const popup =
+        "<b>✅ Comunidade</b><br>" +
+        "<b>" + p.posto + "</b><br>" +
+        p.produto + "<br>" +
+        "Preço: " + (isNaN(precoNum) ? "—" : ("R$ " + precoNum.toFixed(2).replace(".", ","))) + "<br>" +
+        "<small>Data: " + p.data + "</small>";
 
-  async function carregarMapaEstimado() {
-    const r = await fetch("precos_estimados_rio_grande_anp.json", { cache: "no-store" });
-    const d = await r.json();
-
-    markersLayer.clearLayers();
-
-    L.marker([-32.035, -52.098]).addTo(markersLayer).bindPopup(
-      `<b>Rio Grande (ANP)</b><br>
-       Gasolina: ${brMoney(toNumber(d?.combustiveis?.gasolina_comum?.preco_medio))}`
-    );
-  }
-
-  async function carregarColaborativos() {
-    const r = await fetch("precos_colaborativos.json", { cache: "no-store" });
-    const d = await r.json();
-
-    (d.precos || []).forEach(p => {
-      const lat = -32.035 + (Math.random() - 0.5) * 0.01;
-      const lng = -52.098 + (Math.random() - 0.5) * 0.01;
+      // ✅ deslocamento pequeno só para você ver que é outro marcador
+      const lat = centroRioGrande[0] + 0.002;
+      const lng = centroRioGrande[1] + 0.002;
 
       L.marker([lat, lng])
         .addTo(markersLayer)
-        .bindPopup(
-          `<b>${safe(p.posto)}</b><br>
-           ${safe(p.produto)}<br>
-           ${brMoney(toNumber(p.preco))}`
-        );
+        .bindPopup(popup);
     });
+
+  } catch (e) {
+    console.error("Erro ao carregar preços colaborativos:", e);
   }
+}
 
-  // ===============================
-  // BOOT
-  // ===============================
-  console.log("✅ script.js alinhado ao index.html");
-  carregarMapaEstimado().then(carregarColaborativos);
+console.log("✅ script.js carregado corretamente");
 
-})();
+// Ordem: primeiro estimado (limpa), depois colaborativo (adiciona)
+carregarMapaRioGrandeEstimado().then(() => carregarPrecosColaborativos());
