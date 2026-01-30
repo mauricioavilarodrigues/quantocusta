@@ -7,73 +7,215 @@
 
   <!-- Leaflet CSS -->
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
-  <link rel="stylesheet" href="style.css">
 
-  <!-- segurança: garante altura do mapa mesmo se style.css falhar -->
   <style>
-    #map { width: 100%; height: 360px; border-radius: 14px; }
+    /* Reset */
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body{
+      font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+      background:#f6f7fb;
+      color:#212529;
+      padding: 18px;
+      /* Espaço pra barra inferior não cobrir conteúdo */
+      padding-bottom: 92px;
+    }
+
+    h1{
+      text-align:center;
+      font-size: 1.9em;
+      margin: 6px 0 16px;
+      font-weight: 700;
+    }
+
+    /* Linha de botões topo (nicho) */
+    .topo{
+      display:flex;
+      justify-content:center;
+      gap:10px;
+      flex-wrap:wrap;
+      margin-bottom: 12px;
+    }
+
+    /* Filtros por nicho */
+    .filtros, .busca{
+      display:flex;
+      justify-content:center;
+      gap:10px;
+      flex-wrap:wrap;
+      margin-bottom: 12px;
+    }
+
+    button{
+      border:none;
+      padding:10px 16px;
+      border-radius: 999px;
+      background:#e0e3ff;
+      font-weight: 700;
+      cursor:pointer;
+      transition: .15s ease;
+      white-space: nowrap;
+    }
+    button:hover{ filter: brightness(0.98); }
+    button.ativo{ background:#4f5dff; color:#fff; }
+
+    input{
+      border: 1px solid #d6d9ff;
+      border-radius: 999px;
+      padding: 10px 14px;
+      min-width: 260px;
+      outline: none;
+      background:#fff;
+    }
+
+    /* Caixa padrão */
+    .caixa{
+      background:#fff;
+      padding: 14px;
+      border-radius: 14px;
+      max-width: 820px;
+      margin: 14px auto 0;
+      box-shadow: 0 8px 20px rgba(0,0,0,0.06);
+    }
+
+    .caixa h3{
+      margin-bottom: 10px;
+      font-size: 1.05em;
+    }
+
+    /* Lista de resultados */
+    ul{ list-style:none; padding:0; margin:0; }
+    li{
+      background:#fff;
+      margin: 10px 0;
+      padding: 12px 12px;
+      border-radius: 12px;
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      border: 1px solid #f0f0ff;
+    }
+    .preco{ color:#4f5dff; font-weight:800; }
+
+    /* Mapa */
+    #map{
+      width:100%;
+      height: 420px;
+      border-radius: 12px;
+      overflow:hidden;
+      border: 1px solid #eef0ff;
+    }
+
+    /* Barra inferior fixa */
+    #barra-inferior{
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      width: 100%;
+      background: rgba(255,255,255,0.96);
+      border-top: 1px solid #e6e6ff;
+      display: flex;
+      justify-content: space-around;
+      align-items: center;
+      padding: 10px 8px;
+      z-index: 9999;
+      backdrop-filter: blur(8px);
+    }
+
+    #barra-inferior button{
+      background:#f2f3ff;
+      border: 1px solid #e6e8ff;
+      font-weight:800;
+      padding: 10px 12px;
+      border-radius: 14px;
+      min-width: 90px;
+    }
+
+    #barra-inferior button.ativo{
+      background:#4f5dff;
+      color:#fff;
+      border-color:#4f5dff;
+    }
+
+    @media (max-width: 520px){
+      input{ min-width: 180px; width: 100%; }
+      #map{ height: 360px; }
+      #barra-inferior button{ min-width: 80px; font-size: 0.95em; }
+    }
   </style>
 </head>
 
 <body>
+  <h1>Quantocusta</h1>
 
-  <h1>💰 Quantocusta</h1>
-
-  <!-- Seletor de nichos -->
+  <!-- NICHOS (topo) -->
   <div class="topo">
-    <button onclick="setNicho('supermercado',this)">🛒 Supermercado</button>
-    <button onclick="setNicho('combustivel',this)">⛽ Combustível</button>
-    <button onclick="setNicho('farmacia',this)">💊 Farmácia</button>
+    <!-- seus handlers já devem existir no script.js -->
+    <button id="btnSupermercado">Supermercado</button>
+    <button id="btnCombustivel">Combustível</button>
+    <button id="btnFarmacia">Farmácia</button>
   </div>
 
-  <!-- Filtros -->
-  <div id="filtroSupermercado" class="filtros" style="display:none;">
-    <button onclick="setCategoria('alimento',this)">🥦 Alimentos</button>
-    <button onclick="setCategoria('limpeza',this)">🧼 Limpeza</button>
+  <!-- FILTROS (os 3 ficam ocultos até o JS mostrar) -->
+  <div class="filtros" id="filtroSupermercado" style="display:none">
+    <button data-tipo="alimento">Alimentos</button>
+    <button data-tipo="limpeza">Limpeza</button>
+    <button data-tipo="higiene">Higiene</button>
   </div>
 
-  <div id="filtroCombustivel" class="filtros" style="display:none;">
-    <button onclick="setTipo('gasolina',this)">⛽ Gasolina</button>
-    <button onclick="setTipo('etanol',this)">🌿 Etanol</button>
-    <button onclick="setTipo('diesel',this)">🚚 Diesel</button>
+  <div class="filtros" id="filtroCombustivel" style="display:none">
+    <button data-tipo="gasolina">Gasolina</button>
+    <button data-tipo="etanol">Etanol</button>
+    <button data-tipo="diesel">Diesel</button>
   </div>
 
-  <div id="filtroFarmacia" class="filtros" style="display:none;">
-    <button onclick="setCategoriaFarmacia('medicamento',this)">💊 Medicamentos</button>
-    <button onclick="setCategoriaFarmacia('higiene',this)">🧴 Higiene</button>
+  <div class="filtros" id="filtroFarmacia" style="display:none">
+    <button data-tipo="medicamento">Medicamentos</button>
+    <button data-tipo="higiene">Higiene</button>
+    <button data-tipo="beleza">Beleza</button>
   </div>
 
-  <!-- Busca -->
+  <!-- BUSCA -->
   <div class="busca">
-    <form onsubmit="buscar(); return false;">
-      <input id="busca" placeholder="Buscar...">
-      <button type="submit">Buscar</button>
-    </form>
+    <input id="buscaInput" type="text" placeholder="Buscar produto ou estabelecimento..." />
+    <button id="btnBuscar">Buscar</button>
+    <button id="btnLimpar">Limpar</button>
   </div>
 
-  <!-- Resultados -->
-  <ul id="resultado"></ul>
-
-  <!-- Ações -->
+  <!-- RESULTADOS -->
   <div class="caixa">
-    <button onclick="compararCesta()">🧺 Comparar cesta</button>
-    <div id="cestaResultado"></div>
+    <h3>Resultados</h3>
+    <ul id="resultado"></ul>
   </div>
 
-  <div class="caixa">
-    <button onclick="acharMelhorOpcao()">📍 Melhor opção perto de você</button>
-  </div>
-
-  <!-- Mapa dentro do quadro -->
+  <!-- MAPA -->
   <div class="caixa">
     <h3>Mapa de Localização</h3>
     <div id="map"></div>
   </div>
 
+  <!-- BARRA INFERIOR (VOLTOU, AGORA EM BAIXO) -->
+  <div id="barra-inferior">
+    <button id="navMapa" class="ativo" type="button">Mapa</button>
+    <button id="navLista" type="button">Lista</button>
+    <button id="navAvaliar" type="button">Avaliar</button>
+  </div>
+
   <!-- Leaflet JS (antes do seu script.js) -->
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
-  <!-- Seu JS (único lugar com a lógica) -->
+  <!-- Seu JS (ÚNICO lugar com a lógica) -->
   <script src="script.js"></script>
+
+  <!-- (Opcional) Comportamento básico da barra inferior, sem interferir no seu script.js -->
+  <script>
+    // Isso só controla o visual "ativo" da barra inferior.
+    // A sua lógica real (mostrar/esconder mapa/lista/avaliação) pode ficar no script.js.
+    const navBtns = ["navMapa","navLista","navAvaliar"].map(id => document.getElementById(id));
+    navBtns.forEach(btn => btn.addEventListener("click", () => {
+      navBtns.forEach(b => b.classList.remove("ativo"));
+      btn.classList.add("ativo");
+    }));
+  </script>
 </body>
 </html>
