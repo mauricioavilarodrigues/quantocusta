@@ -157,3 +157,35 @@ function negarPreco(index) {
 }
 
 console.log("script.js carregado corretamente");
+// ===== PREÇOS COLABORATIVOS (FORMULÁRIO) =====
+async function carregarPrecosColaborativos() {
+  try {
+    const res = await fetch("precos_colaborativos.json");
+    const dados = await res.json();
+
+    if (!dados.precos || dados.precos.length === 0) {
+      console.warn("Nenhum preço colaborativo encontrado");
+      return;
+    }
+
+    const centroRioGrande = [-32.035, -52.098];
+
+    dados.precos.forEach(p => {
+      const popup =
+        "<b>" + p.posto + "</b><br>" +
+        p.produto + "<br>" +
+        "Preço: R$ " + p.preco.toFixed(2).replace(".", ",") + "<br>" +
+        "<small>Data: " + p.data + "</small>";
+
+      L.marker(centroRioGrande)
+        .addTo(markersLayer)
+        .bindPopup(popup);
+    });
+
+  } catch (e) {
+    console.error("Erro ao carregar preços colaborativos:", e);
+  }
+}
+
+// chama a função
+carregarPrecosColaborativos();
