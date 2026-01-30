@@ -1,254 +1,139 @@
 // ===============================
-// QUANTOCUSTA - script.js (corrigido)
-// Leaflet + Busca + Filtros + Cesta + Mapa Estimado + Colaborativo
+// QUANTOCUSTA - script.js (ALINHADO AO INDEX)
 // ===============================
-
 (() => {
   "use strict";
 
   // ===============================
-  // REFERÊNCIAS DO DOM (SEM GLOBAIS MÁGICAS)
+  // DOM
   // ===============================
-  const elBusca = document.getElementById("busca");
+  const elBusca = document.getElementById("buscaInput");
   const elResultado = document.getElementById("resultado");
-  const elCestaResultado = document.getElementById("cestaResultado");
 
   const elFiltroSupermercado = document.getElementById("filtroSupermercado");
   const elFiltroCombustivel = document.getElementById("filtroCombustivel");
   const elFiltroFarmacia = document.getElementById("filtroFarmacia");
 
-  // Se algum elemento essencial não existir, avisa e não quebra tudo
-  if (!elBusca || !elResultado || !elCestaResultado || !document.getElementById("map")) {
-    console.error("❌ Falta algum elemento no HTML: ids esperados -> busca, resultado, cestaResultado, map");
+  if (!elBusca || !elResultado || !document.getElementById("map")) {
+    console.error("❌ HTML não compatível: falta buscaInput, resultado ou map");
+    return;
   }
 
   // ===============================
-  // ESTADO GLOBAL CONTROLADO
+  // ESTADO
   // ===============================
   let nichoAtual = "";
   let tipoAtual = "";
   let categoriaAtual = "";
   let categoriaFarmaciaAtual = "";
 
-  const cesta = [];
-  const cestaIds = new Set(); // evita duplicar item na cesta
-
-  // cache dos dados para não refazer fetch a cada clique
   let dataCache = null;
 
   // ===============================
   // HELPERS
   // ===============================
-  function safeText(v) {
-    return (v === null || v === undefined) ? "" : String(v);
-  }
+  const safe = v => v ?? "";
+  const toNumber = v => Number(String(v).replace(",", "."));
+  const brMoney = n => isNaN(n) ? "—" : "R$ " + n.toFixed(2).replace(".", ",");
 
-  function toNumber(v) {
-    const n = Number(String(v).replace(",", "."));
-    return Number.isFinite(n) ? n : NaN;
-  }
-
-  function brMoney(n) {
-    if (!Number.isFinite(n)) return "—";
-    return "R$ " + n.toFixed(2).replace(".", ",");
-  }
-
-  function uidFromItem(p) {
-    // cria uma "chave" estável para evitar duplicar na cesta
-    // usa id se tiver; senão, combina campos comuns
-    if (p && (p.id !== undefined && p.id !== null)) return `id:${p.id}`;
-    return `k:${safeText(p.nome)}|${safeText(p.loja || p.posto)}|${safeText(p.tipo)}|${safeText(p.cidade)}`;
-  }
-
-  function limparAtivos(grupoSelector) {
-    document.querySelectorAll(grupoSelector + " button")
+  function limparAtivos(selector) {
+    document.querySelectorAll(selector + " button")
       .forEach(b => b.classList.remove("ativo"));
   }
 
   async function getData() {
     if (dataCache) return dataCache;
-    const res = await fetch("data.json", { cache: "no-store" });
-    if (!res.ok) throw new Error("Falha ao carregar data.json (HTTP " + res.status + ")");
-    dataCache = await res.json();
+    const r = await fetch("data.json", { cache: "no-store" });
+    dataCache = await r.json();
     return dataCache;
   }
 
   // ===============================
-  // CONTROLES DE FILTRO (EXPOSTOS PARA O HTML)
+  // CONTROLES (LIGADOS AOS BOTÕES DO INDEX)
   // ===============================
-  window.setNicho = function setNicho(n, b) {
+  document.getElementById("btnSupermercado").onclick = () => setNicho("supermercado");
+  document.getElementById("btnCombustivel").onclick = () => setNicho("combustivel");
+  document.getElementById("btnFarmacia").onclick = () => setNicho("farmacia");
+
+  document.getElementById("btnBuscar").onclick = buscar;
+  document.getElementById("btnLimpar").onclick = () => {
+    elBusca.value = "";
+    elResultado.innerHTML = "";
+  };
+
+  // ===============================
+  // FILTROS
+  // ===============================
+  function setNicho(n) {
     nichoAtual = n;
-    tipoAtual = "";
-    categoriaAtual = "";
-    categoriaFarmaciaAtual = "";
+    tipoAtual = categoriaAtual = categoriaFarmaciaAtual = "";
     elResultado.innerHTML = "";
 
     limparAtivos(".topo");
-    if (b) b.classList.add("ativo");
+    document.querySelector(`#btn${n.charAt(0).toUpperCase() + n.slice(1)}`)?.classList.add("ativo");
 
-    ["Supermercado", "Combustivel", "Farmacia"].forEach(f => {
-      const el = document.getElementById("filtro" + f);
-      if (el) el.style.display = "none";
-    });
+    elFiltroSupermercado.style.display = "none";
+    elFiltroCombustivel.style.display = "none";
+    elFiltroFarmacia.style.display = "none";
 
-    if (n === "supermercado" && elFiltroSupermercado) elFiltroSupermercado.style.display = "flex";
-    if (n === "combustivel" && elFiltroCombustivel) elFiltroCombustivel.style.display = "flex";
-    if (n === "farmacia" && elFiltroFarmacia) elFiltroFarmacia.style.display = "flex";
-  };
+    if (n === "supermercado") elFiltroSupermercado.style.display = "flex";
+    if (n === "combustivel") elFiltroCombustivel.style.display = "flex";
+    if (n === "farmacia") elFiltroFarmacia.style.display = "flex";
+  }
 
-  window.setTipo = function setTipo(t, b) {
-    tipoAtual = t;
-    limparAtivos("#filtroCombustivel");
-    if (b) b.classList.add("ativo");
-    window.buscar();
-  };
+  elFiltroSupermercado.querySelectorAll("button").forEach(b =>
+    b.onclick = () => { categoriaAtual = b.dataset.tipo; buscar(); }
+  );
 
-  window.setCategoria = function setCategoria(c, b) {
-    categoriaAtual = c;
-    limparAtivos("#filtroSupermercado");
-    if (b) b.classList.add("ativo");
-    window.buscar();
-  };
+  elFiltroCombustivel.querySelectorAll("button").forEach(b =>
+    b.onclick = () => { tipoAtual = b.dataset.tipo; buscar(); }
+  );
 
-  window.setCategoriaFarmacia = function setCategoriaFarmacia(c, b) {
-    categoriaFarmaciaAtual = c;
-    limparAtivos("#filtroFarmacia");
-    if (b) b.classList.add("ativo");
-    window.buscar();
-  };
+  elFiltroFarmacia.querySelectorAll("button").forEach(b =>
+    b.onclick = () => { categoriaFarmaciaAtual = b.dataset.tipo; buscar(); }
+  );
 
   // ===============================
-  // BUSCA + RENDER RESULTADOS (EXPOSTO PARA O HTML)
+  // BUSCA
   // ===============================
-  window.buscar = async function buscar() {
-    try {
-      if (!nichoAtual) return alert("Selecione um nicho.");
-      if (nichoAtual === "combustivel" && !tipoAtual) return alert("Selecione o tipo.");
-      if (nichoAtual === "supermercado" && !categoriaAtual) return alert("Selecione a categoria.");
-      if (nichoAtual === "farmacia" && !categoriaFarmaciaAtual) return alert("Selecione a categoria.");
+  async function buscar() {
+    if (!nichoAtual) return alert("Selecione um nicho.");
 
-      const termo = (elBusca?.value || "").toLowerCase().trim();
+    const termo = elBusca.value.toLowerCase().trim();
+    const data = await getData();
+    let itens = data[nichoAtual] || [];
 
-      const data = await getData();
-      const lista = Array.isArray(data[nichoAtual]) ? data[nichoAtual] : [];
+    if (termo) itens = itens.filter(p => safe(p.nome).toLowerCase().includes(termo));
+    if (nichoAtual === "combustivel" && tipoAtual)
+      itens = itens.filter(p => safe(p.nome).toLowerCase().includes(tipoAtual));
+    if (nichoAtual === "supermercado" && categoriaAtual)
+      itens = itens.filter(p => p.tipo === categoriaAtual);
+    if (nichoAtual === "farmacia" && categoriaFarmaciaAtual)
+      itens = itens.filter(p => p.tipo === categoriaFarmaciaAtual);
 
-      let itens = lista.filter(p => safeText(p.nome).toLowerCase().includes(termo));
+    elResultado.innerHTML = "";
 
-      // filtros por nicho (como no teu código antigo)
-      if (nichoAtual === "combustivel") {
-        itens = itens.filter(p => safeText(p.nome).toLowerCase().includes(tipoAtual.toLowerCase()));
-      }
-      if (nichoAtual === "supermercado") {
-        itens = itens.filter(p => p.tipo === categoriaAtual);
-      }
-      if (nichoAtual === "farmacia") {
-        itens = itens.filter(p => p.tipo === categoriaFarmaciaAtual);
-      }
-
-      elResultado.innerHTML = "";
-
-      if (itens.length === 0) {
-        const li = document.createElement("li");
-        li.innerHTML = "<span>Nenhum resultado encontrado.</span>";
-        elResultado.appendChild(li);
-        return;
-      }
-
-      itens.forEach((p, index) => {
-        const li = document.createElement("li");
-
-        const preco = toNumber(p.preco);
-        const lojaTxt = safeText(p.loja || p.posto || "");
-        const nomeTxt = safeText(p.nome || "Sem nome");
-
-        li.innerHTML =
-          "<span>" +
-          "<input type='checkbox' id='ck-" + index + "'>" +
-          " " + nomeTxt +
-          "<br><small>" + lojaTxt + "</small></span>" +
-          "<span class='preco'>" + brMoney(preco) + "</span>" +
-          "<div class='avaliacao'>" +
-          "<strong>Este preço confere?</strong><br>" +
-          "<button onclick='confirmarPreco(" + index + ")'>👍 Confere</button>" +
-          "<button onclick='negarPreco(" + index + ")'>❌ Não confere</button>" +
-          "<div id='feedback-" + index + "'></div></div>";
-
-        elResultado.appendChild(li);
-
-        // checkbox -> cesta (sem duplicar)
-        const ck = li.querySelector("#ck-" + index);
-        ck.addEventListener("change", (e) => {
-          const key = uidFromItem(p);
-          if (e.target.checked) {
-            if (!cestaIds.has(key)) {
-              cesta.push(p);
-              cestaIds.add(key);
-            }
-          } else {
-            // remove da cesta se desmarcar
-            const idx = cesta.findIndex(x => uidFromItem(x) === key);
-            if (idx >= 0) cesta.splice(idx, 1);
-            cestaIds.delete(key);
-          }
-        });
-      });
-
-    } catch (err) {
-      console.error("❌ Erro na busca:", err);
-      alert("Erro ao buscar. Veja o console (F12).");
-    }
-  };
-
-  // ===============================
-  // CESTA (EXPOSTO PARA O HTML)
-  // ===============================
-  window.compararCesta = function compararCesta() {
-    if (cesta.length === 0) {
-      elCestaResultado.innerHTML = "<h3>Resultado da cesta</h3><div>Nenhum item selecionado.</div>";
+    if (!itens.length) {
+      elResultado.innerHTML = "<li>Nenhum resultado encontrado.</li>";
       return;
     }
 
-    const porLoja = {};
-    cesta.forEach(p => {
-      const loja = safeText(p.loja || p.posto || "Sem nome");
-      const preco = toNumber(p.preco);
-      porLoja[loja] = (porLoja[loja] || 0) + (Number.isFinite(preco) ? preco : 0);
+    itens.forEach((p, i) => {
+      const li = document.createElement("li");
+      li.innerHTML = `
+        <span>
+          ${safe(p.nome)}<br>
+          <small>${safe(p.loja || p.posto)}</small>
+        </span>
+        <span class="preco">${brMoney(toNumber(p.preco))}</span>
+      `;
+      elResultado.appendChild(li);
     });
-
-    let menor = Infinity;
-    Object.values(porLoja).forEach(v => { menor = Math.min(menor, v); });
-
-    let html = "<h3>Resultado da cesta</h3>";
-    for (const loja in porLoja) {
-      const total = porLoja[loja];
-      const cls = total === menor ? "menor" : "";
-      html += `<div class="${cls}">${loja}: ${brMoney(total)}</div>`;
-    }
-
-    elCestaResultado.innerHTML = html;
-  };
-
-  // ===============================
-  // FEEDBACK (EXPOSTO PARA O HTML)
-  // ===============================
-  window.confirmarPreco = function confirmarPreco(index) {
-    const el = document.getElementById("feedback-" + index);
-    if (el) el.innerText = "Obrigado por confirmar.";
-  };
-
-  window.negarPreco = function negarPreco(index) {
-    const el = document.getElementById("feedback-" + index);
-    if (el) el.innerText = "Preço contestado.";
-  };
-
-  // ===============================
-  // MAPA – LEAFLET (RIO GRANDE)
-  // ===============================
-  if (typeof L === "undefined") {
-    console.error("❌ Leaflet (L) não está carregado. Verifique o <script> do Leaflet antes do script.js.");
-    return;
   }
 
+  // ===============================
+  // MAPA
+  // ===============================
   const map = L.map("map").setView([-32.035, -52.098], 13);
 
   L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
@@ -257,88 +142,40 @@
 
   const markersLayer = L.layerGroup().addTo(map);
 
-  async function carregarMapaRioGrandeEstimado() {
-    try {
-      const res = await fetch("precos_estimados_rio_grande_anp.json", { cache: "no-store" });
-      if (!res.ok) throw new Error("Falha ao carregar precos_estimados_rio_grande_anp.json (HTTP " + res.status + ")");
-      const dados = await res.json();
+  async function carregarMapaEstimado() {
+    const r = await fetch("precos_estimados_rio_grande_anp.json", { cache: "no-store" });
+    const d = await r.json();
 
-      markersLayer.clearLayers();
+    markersLayer.clearLayers();
 
-      const centro = [-32.035, -52.098];
-      const c = dados.combustiveis || {};
-
-      const html =
-        "<b>Rio Grande (estimado)</b><br>" +
-        "<small>Base: " + safeText(dados.cidade_base) +
-        " | ANP " + safeText(dados?.periodo?.data_inicial) +
-        " a " + safeText(dados?.periodo?.data_final) + "</small><br><br>" +
-        "<b>Gasolina Comum:</b> " + brMoney(toNumber(c?.gasolina_comum?.preco_medio)) + "<br>" +
-        "<b>Gasolina Aditivada:</b> " + brMoney(toNumber(c?.gasolina_aditivada?.preco_medio)) + "<br>" +
-        "<b>Etanol:</b> " + brMoney(toNumber(c?.etanol_hidratado?.preco_medio)) + "<br>" +
-        "<b>Diesel:</b> " + brMoney(toNumber(c?.oleo_diesel?.preco_medio)) + "<br>" +
-        "<b>Diesel S10:</b> " + brMoney(toNumber(c?.oleo_diesel_s10?.preco_medio)) + "<br>" +
-        "<b>GNV:</b> " + brMoney(toNumber(c?.gnv?.preco_medio)) + "<br>" +
-        "<b>GLP:</b> " + brMoney(toNumber(c?.glp?.preco_medio)) + "<br><br>" +
-        "<small>" + safeText(dados.aviso) + "</small>";
-
-      L.marker(centro).addTo(markersLayer).bindPopup(html);
-
-    } catch (e) {
-      console.error("Erro ao carregar mapa estimado:", e);
-    }
+    L.marker([-32.035, -52.098]).addTo(markersLayer).bindPopup(
+      `<b>Rio Grande (ANP)</b><br>
+       Gasolina: ${brMoney(toNumber(d?.combustiveis?.gasolina_comum?.preco_medio))}`
+    );
   }
 
-  async function carregarPrecosColaborativos() {
-    try {
-      const res = await fetch("precos_colaborativos.json", { cache: "no-store" });
-      if (!res.ok) throw new Error("Falha ao carregar precos_colaborativos.json (HTTP " + res.status + ")");
-      const dados = await res.json();
+  async function carregarColaborativos() {
+    const r = await fetch("precos_colaborativos.json", { cache: "no-store" });
+    const d = await r.json();
 
-      if (!Array.isArray(dados.precos) || dados.precos.length === 0) {
-        console.warn("Nenhum preço colaborativo encontrado");
-        return;
-      }
+    (d.precos || []).forEach(p => {
+      const lat = -32.035 + (Math.random() - 0.5) * 0.01;
+      const lng = -52.098 + (Math.random() - 0.5) * 0.01;
 
-      const centro = [-32.035, -52.098];
-
-      dados.precos.forEach((p) => {
-        const precoNum = toNumber(p.preco);
-
-        const popup =
-          "<b>✅ Comunidade</b><br>" +
-          "<b>" + safeText(p.posto || "Posto") + "</b><br>" +
-          safeText(p.produto || "") + "<br>" +
-          "Preço: " + brMoney(precoNum) + "<br>" +
-          "<small>Data: " + safeText(p.data || "-") + "</small>";
-
-        // jitter para não empilhar marcadores (± ~0.005)
-        const jitterLat = (Math.random() - 0.5) * 0.01;
-        const jitterLng = (Math.random() - 0.5) * 0.01;
-
-        L.marker([centro[0] + jitterLat, centro[1] + jitterLng])
-          .addTo(markersLayer)
-          .bindPopup(popup);
-      });
-
-    } catch (e) {
-      console.error("Erro ao carregar preços colaborativos:", e);
-    }
+      L.marker([lat, lng])
+        .addTo(markersLayer)
+        .bindPopup(
+          `<b>${safe(p.posto)}</b><br>
+           ${safe(p.produto)}<br>
+           ${brMoney(toNumber(p.preco))}`
+        );
+    });
   }
-
-  // ===============================
-  // MELHOR OPÇÃO (placeholder seguro)
-  // ===============================
-  // Você não enviou a lógica completa aqui; então deixo uma versão "não quebra".
-  // Se você quiser, eu integro com dados reais e geolocalização depois.
-  window.acharMelhorOpcao = function acharMelhorOpcao() {
-    alert("⚠️ 'Melhor opção perto de você' ainda não está conectado às coordenadas reais dos postos. Posso ligar isso com lat/lng quando você tiver coordenadas por posto.");
-  };
 
   // ===============================
   // BOOT
   // ===============================
-  console.log("✅ script.js carregado corretamente");
-  carregarMapaRioGrandeEstimado().then(() => carregarPrecosColaborativos());
+  console.log("✅ script.js alinhado ao index.html");
+  carregarMapaEstimado().then(carregarColaborativos);
 
 })();
