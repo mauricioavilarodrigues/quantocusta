@@ -5,18 +5,33 @@
   <title>Quantocusta</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
 
-  <!-- Leaflet CSS -->
-  <link
-    rel="stylesheet"
-    href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
-  />
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
 
-  <!-- CSS do projeto -->
   <link rel="stylesheet" href="style.css" />
+
+  <!-- CSS mínimo só pro botão/accordion funcionar mesmo se seu style.css não tiver -->
+  <style>
+    .botao-contribuir{
+      display:inline-block;
+      background:#4f5dff;
+      color:#fff;
+      padding:14px 22px;
+      border-radius:999px;
+      font-weight:700;
+      text-decoration:none;
+      border:0;
+      cursor:pointer;
+      box-shadow:0 8px 20px rgba(79,93,255,.35);
+      transition: transform .15s ease, box-shadow .15s ease;
+    }
+    .botao-contribuir:active{ transform: translateY(1px); }
+    .contribuir-wrap{ text-align:center; }
+    .contribuir-box{ margin-top:14px; display:none; }
+    .contribuir-box.aberto{ display:block; }
+  </style>
 </head>
 
 <body>
-  <!-- NAV -->
   <nav>
     <a href="index.html">Início</a>
     <a href="quem-somos.html">Quem somos</a>
@@ -24,25 +39,17 @@
     <a href="contato.html">Fale conosco</a>
   </nav>
 
-  <!-- TÍTULO -->
   <h1 class="titulo">
     Quantocusta
-    <a
-      class="slogan-botao"
-      href="index.html"
-      title="Voltar ao início"
-      aria-label="Voltar ao início"
-    >💰</a>
+    <a class="slogan-botao" href="index.html" title="Voltar ao início" aria-label="Voltar ao início">💰</a>
   </h1>
 
-  <!-- SELETOR DE NICHOS -->
   <div class="topo">
     <button type="button" onclick="setNicho('supermercado',this)">🛒 Supermercado</button>
     <button type="button" onclick="setNicho('combustivel',this)">⛽ Combustível</button>
     <button type="button" onclick="setNicho('farmacia',this)">💊 Farmácia</button>
   </div>
 
-  <!-- FILTROS -->
   <div id="filtroSupermercado" class="filtros" style="display:none;">
     <button type="button" onclick="setCategoria('alimento',this)">🥦 Alimentos</button>
     <button type="button" onclick="setCategoria('limpeza',this)">🧼 Limpeza</button>
@@ -58,7 +65,6 @@
     <button type="button" onclick="setCategoriaFarmacia('higiene',this)">🧴 Higiene</button>
   </div>
 
-  <!-- BUSCA -->
   <div class="busca">
     <form onsubmit="buscar(); return false;">
       <input id="busca" placeholder="Buscar..." />
@@ -66,10 +72,8 @@
     </form>
   </div>
 
-  <!-- RESULTADOS -->
   <ul id="resultado"></ul>
 
-  <!-- AÇÕES -->
   <div class="caixa">
     <button type="button" onclick="compararCesta()">🧺 Comparar cesta</button>
     <div id="cestaResultado"></div>
@@ -79,44 +83,38 @@
     <button type="button" onclick="acharMelhorOpcao()">📍 Melhor opção perto de você</button>
   </div>
 
-  <!-- MAPA -->
   <div class="caixa">
     <h3>Mapa de Localização</h3>
-    <div
-      id="map"
-      style="height: 420px; width: 100%; border-radius: 12px;"
-    ></div>
+    <div id="map" style="height: 420px; width: 100%; border-radius: 12px;"></div>
   </div>
 
-  <!-- FORMULÁRIO COLABORATIVO -->
-  <div class="caixa">
-    <h3>💬 Contribua com um preço</h3>
+  <!-- CONTRIBUIR: botão abre/fecha o formulário -->
+  <div class="caixa contribuir-wrap">
+    <h3>💬 Viu um preço diferente?</h3>
+    <p style="margin-bottom:14px;">Clique no botão para abrir o formulário e contribuir.</p>
 
-    <p style="margin-bottom:12px;">
-      Encontrou um preço diferente? Ajude a comunidade atualizando os valores abaixo.
-    </p>
+    <button id="btnContribuir" class="botao-contribuir" type="button">
+      ➕ Contribuir com um preço
+    </button>
 
-    <iframe
-      src="https://docs.google.com/forms/d/e/1FAIpQLScvGANZ_AGCKNR7dpM7AAyts2fyD6ZkgTA6TCIyEi97ySGTmg/viewform?embedded=true"
-      width="100%"
-      height="1200"
-      frameborder="0"
-      marginheight="0"
-      marginwidth="0"
-      style="border-radius:12px;"
-    >
-      Carregando…
-    </iframe>
+    <div id="boxContribuir" class="contribuir-box">
+      <iframe
+        src="https://docs.google.com/forms/d/e/1FAIpQLScvGANZ_AGCKNR7dpM7AAyts2fyD6ZkgTA6TCIyEi97ySGTmg/viewform?embedded=true"
+        width="100%"
+        height="1200"
+        frameborder="0"
+        marginheight="0"
+        marginwidth="0"
+        style="border-radius:12px;"
+      >Carregando…</iframe>
 
-    <small style="display:block; margin-top:10px; color:#666;">
-      🔒 As informações enviadas são usadas apenas para fins colaborativos.
-    </small>
+      <small style="display:block; margin-top:10px; color:#666;">
+        🔒 As informações enviadas são usadas apenas para fins colaborativos.
+      </small>
+    </div>
   </div>
 
-  <!-- LEAFLET JS -->
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-
-  <!-- SEU SCRIPT -->
   <script src="script.js"></script>
 </body>
 </html>
