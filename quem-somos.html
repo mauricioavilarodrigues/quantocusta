@@ -41,5 +41,22 @@
   </p>
 </div>
 
+  <h2>Teste do backend</h2>
+
+<button onclick="registrarClique()">Clique para testar o backend</button>
+
+<p>Cliques registrados: <span id="contador">0</span></p>
+
+<script>
+async function registrarClique() {
+  const resposta = await fetch("http://localhost:3000/api/clique", {
+    method: "POST"
+  });
+
+  const dados = await resposta.json();
+  document.getElementById("contador").innerText = dados.total;
+}
+</script>
+
 </body>
 </html>
