@@ -164,6 +164,7 @@ function compararCesta() {
 // ===============================
 // MAPA + POSTOS (postos.json)
 // ===============================
+window.map = map;
 const centroRG = [-32.035, -52.098];
 const mapEl = document.getElementById("map");
 
