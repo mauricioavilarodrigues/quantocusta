@@ -1,5 +1,5 @@
 // ===============================
-// VARIÁVEIS GLOBAIS
+// VARIÁVEIS / ESTADO
 // ===============================
 let nichoAtual = "";
 let tipoAtual = "";
@@ -8,20 +8,27 @@ let categoriaFarmaciaAtual = "";
 
 let cesta = [];
 
-// refs DOM (evita "globais mágicas" quebrando)
-const busca = document.getElementById("busca");
-const resultado = document.getElementById("resultado");
+// DOM
+const elBusca = document.getElementById("busca");
+const elResultado = document.getElementById("resultado");
+const elCestaResultado = document.getElementById("cestaResultado");
 
-const filtroSupermercado = document.getElementById("filtroSupermercado");
-const filtroCombustivel = document.getElementById("filtroCombustivel");
-const filtroFarmacia = document.getElementById("filtroFarmacia");
+const elFiltroSupermercado = document.getElementById("filtroSupermercado");
+const elFiltroCombustivel = document.getElementById("filtroCombustivel");
+const elFiltroFarmacia = document.getElementById("filtroFarmacia");
+
+// Contribuir (abre/fecha)
+const btnContribuir = document.getElementById("btnContribuir");
+const boxContribuir = document.getElementById("boxContribuir");
+btnContribuir?.addEventListener("click", () => {
+  boxContribuir?.classList.toggle("aberto");
+});
 
 // ===============================
 // CONTROLES DE FILTRO
 // ===============================
 function limparAtivos(grupo) {
-  document.querySelectorAll(grupo + " button")
-    .forEach(b => b.classList.remove("ativo"));
+  document.querySelectorAll(grupo + " button").forEach(b => b.classList.remove("ativo"));
 }
 
 function setNicho(n, b) {
@@ -29,255 +36,253 @@ function setNicho(n, b) {
   tipoAtual = "";
   categoriaAtual = "";
   categoriaFarmaciaAtual = "";
-  if (resultado) resultado.innerHTML = "";
+
+  if (elResultado) elResultado.innerHTML = "";
 
   limparAtivos(".topo");
-  if (b) b.classList.add("ativo");
+  b?.classList.add("ativo");
 
-  ["Supermercado", "Combustivel", "Farmacia"].forEach(f => {
-    const el = document.getElementById("filtro" + f);
-    if (el) el.style.display = "none";
-  });
+  if (elFiltroSupermercado) elFiltroSupermercado.style.display = "none";
+  if (elFiltroCombustivel) elFiltroCombustivel.style.display = "none";
+  if (elFiltroFarmacia) elFiltroFarmacia.style.display = "none";
 
-  if (n === "supermercado" && filtroSupermercado) filtroSupermercado.style.display = "flex";
-  if (n === "combustivel" && filtroCombustivel) filtroCombustivel.style.display = "flex";
-  if (n === "farmacia" && filtroFarmacia) filtroFarmacia.style.display = "flex";
+  if (n === "supermercado" && elFiltroSupermercado) elFiltroSupermercado.style.display = "flex";
+  if (n === "combustivel" && elFiltroCombustivel) elFiltroCombustivel.style.display = "flex";
+  if (n === "farmacia" && elFiltroFarmacia) elFiltroFarmacia.style.display = "flex";
 }
 
 function setTipo(t, b) {
   tipoAtual = t;
   limparAtivos("#filtroCombustivel");
-  if (b) b.classList.add("ativo");
+  b?.classList.add("ativo");
   buscar();
 }
 
 function setCategoria(c, b) {
   categoriaAtual = c;
   limparAtivos("#filtroSupermercado");
-  if (b) b.classList.add("ativo");
+  b?.classList.add("ativo");
   buscar();
 }
 
 function setCategoriaFarmacia(c, b) {
   categoriaFarmaciaAtual = c;
   limparAtivos("#filtroFarmacia");
-  if (b) b.classList.add("ativo");
+  b?.classList.add("ativo");
   buscar();
 }
 
 // ===============================
-// BUSCA (DATA.JSON)
+// BUSCA (data.json)
 // ===============================
 async function buscar() {
   if (!nichoAtual) return alert("Selecione um nicho.");
-  if (!busca || !resultado) return;
 
-  const termo = (busca.value || "").toLowerCase();
+  // obrigatoriedades por nicho (se você quiser manter assim)
+  if (nichoAtual === "combustivel" && !tipoAtual) return alert("Selecione o tipo (Comum/Aditivada).");
+  if (nichoAtual === "supermercado" && !categoriaAtual) return alert("Selecione a categoria (Alimentos/Limpeza).");
+  if (nichoAtual === "farmacia" && !categoriaFarmaciaAtual) return alert("Selecione a categoria (Remédio/Higiene).");
 
-  const res = await fetch("./data.json", { cache: "no-store" });
+  const termo = (elBusca?.value || "").toLowerCase();
+
+  const res = await fetch("./data.json?v=" + Date.now(), { cache: "no-store" });
   const data = await res.json();
 
-  if (!data[nichoAtual]) {
-    resultado.innerHTML = "<li>Nenhum dado para este nicho.</li>";
-    return;
+  const lista = Array.isArray(data[nichoAtual]) ? data[nichoAtual] : [];
+  let itens = lista.filter(p => (p.nome || "").toLowerCase().includes(termo));
+
+  // filtros por nicho
+  if (nichoAtual === "combustivel") {
+    // costuma ser "Gasolina Comum", "Gasolina Aditivada" etc no nome
+    itens = itens.filter(p => (p.nome || "").toLowerCase().includes(tipoAtual.toLowerCase()));
+  }
+  if (nichoAtual === "supermercado") {
+    itens = itens.filter(p => (p.tipo || "") === categoriaAtual);
+  }
+  if (nichoAtual === "farmacia") {
+    itens = itens.filter(p => (p.tipo || "") === categoriaFarmaciaAtual);
   }
 
-  let itens = data[nichoAtual].filter(p =>
-    (p.nome || "").toLowerCase().includes(termo)
-  );
-
-  // (Opcional) filtros extras se você quiser usar depois:
-  // - tipoAtual, categoriaAtual, categoriaFarmaciaAtual
-
-  resultado.innerHTML = "";
+  if (!elResultado) return;
+  elResultado.innerHTML = "";
   cesta = [];
 
   itens.forEach((p, index) => {
     const li = document.createElement("li");
 
+    const precoNum = Number(p.preco);
+    const precoTxt = Number.isFinite(precoNum) ? precoNum.toFixed(2) : "0.00";
+
     li.innerHTML =
-      "<span><input type='checkbox'> " +
+      "<span><input type='checkbox' id='ck-" + index + "'> " +
       (p.nome || "") +
       "<br><small>" + (p.loja || p.posto || "") + "</small></span>" +
-      "<span class='preco'>R$ " + (Number(p.preco) || 0).toFixed(2) + "</span>" +
+      "<span class='preco'>R$ " + precoTxt + "</span>" +
       "<div class='avaliacao'>" +
       "<button onclick='confirmarPreco(" + index + ")'>Confere</button>" +
       "<button onclick='negarPreco(" + index + ")'>Não confere</button>" +
       "<div id='feedback-" + index + "'></div></div>";
 
-    resultado.appendChild(li);
-    li.querySelector("input").addEventListener("change", (e) => {
+    elResultado.appendChild(li);
+
+    li.querySelector("#ck-" + index).addEventListener("change", (e) => {
       if (e.target.checked) cesta.push(p);
     });
   });
 }
 
 // ===============================
-// MAPA – RIO GRANDE
+// CESTA
 // ===============================
-const centroRioGrande = [-32.035, -52.098];
+function compararCesta() {
+  if (!elCestaResultado) return;
+  if (!cesta.length) {
+    elCestaResultado.innerHTML = "<p>Nenhum item selecionado.</p>";
+    return;
+  }
 
-// garante que existe #map
+  const porLoja = {};
+  cesta.forEach(p => {
+    const loja = p.loja || p.posto || "Sem loja";
+    const preco = Number(p.preco) || 0;
+    porLoja[loja] = (porLoja[loja] || 0) + preco;
+  });
+
+  let menor = Infinity;
+  Object.values(porLoja).forEach(v => { if (v < menor) menor = v; });
+
+  let html = "<h3>Resultado da cesta</h3>";
+  Object.keys(porLoja).forEach(loja => {
+    const total = porLoja[loja];
+    const cls = total === menor ? "menor" : "";
+    html += `<div class="${cls}">${loja}: R$ ${total.toFixed(2)}</div>`;
+  });
+
+  elCestaResultado.innerHTML = html;
+}
+
+// ===============================
+// MAPA + POSTOS (postos.json)
+// ===============================
+const centroRG = [-32.035, -52.098];
 const mapEl = document.getElementById("map");
-if (!mapEl) {
-  console.error("❌ Falta a div #map no HTML.");
-} else {
-  // cria mapa uma vez
-  const map = L.map("map").setView(centroRioGrande, 13);
+
+// variáveis do mapa
+let map = null;
+let layerPostos = null;
+let usuarioPosicao = null;
+let postosIndex = []; // [{nome, latitude, longitude}]
+
+if (mapEl) {
+  map = L.map("map").setView(centroRG, 13);
 
   L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
     attribution: "© OpenStreetMap"
   }).addTo(map);
 
-  // camadas separadas para não “apagar” tudo
-  const layerEstimado = L.layerGroup().addTo(map);
-  const layerPostos = L.layerGroup().addTo(map);
-  const layerColab = L.layerGroup().addTo(map);
+  layerPostos = L.layerGroup().addTo(map);
 
-  function brMoney(n) {
-    if (n === null || n === undefined || isNaN(n)) return "—";
-    return "R$ " + Number(n).toFixed(2).replace(".", ",");
+  // localização do usuário (não bloqueia se negar)
+  map.locate({ setView: false, maxZoom: 15 });
+  map.on("locationfound", (e) => {
+    usuarioPosicao = e.latlng;
+    L.circleMarker(usuarioPosicao, {
+      radius: 8,
+      fillOpacity: 0.85
+    }).addTo(map).bindPopup("<b>Você está aqui</b>");
+  });
+
+  map.on("locationerror", () => {
+    // ok: usuário pode negar
+  });
+
+  carregarPostosNoMapa();
+}
+
+async function carregarPostosNoMapa() {
+  try {
+    const res = await fetch("./postos.json?v=" + Date.now(), { cache: "no-store" });
+    if (!res.ok) throw new Error("HTTP " + res.status);
+
+    const postos = await res.json();
+    if (!Array.isArray(postos)) throw new Error("postos.json não é array");
+
+    postosIndex = postos
+      .map(p => ({
+        nome: p.nome || "Posto",
+        latitude: Number(p.latitude),
+        longitude: Number(p.longitude)
+      }))
+      .filter(p => Number.isFinite(p.latitude) && Number.isFinite(p.longitude));
+
+    layerPostos.clearLayers();
+
+    let bounds = null;
+    postosIndex.forEach(p => {
+      const marker = L.marker([p.latitude, p.longitude]).addTo(layerPostos);
+      marker.bindPopup(`<b>${escapeHtml(p.nome)}</b><br><small>Rio Grande/RS</small>`);
+      if (!bounds) bounds = L.latLngBounds([p.latitude, p.longitude], [p.latitude, p.longitude]);
+      else bounds.extend([p.latitude, p.longitude]);
+    });
+
+    if (bounds) map.fitBounds(bounds.pad(0.12));
+
+    console.log("✅ Postos marcados no mapa:", postosIndex.length);
+  } catch (e) {
+    console.error("❌ Erro ao carregar postos.json:", e);
   }
+}
 
-  // ===============================
-  // 1) POSTOS (postos.json)
-  // ===============================
-  async function carregarPostos() {
-    try {
-      const res = await fetch("./postos.json?v=" + Date.now(), { cache: "no-store" });
-      if (!res.ok) throw new Error("HTTP " + res.status);
-      const postos = await res.json();
-      if (!Array.isArray(postos)) throw new Error("postos.json não é array");
+function escapeHtml(str) {
+  return String(str)
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;")
+    .replaceAll("'", "&#039;");
+}
 
-      layerPostos.clearLayers();
+// ===============================
+// MELHOR OPÇÃO PERTO DE VOCÊ (com base em distância aos postos)
+// ===============================
+function acharMelhorOpcao() {
+  if (!map) return;
+  if (!usuarioPosicao) return alert("Localização não encontrada (permita a localização no navegador).");
+  if (!postosIndex.length) return alert("Não há postos carregados no mapa.");
 
-      let bounds = null;
+  let melhor = null;
+  postosIndex.forEach(p => {
+    const d = distanciaKm(usuarioPosicao.lat, usuarioPosicao.lng, p.latitude, p.longitude);
+    if (!melhor || d < melhor.dist) melhor = { ...p, dist: d };
+  });
 
-      postos.forEach(p => {
-        const lat = Number(p.latitude);
-        const lng = Number(p.longitude);
-        if (!Number.isFinite(lat) || !Number.isFinite(lng)) return;
+  if (!melhor) return;
 
-        const m = L.marker([lat, lng])
-          .addTo(layerPostos)
-          .bindPopup("<b>" + (p.nome || "Posto") + "</b>");
+  map.setView([melhor.latitude, melhor.longitude], 16);
+  alert(`📍 Posto mais perto:\n\n${melhor.nome}\nDistância: ${melhor.dist.toFixed(2)} km`);
+}
 
-        if (!bounds) bounds = L.latLngBounds([lat, lng], [lat, lng]);
-        else bounds.extend([lat, lng]);
-      });
-
-      // enquadra os postos no mapa
-      if (bounds) map.fitBounds(bounds.pad(0.12));
-
-      console.log("✅ postos.json carregado:", postos.length);
-    } catch (e) {
-      console.error("❌ Erro ao carregar postos.json:", e);
-    }
-  }
-
-  // ===============================
-  // 2) ANP ESTIMADO (precos_estimados_rio_grande_anp.json)
-  // ===============================
-  async function carregarMapaRioGrandeEstimado() {
-    try {
-      const res = await fetch("./precos_estimados_rio_grande_anp.json?v=" + Date.now(), { cache: "no-store" });
-      if (!res.ok) throw new Error("HTTP " + res.status);
-      const dados = await res.json();
-
-      layerEstimado.clearLayers();
-
-      const c = dados.combustiveis;
-
-      const html =
-        "<b>Rio Grande (estimado)</b><br>" +
-        "<small>Base: " + dados.cidade_base +
-        " | ANP " + dados.periodo.data_inicial +
-        " a " + dados.periodo.data_final + "</small><br><br>" +
-        "<b>Gasolina Comum:</b> " + brMoney(c.gasolina_comum.preco_medio) + "<br>" +
-        "<b>Gasolina Aditivada:</b> " + brMoney(c.gasolina_aditivada.preco_medio) + "<br>" +
-        "<b>Etanol:</b> " + brMoney(c.etanol_hidratado.preco_medio) + "<br>" +
-        "<b>Diesel:</b> " + brMoney(c.oleo_diesel.preco_medio) + "<br>" +
-        "<b>Diesel S10:</b> " + brMoney(c.oleo_diesel_s10.preco_medio) + "<br>" +
-        "<b>GNV:</b> " + brMoney(c.gnv.preco_medio) + "<br>" +
-        "<b>GLP:</b> " + brMoney(c.glp.preco_medio) + "<br><br>" +
-        "<small>" + (dados.aviso || "") + "</small>";
-
-      // NÃO abre popup automaticamente (não “tampa” o resto)
-      L.marker(centroRioGrande)
-        .addTo(layerEstimado)
-        .bindPopup(html);
-
-      console.log("✅ estimado ANP carregado");
-    } catch (e) {
-      console.error("❌ Erro ao carregar estimado ANP:", e);
-    }
-  }
-
-  // ===============================
-  // 3) PREÇOS COLABORATIVOS (precos_colaborativos.json)
-  // ===============================
-  async function carregarPrecosColaborativos() {
-    try {
-      const res = await fetch("./precos_colaborativos.json?v=" + Date.now(), { cache: "no-store" });
-      if (!res.ok) throw new Error("HTTP " + res.status);
-      const dados = await res.json();
-
-      console.log("📌 dados colaborativos:", dados);
-
-      if (!dados.precos || !Array.isArray(dados.precos) || dados.precos.length === 0) {
-        console.warn("⚠️ Nenhum preço colaborativo encontrado");
-        layerColab.clearLayers();
-        return;
-      }
-
-      layerColab.clearLayers();
-
-      // Como seu JSON colaborativo não tem lat/lng por posto,
-      // espalhamos ao redor do centro só pra visualizar (depois você melhora).
-      dados.precos.forEach((p, i) => {
-        const precoNum = Number(String(p.preco).replace(",", "."));
-        const popup =
-          "<b>✅ Comunidade</b><br>" +
-          "<b>" + (p.posto || "Posto") + "</b><br>" +
-          (p.produto || "") + "<br>" +
-          "Preço: " + (isNaN(precoNum) ? "—" : ("R$ " + precoNum.toFixed(2).replace(".", ","))) + "<br>" +
-          "<small>Data: " + (p.data || "") + "</small>";
-
-        // deslocamento radial simples (para não ficar tudo em cima)
-        const angle = (i / Math.max(1, dados.precos.length)) * Math.PI * 2;
-        const lat = centroRioGrande[0] + Math.cos(angle) * 0.01;
-        const lng = centroRioGrande[1] + Math.sin(angle) * 0.01;
-
-        L.marker([lat, lng])
-          .addTo(layerColab)
-          .bindPopup(popup);
-      });
-
-      console.log("✅ preços colaborativos carregados:", dados.precos.length);
-    } catch (e) {
-      console.error("❌ Erro ao carregar preços colaborativos:", e);
-    }
-  }
-
-  // ===============================
-  // BOOT
-  // ===============================
-  carregarPostos();
-  carregarMapaRioGrandeEstimado();
-  carregarPrecosColaborativos();
-
-  console.log("✅ script.js carregado corretamente");
+function distanciaKm(lat1, lon1, lat2, lon2) {
+  const R = 6371;
+  const dLat = (lat2 - lat1) * Math.PI / 180;
+  const dLon = (lon2 - lon1) * Math.PI / 180;
+  const a =
+    Math.sin(dLat / 2) ** 2 +
+    Math.cos(lat1 * Math.PI / 180) *
+      Math.cos(lat2 * Math.PI / 180) *
+      Math.sin(dLon / 2) ** 2;
+  return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
 }
 
 // ===============================
 // FEEDBACK
 // ===============================
 function confirmarPreco(index) {
-  const el = document.getElementById("feedback-" + index);
-  if (el) el.innerText = "Obrigado por confirmar.";
+  document.getElementById("feedback-" + index).innerText = "Obrigado por confirmar.";
 }
 
 function negarPreco(index) {
-  const el = document.getElementById("feedback-" + index);
-  if (el) el.innerText = "Preço contestado.";
+  document.getElementById("feedback-" + index).innerText = "Preço contestado.";
 }
+
+console.log("✅ script.js carregado corretamente");
