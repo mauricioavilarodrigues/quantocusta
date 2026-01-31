@@ -12,3 +12,13 @@
   ]
 }
 
+fetch("./precos_colaborativos.json")
+  .then(r => r.json())
+  .then(dados => {
+    console.log("✅ Preços colaborativos:", dados);
+
+    const el = document.getElementById("resultado");
+    if (el) {
+      el.innerHTML = "<pre>" + JSON.stringify(dados, null, 2) + "</pre>";
+    }
+  });
