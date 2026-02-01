@@ -198,41 +198,70 @@ if (mapEl) {
     // ok: usuário pode negar
   });
 
-  carregarPostosNoMapa();
-   } else {
+ carregarPostosNoMapa();
+} else {
   console.error("❌ Não achei a div #map no HTML.");
-   }
-  async function carregarPostosNoMapa() {
+}
+
+async function carregarPostosNoMapa() {
   try {
     if (!map || !layerPostos) {
-  console.warn("⚠️ Mapa ou layerPostos não inicializados ainda.");
+      console.warn("⚠️ Mapa ou layerPostos não inicializados.");
       return;
     }
 
-    const res = await fetch("./postos_rio_grande_rs.csv?v=" + Date.now(), { cache: "no-store" });
+    const res = await fetch("postos_rio_grande_rs.csv?v=" + Date.now(), { cache: "no-store" });
     if (!res.ok) throw new Error("HTTP " + res.status);
 
     const csvText = await res.text();
-    if (!Array.isArray(postos)) throw new Error("postos_rio_grande_rs.csv não é array");
 
-    // aceita latitude/longitude ou lat/lng e também valores com vírgula
+    const linhas = csvText
+      .split(/\r?\n/)
+      .map(l => l.trim())
+      .filter(Boolean);
+
+    if (linhas.length < 2) {
+      throw new Error("CSV vazio ou sem dados.");
+    }
+
+    const header = linhas[0].split(",").map(h => h.trim().toLowerCase());
+
+    const idxNome =
+      header.indexOf("nome") !== -1 ? header.indexOf("nome") :
+      header.indexOf("posto") !== -1 ? header.indexOf("posto") : -1;
+
+    const idxLat =
+      header.indexOf("latitude") !== -1 ? header.indexOf("latitude") :
+      header.indexOf("lat") !== -1 ? header.indexOf("lat") : -1;
+
+    const idxLng =
+      header.indexOf("longitude") !== -1 ? header.indexOf("longitude") :
+      header.indexOf("lng") !== -1 ? header.indexOf("lng") :
+      header.indexOf("lon") !== -1 ? header.indexOf("lon") : -1;
+
+    if (idxLat === -1 || idxLng === -1) {
+      throw new Error("Não achei colunas latitude/longitude no CSV.");
+    }
+
     const toNum = (v) => Number(String(v).replace(",", "."));
 
-    postosIndex = postos
-      .map(p => ({
-        nome: p.nome || "Posto",
-        latitude: toNum(p.latitude ?? p.lat),
-        longitude: toNum(p.longitude ?? p.lng)
-      }))
-      .filter(p => Number.isFinite(p.latitude) && Number.isFinite(p.longitude));
+    postosIndex = linhas.slice(1).map(linha => {
+      const cols = linha.split(",").map(c => c.trim());
+      return {
+        nome: (idxNome >= 0 ? cols[idxNome] : "Posto") || "Posto",
+        latitude: toNum(cols[idxLat]),
+        longitude: toNum(cols[idxLng])
+      };
+    }).filter(p => Number.isFinite(p.latitude) && Number.isFinite(p.longitude));
 
     layerPostos.clearLayers();
 
     let bounds = null;
 
     postosIndex.forEach(p => {
-      const marker = L.marker([p.latitude, p.longitude]).addTo(layerPostos);
-      marker.bindPopup(`<b>${escapeHtml(p.nome)}</b><br><small>Rio Grande/RS</small>`);
+      L.marker([p.latitude, p.longitude])
+        .addTo(layerPostos)
+        .bindPopup(`<b>${escapeHtml(p.nome)}</b><br><small>Rio Grande/RS</small>`);
 
       if (!bounds) bounds = L.latLngBounds([p.latitude, p.longitude], [p.latitude, p.longitude]);
       else bounds.extend([p.latitude, p.longitude]);
@@ -240,11 +269,10 @@ if (mapEl) {
 
     if (bounds) {
       map.fitBounds(bounds.pad(0.12));
-    } else {
-      console.warn("⚠️ Nenhum posto válido encontrado (lat/lng NaN). Confira o postos_rio_grande_rs.csv.");
     }
 
     console.log("✅ Postos marcados no mapa:", postosIndex.length);
+
   } catch (e) {
     console.error("❌ Erro ao carregar postos_rio_grande_rs.csv:", e);
   }
@@ -255,10 +283,10 @@ function escapeHtml(str) {
     .replaceAll("&", "&amp;")
     .replaceAll("<", "&lt;")
     .replaceAll(">", "&gt;")
-    .replaceAll(">", "&gt;")
     .replaceAll('"', "&quot;")
     .replaceAll("'", "&#039;");
 }
+
 
 // ===============================
 // MELHOR OPÇÃO PERTO DE VOCÊ (com base em distância aos postos)
