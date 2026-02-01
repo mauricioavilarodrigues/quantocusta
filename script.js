@@ -65,7 +65,7 @@ function setCategoria(c, b)
   buscar();
 }
 
-function setCategoriaFarmacia(c, b) {
+function setCategoriaFarmacia(c, b) 
   categoriaFarmaciaAtual = c;
   limparAtivos("#filtroFarmacia");
   b?.classList.add("ativo");
