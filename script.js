@@ -86,7 +86,7 @@ async function buscar() {
   const termo = (elBusca?.value || "").toLowerCase();
 
   const res = await fetch("./data.json?v=" + Date.now(), { cache: "no-store" });
-  const data = await res.json();
+  const csvText = await res.text();
 
   const lista = Array.isArray(data[nichoAtual]) ? data[nichoAtual] : [];
   let itens = lista.filter(p => (p.nome || "").toLowerCase().includes(termo));
@@ -212,7 +212,7 @@ if (mapEl) {
     const res = await fetch("./postos_rio_grande_rs.csv?v=" + Date.now(), { cache: "no-store" });
     if (!res.ok) throw new Error("HTTP " + res.status);
 
-    const postos = await res.json();
+    const csvText = await res.text();
     if (!Array.isArray(postos)) throw new Error("postos_rio_grande_rs.csv não é array");
 
     // aceita latitude/longitude ou lat/lng e também valores com vírgula
