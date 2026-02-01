@@ -202,35 +202,47 @@ if (mapEl) {
 } else {
   console.error("❌ Não achei a div #map no HTML.");
 }
-
 async function carregarPostosNoMapa() {
   try {
+    if (!map || !layerPostos) {
+      console.warn("⚠️ Mapa ou layerPostos não inicializados ainda.");
+      return;
+    }
+
     const res = await fetch("./postos.json?v=" + Date.now(), { cache: "no-store" });
     if (!res.ok) throw new Error("HTTP " + res.status);
 
     const postos = await res.json();
     if (!Array.isArray(postos)) throw new Error("postos.json não é array");
 
+    // aceita latitude/longitude ou lat/lng e também valores com vírgula
+    const toNum = (v) => Number(String(v).replace(",", "."));
+
     postosIndex = postos
       .map(p => ({
         nome: p.nome || "Posto",
-        latitude: Number(p.latitude ?? p.lat),
-        longitude: Number(p.longitude ?? p.lng)
-
+        latitude: toNum(p.latitude ?? p.lat),
+        longitude: toNum(p.longitude ?? p.lng)
       }))
       .filter(p => Number.isFinite(p.latitude) && Number.isFinite(p.longitude));
 
     layerPostos.clearLayers();
 
     let bounds = null;
+
     postosIndex.forEach(p => {
       const marker = L.marker([p.latitude, p.longitude]).addTo(layerPostos);
       marker.bindPopup(`<b>${escapeHtml(p.nome)}</b><br><small>Rio Grande/RS</small>`);
+
       if (!bounds) bounds = L.latLngBounds([p.latitude, p.longitude], [p.latitude, p.longitude]);
       else bounds.extend([p.latitude, p.longitude]);
     });
 
-    if (bounds) map.fitBounds(bounds.pad(0.12));
+    if (bounds) {
+      map.fitBounds(bounds.pad(0.12));
+    } else {
+      console.warn("⚠️ Nenhum posto válido encontrado (lat/lng NaN). Confira o postos.json.");
+    }
 
     console.log("✅ Postos marcados no mapa:", postosIndex.length);
   } catch (e) {
@@ -242,6 +254,7 @@ function escapeHtml(str) {
   return String(str)
     .replaceAll("&", "&amp;")
     .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
     .replaceAll(">", "&gt;")
     .replaceAll('"', "&quot;")
     .replaceAll("'", "&#039;");
