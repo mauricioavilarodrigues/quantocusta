@@ -202,8 +202,6 @@ if (mapEl) {
 } else {
   console.error("❌ Não achei a div #map no HTML.");
 }
-
-async function carregarPostosNoMapa() {
  async function carregarPostosNoMapa() {
   try {
     if (!map || !layerPostos) {
