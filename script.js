@@ -197,33 +197,13 @@ if (mapEl) {
   map.on("locationerror", () => {
     // ok: usuário pode negar
   });
-const iconesPostos = {
-  shell: L.icon({
-    iconUrl: "https://cdn-icons-png.flaticon.com/512/2991/2991148.png",
-    iconSize: [36, 36],
-    iconAnchor: [18, 36],
-    popupAnchor: [0, -32]
-  }),
-  ipiranga: L.icon({
-    iconUrl: "https://cdn-icons-png.flaticon.com/512/2991/2991156.png",
-    iconSize: [36, 36],
-    iconAnchor: [18, 36],
-    popupAnchor: [0, -32]
-  }),
-  br: L.icon({
-    iconUrl: "https://cdn-icons-png.flaticon.com/512/2991/2991139.png",
-    iconSize: [36, 36],
-    iconAnchor: [18, 36],
-    popupAnchor: [0, -32]
-  }),
-  padrao: L.icon({
-    iconUrl: "https://cdn-icons-png.flaticon.com/512/684/684908.png",
-    iconSize: [34, 34],
-    iconAnchor: [17, 34],
-    popupAnchor: [0, -30]
-  })
-};
 
+ carregarPostosNoMapa();
+} else {
+  console.error("❌ Não achei a div #map no HTML.");
+}
+
+async function carregarPostosNoMapa() {
  async function carregarPostosNoMapa() {
   try {
     if (!map || !layerPostos) {
@@ -241,24 +221,42 @@ const iconesPostos = {
       .map(l => l.trim())
       .filter(Boolean);
 
+    if (linhas.length < 2) {
+      throw new Error("CSV vazio ou sem dados.");
+    }
+
+    const header = linhas[0].split(",").map(h => h.trim().toLowerCase());
     if (linhas.length < 2) throw new Error("Arquivo vazio ou sem dados.");
 
+    const idxNome =
+      header.indexOf("nome") !== -1 ? header.indexOf("nome") :
+      header.indexOf("posto") !== -1 ? header.indexOf("posto") : -1;
     // ✅ Detecta separador: TAB (TSV) ou vírgula (CSV)
     const sep = linhas[0].includes("\t") ? "\t" : ",";
 
+    const idxLat =
+      header.indexOf("latitude") !== -1 ? header.indexOf("latitude") :
+      header.indexOf("lat") !== -1 ? header.indexOf("lat") : -1;
     const header = linhas[0].split(sep).map(h => h.trim().toLowerCase());
 
+    const idxLng =
+      header.indexOf("longitude") !== -1 ? header.indexOf("longitude") :
+      header.indexOf("lng") !== -1 ? header.indexOf("lng") :
+      header.indexOf("lon") !== -1 ? header.indexOf("lon") : -1;
     const idxNome = header.indexOf("nome");
     const idxLat = header.indexOf("latitude");
     const idxLng = header.indexOf("longitude");
 
     if (idxLat === -1 || idxLng === -1) {
+      throw new Error("Não achei colunas latitude/longitude no CSV.");
       throw new Error("Não achei colunas latitude/longitude. Cabeçalho: " + header.join(" | "));
     }
 
+    const toNum = (v) => Number(String(v).replace(",", "."));
     const toNum = (v) => Number(String(v).trim().replace(",", "."));
 
     postosIndex = linhas.slice(1).map(linha => {
+      const cols = linha.split(",").map(c => c.trim());
       const cols = linha.split(sep).map(c => c.trim());
       return {
         nome: (idxNome >= 0 ? cols[idxNome] : "Posto") || "Posto",
@@ -280,6 +278,9 @@ const iconesPostos = {
       else bounds.extend([p.latitude, p.longitude]);
     });
 
+    if (bounds) {
+      map.fitBounds(bounds.pad(0.12));
+    }
     if (bounds) map.fitBounds(bounds.pad(0.12));
 
     console.log("✅ Postos marcados no mapa:", postosIndex.length);
@@ -288,6 +289,16 @@ const iconesPostos = {
     console.error("❌ Erro ao carregar postos_rio_grande_rs.csv:", e);
   }
 }
+
+function escapeHtml(str) {
+  return String(str)
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;")
+    .replaceAll("'", "&#039;");
+}
+
 
 // ===============================
 // MELHOR OPÇÃO PERTO DE VOCÊ (com base em distância aos postos)
