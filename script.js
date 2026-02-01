@@ -51,7 +51,7 @@ function setNicho(n, b)
   if (n === "farmacia" && elFiltroFarmacia) elFiltroFarmacia.style.display = "flex";
 }
 
-function setTipo(t, b) {
+function setTipo(t, b) 
   tipoAtual = t;
   limparAtivos("#filtroCombustivel");
   b?.classList.add("ativo");
