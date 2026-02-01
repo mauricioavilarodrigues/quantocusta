@@ -162,7 +162,7 @@ function compararCesta() {
 }
 
 // ===============================
-// MAPA + POSTOS (postos.json)
+// MAPA + POSTOS (postos_rio_grande_rs.csv)
 // ===============================
 const centroRG = [-32.035, -52.098];
 const mapEl = document.getElementById("map");
@@ -209,11 +209,11 @@ if (mapEl) {
       return;
     }
 
-    const res = await fetch("./postos.json?v=" + Date.now(), { cache: "no-store" });
+    const res = await fetch("./postos_rio_grande_rs.csv?v=" + Date.now(), { cache: "no-store" });
     if (!res.ok) throw new Error("HTTP " + res.status);
 
     const postos = await res.json();
-    if (!Array.isArray(postos)) throw new Error("postos.json não é array");
+    if (!Array.isArray(postos)) throw new Error("postos_rio_grande_rs.csv não é array");
 
     // aceita latitude/longitude ou lat/lng e também valores com vírgula
     const toNum = (v) => Number(String(v).replace(",", "."));
@@ -241,12 +241,12 @@ if (mapEl) {
     if (bounds) {
       map.fitBounds(bounds.pad(0.12));
     } else {
-      console.warn("⚠️ Nenhum posto válido encontrado (lat/lng NaN). Confira o postos.json.");
+      console.warn("⚠️ Nenhum posto válido encontrado (lat/lng NaN). Confira o postos_rio_grande_rs.csv.");
     }
 
     console.log("✅ Postos marcados no mapa:", postosIndex.length);
   } catch (e) {
-    console.error("❌ Erro ao carregar postos.json:", e);
+    console.error("❌ Erro ao carregar postos_rio_grande_rs.csv:", e);
   }
 }
 
