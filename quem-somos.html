@@ -49,9 +49,9 @@
 
 <script>
 async function registrarClique() {
-  const resposta = await fetch("http://localhost:3000/api/clique", {
-    method: "POST"
-  });
+  const resposta = await fetch("https://backend-wg1b.onrender.com/api/clique", {
+  method: "POST"
+});
 
   const dados = await resposta.json();
   document.getElementById("contador").innerText = dados.total;
