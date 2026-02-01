@@ -199,13 +199,13 @@ if (mapEl) {
   });
 
   carregarPostosNoMapa();
-} else {
+   } else {
   console.error("❌ Não achei a div #map no HTML.");
-}
-async function carregarPostosNoMapa() {
+   }
+  async function carregarPostosNoMapa() {
   try {
     if (!map || !layerPostos) {
-      console.warn("⚠️ Mapa ou layerPostos não inicializados ainda.");
+  console.warn("⚠️ Mapa ou layerPostos não inicializados ainda.");
       return;
     }
 
