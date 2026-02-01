@@ -164,7 +164,6 @@ function compararCesta() {
 // ===============================
 // MAPA + POSTOS (postos.json)
 // ===============================
-window.map = map;
 const centroRG = [-32.035, -52.098];
 const mapEl = document.getElementById("map");
 
@@ -176,9 +175,15 @@ let postosIndex = []; // [{nome, latitude, longitude}]
 
 if (mapEl) {
   map = L.map("map").setView(centroRG, 13);
+  window.map = map; // ✅ só depois que map existe
 
   L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
     attribution: "© OpenStreetMap"
+  }).addTo(map);
+
+  // ...
+}
+
   }).addTo(map);
 
   layerPostos = L.layerGroup().addTo(map);
