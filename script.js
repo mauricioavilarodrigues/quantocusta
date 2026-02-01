@@ -203,7 +203,6 @@ if (mapEl) {
   });
 
   carregarPostosNoMapa();
-}
 
 async function carregarPostosNoMapa() {
   try {
