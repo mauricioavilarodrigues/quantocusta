@@ -58,7 +58,7 @@ function setTipo(t, b) {
   buscar();
 }
 
-function setCategoria(c, b) {
+function setCategoria(c, b) 
   categoriaAtual = c;
   limparAtivos("#filtroSupermercado");
   b?.classList.add("ativo");
