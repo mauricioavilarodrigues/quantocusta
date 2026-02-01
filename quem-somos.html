@@ -47,11 +47,13 @@
 
 <p>Cliques registrados: <span id="contador">0</span></p>
 
+<button onclick="registrarClique()">Clique aqui</button>
+
 <script>
 async function registrarClique() {
   const resposta = await fetch("https://backend-wg1b.onrender.com/api/clique", {
-  method: "POST"
-});
+    method: "POST"
+  });
 
   const dados = await resposta.json();
   document.getElementById("contador").innerText = dados.total;
