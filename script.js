@@ -214,8 +214,9 @@ async function carregarPostosNoMapa() {
     postosIndex = postos
       .map(p => ({
         nome: p.nome || "Posto",
-        latitude: Number(p.latitude),
-        longitude: Number(p.longitude)
+        latitude: Number(p.latitude ?? p.lat),
+        longitude: Number(p.longitude ?? p.lng)
+
       }))
       .filter(p => Number.isFinite(p.latitude) && Number.isFinite(p.longitude));
 
