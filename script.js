@@ -181,15 +181,11 @@ if (mapEl) {
     attribution: "© OpenStreetMap"
   }).addTo(map);
 
-  // ...
-}
-
-  }).addTo(map);
-
   layerPostos = L.layerGroup().addTo(map);
 
   // localização do usuário (não bloqueia se negar)
   map.locate({ setView: false, maxZoom: 15 });
+
   map.on("locationfound", (e) => {
     usuarioPosicao = e.latlng;
     L.circleMarker(usuarioPosicao, {
@@ -203,6 +199,9 @@ if (mapEl) {
   });
 
   carregarPostosNoMapa();
+} else {
+  console.error("❌ Não achei a div #map no HTML.");
+}
 
 async function carregarPostosNoMapa() {
   try {
