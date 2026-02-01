@@ -75,7 +75,7 @@ function setCategoriaFarmacia(c, b)
 // ===============================
 // BUSCA (data.json)
 // ===============================
-async function buscar() {
+async function buscar() 
   if (!nichoAtual) return alert("Selecione um nicho.");
 
   // obrigatoriedades por nicho (se você quiser manter assim)
@@ -134,7 +134,7 @@ async function buscar() {
 // ===============================
 // CESTA
 // ===============================
-function compararCesta() {
+function compararCesta() 
   if (!elCestaResultado) return;
   if (!cesta.length) {
     elCestaResultado.innerHTML = "<p>Nenhum item selecionado.</p>";
@@ -202,7 +202,7 @@ if (mapEl) {
 } else {
   console.error("❌ Não achei a div #map no HTML.");
 }
- async function carregarPostosNoMapa() {
+ async function carregarPostosNoMapa() 
   try {
     if (!map || !layerPostos) {
       console.warn("⚠️ Mapa ou layerPostos não inicializados.");
@@ -288,14 +288,13 @@ if (mapEl) {
   }
 }
 
-function escapeHtml(str) {
+function escapeHtml(str) 
   return String(str)
     .replaceAll("&", "&amp;")
     .replaceAll("<", "&lt;")
     .replaceAll(">", "&gt;")
     .replaceAll('"', "&quot;")
     .replaceAll("'", "&#039;");
-}
 
 
 // ===============================
@@ -316,7 +315,6 @@ function acharMelhorOpcao() {
 
   map.setView([melhor.latitude, melhor.longitude], 16);
   alert(`📍 Posto mais perto:\n\n${melhor.nome}\nDistância: ${melhor.dist.toFixed(2)} km`);
-}
 
 function distanciaKm(lat1, lon1, lat2, lon2) {
   const R = 6371;
