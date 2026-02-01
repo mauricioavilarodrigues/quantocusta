@@ -197,6 +197,32 @@ if (mapEl) {
   map.on("locationerror", () => {
     // ok: usuário pode negar
   });
+const iconesPostos = {
+  shell: L.icon({
+    iconUrl: "https://cdn-icons-png.flaticon.com/512/2991/2991148.png",
+    iconSize: [36, 36],
+    iconAnchor: [18, 36],
+    popupAnchor: [0, -32]
+  }),
+  ipiranga: L.icon({
+    iconUrl: "https://cdn-icons-png.flaticon.com/512/2991/2991156.png",
+    iconSize: [36, 36],
+    iconAnchor: [18, 36],
+    popupAnchor: [0, -32]
+  }),
+  br: L.icon({
+    iconUrl: "https://cdn-icons-png.flaticon.com/512/2991/2991139.png",
+    iconSize: [36, 36],
+    iconAnchor: [18, 36],
+    popupAnchor: [0, -32]
+  }),
+  padrao: L.icon({
+    iconUrl: "https://cdn-icons-png.flaticon.com/512/684/684908.png",
+    iconSize: [34, 34],
+    iconAnchor: [17, 34],
+    popupAnchor: [0, -30]
+  })
+};
 
  async function carregarPostosNoMapa() {
   try {
