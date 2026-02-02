@@ -150,7 +150,9 @@ function compararCesta() {
   });
 
   let menor = Infinity;
-  Object.values(porLoja).forEach(v => { if (v < menor) menor = v; });
+for (const v of Object.values(porLoja)) {
+  if (v < menor) menor = v;
+}
 
   let html = "<h3>Resultado da cesta</h3>";
   Object.keys(porLoja).forEach(loja => {
