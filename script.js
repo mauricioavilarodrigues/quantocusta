@@ -51,21 +51,21 @@ function setNicho(n, b) {
   if (n === "farmacia" && elFiltroFarmacia) elFiltroFarmacia.style.display = "flex";
 }
 
-function setTipo(t, b) 
+function setTipo(t, b) {
   tipoAtual = t;
   limparAtivos("#filtroCombustivel");
   b?.classList.add("ativo");
   buscar();
 }
 
-function setCategoria(c, b) 
+function setCategoria(c, b) {
   categoriaAtual = c;
   limparAtivos("#filtroSupermercado");
   b?.classList.add("ativo");
   buscar();
 }
 
-function setCategoriaFarmacia(c, b) 
+function setCategoriaFarmacia(c, b) {
   categoriaFarmaciaAtual = c;
   limparAtivos("#filtroFarmacia");
   b?.classList.add("ativo");
