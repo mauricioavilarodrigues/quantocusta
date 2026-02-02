@@ -91,27 +91,20 @@ async function buscar() {
 
   const termo = (elBusca?.value || "").toLowerCase();
 
-  // ✅ data.json é JSON
   const res = await fetch("./data.json?v=" + Date.now(), { cache: "no-store" });
   if (!res.ok) throw new Error("HTTP " + res.status);
   const data = await res.json();
 
   const lista = Array.isArray(data[nichoAtual]) ? data[nichoAtual] : [];
-  let itens = lista.filter(p =>
-    (p.nome || "").toLowerCase().includes(termo)
-  );
+  let itens = lista.filter(p => (p.nome || "").toLowerCase().includes(termo));
 
   // filtros por nicho
   if (nichoAtual === "combustivel") {
-    itens = itens.filter(p =>
-      (p.nome || "").toLowerCase().includes(tipoAtual.toLowerCase())
-    );
+    itens = itens.filter(p => (p.nome || "").toLowerCase().includes(tipoAtual.toLowerCase()));
   }
-
   if (nichoAtual === "supermercado") {
     itens = itens.filter(p => (p.tipo || "") === categoriaAtual);
   }
-
   if (nichoAtual === "farmacia") {
     itens = itens.filter(p => (p.tipo || "") === categoriaFarmaciaAtual);
   }
@@ -124,9 +117,7 @@ async function buscar() {
     const li = document.createElement("li");
 
     const precoNum = Number(p.preco);
-    const precoTxt = Number.isFinite(precoNum)
-      ? precoNum.toFixed(2)
-      : "0.00";
+    const precoTxt = Number.isFinite(precoNum) ? precoNum.toFixed(2) : "0.00";
 
     li.innerHTML =
       "<span><input type='checkbox' id='ck-" + index + "'> " +
@@ -149,8 +140,9 @@ async function buscar() {
 // ===============================
 // CESTA
 // ===============================
-function compararCesta() 
+function compararCesta() {
   if (!elCestaResultado) return;
+
   if (!cesta.length) {
     elCestaResultado.innerHTML = "<p>Nenhum item selecionado.</p>";
     return;
@@ -190,7 +182,7 @@ let postosIndex = []; // [{nome, latitude, longitude}]
 
 if (mapEl) {
   map = L.map("map").setView(centroRG, 13);
-  window.map = map; // ✅ só depois que map existe
+  window.map = map;
 
   L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
     attribution: "© OpenStreetMap"
@@ -213,9 +205,12 @@ if (mapEl) {
     // ok: usuário pode negar
   });
 
- .split(",").map(c => c.trim());
+  carregarPostosNoMapa();
+} else {
+  console.error("❌ Não achei a div #map no HTML.");
+}
 
- async function carregarPostosNoMapa() {
+async function carregarPostosNoMapa() {
   try {
     if (!map || !layerPostos) {
       console.warn("⚠️ Mapa ou layerPostos não inicializados.");
@@ -225,61 +220,43 @@ if (mapEl) {
     const res = await fetch("postos_rio_grande_rs.csv?v=" + Date.now(), { cache: "no-store" });
     if (!res.ok) throw new Error("HTTP " + res.status);
 
-    const csvText = await res.text();
+    const text = await res.text();
 
-    const linhas = csvText
+    const linhas = text
       .split(/\r?\n/)
       .map(l => l.trim())
       .filter(Boolean);
 
-    if (linhas.length < 2) {
-      throw new Error("CSV vazio ou sem dados.");
-    }
-
-    const header = linhas[0].split(",").map(h => h.trim().toLowerCase());
     if (linhas.length < 2) throw new Error("Arquivo vazio ou sem dados.");
 
-    const idxNome =
-      header.indexOf("nome") !== -1 ? header.indexOf("nome") :
-      header.indexOf("posto") !== -1 ? header.indexOf("posto") : -1;
-    // ✅ Detecta separador: TAB (TSV) ou vírgula (CSV)
+    // seu arquivo está com TAB: nome<TAB>latitude<TAB>longitude
     const sep = linhas[0].includes("\t") ? "\t" : ",";
 
-    const idxLat =
-      header.indexOf("latitude") !== -1 ? header.indexOf("latitude") :
-      header.indexOf("lat") !== -1 ? header.indexOf("lat") : -1;
     const header = linhas[0].split(sep).map(h => h.trim().toLowerCase());
-
-    const idxLng =
-      header.indexOf("longitude") !== -1 ? header.indexOf("longitude") :
-      header.indexOf("lng") !== -1 ? header.indexOf("lng") :
-      header.indexOf("lon") !== -1 ? header.indexOf("lon") : -1;
     const idxNome = header.indexOf("nome");
     const idxLat = header.indexOf("latitude");
     const idxLng = header.indexOf("longitude");
 
     if (idxLat === -1 || idxLng === -1) {
-      throw new Error("Não achei colunas latitude/longitude no CSV.");
       throw new Error("Não achei colunas latitude/longitude. Cabeçalho: " + header.join(" | "));
     }
 
-    const toNum = (v) => Number(String(v).replace(",", "."));
     const toNum = (v) => Number(String(v).trim().replace(",", "."));
 
-    postosIndex = linhas.slice(1).map(linha => {
-      const cols = linha.split(",").map(c => c.trim());
-      const cols = linha.split(sep).map(c => c.trim());
-      return {
-        nome: (idxNome >= 0 ? cols[idxNome] : "Posto") || "Posto",
-        latitude: toNum(cols[idxLat]),
-        longitude: toNum(cols[idxLng])
-      };
-    }).filter(p => Number.isFinite(p.latitude) && Number.isFinite(p.longitude));
+    postosIndex = linhas.slice(1)
+      .map(linha => {
+        const cols = linha.split(sep).map(c => c.trim());
+        return {
+          nome: (idxNome >= 0 ? cols[idxNome] : "Posto") || "Posto",
+          latitude: toNum(cols[idxLat]),
+          longitude: toNum(cols[idxLng])
+        };
+      })
+      .filter(p => Number.isFinite(p.latitude) && Number.isFinite(p.longitude));
 
     layerPostos.clearLayers();
 
     let bounds = null;
-
     postosIndex.forEach(p => {
       L.marker([p.latitude, p.longitude])
         .addTo(layerPostos)
@@ -289,13 +266,9 @@ if (mapEl) {
       else bounds.extend([p.latitude, p.longitude]);
     });
 
-    if (bounds) {
-      map.fitBounds(bounds.pad(0.12));
-    }
     if (bounds) map.fitBounds(bounds.pad(0.12));
 
     console.log("✅ Postos marcados no mapa:", postosIndex.length);
-
   } catch (e) {
     console.error("❌ Erro ao carregar postos_rio_grande_rs.csv:", e);
   }
@@ -310,10 +283,21 @@ function escapeHtml(str) {
     .replaceAll("'", "&#039;");
 }
 
-
 // ===============================
 // MELHOR OPÇÃO PERTO DE VOCÊ (com base em distância aos postos)
 // ===============================
+function distanciaKm(lat1, lon1, lat2, lon2) {
+  const R = 6371;
+  const dLat = (lat2 - lat1) * Math.PI / 180;
+  const dLon = (lon2 - lon1) * Math.PI / 180;
+  const a =
+    Math.sin(dLat / 2) ** 2 +
+    Math.cos(lat1 * Math.PI / 180) *
+      Math.cos(lat2 * Math.PI / 180) *
+      Math.sin(dLon / 2) ** 2;
+  return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+}
+
 function acharMelhorOpcao() {
   if (!map) return;
   if (!usuarioPosicao) return alert("Localização não encontrada (permita a localização no navegador).");
@@ -329,17 +313,6 @@ function acharMelhorOpcao() {
 
   map.setView([melhor.latitude, melhor.longitude], 16);
   alert(`📍 Posto mais perto:\n\n${melhor.nome}\nDistância: ${melhor.dist.toFixed(2)} km`);
-
-function distanciaKm(lat1, lon1, lat2, lon2) {
-  const R = 6371;
-  const dLat = (lat2 - lat1) * Math.PI / 180;
-  const dLon = (lon2 - lon1) * Math.PI / 180;
-  const a =
-    Math.sin(dLat / 2) ** 2 +
-    Math.cos(lat1 * Math.PI / 180) *
-      Math.cos(lat2 * Math.PI / 180) *
-      Math.sin(dLon / 2) ** 2;
-  return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
 }
 
 // ===============================
