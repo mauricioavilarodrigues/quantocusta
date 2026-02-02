@@ -325,3 +325,17 @@ function negarPreco(index) {
 }
 
 console.log("✅ script.js carregado corretamente");
+// ===============================
+// EXPORTA FUNÇÕES PARA ONCLICK DO HTML
+// ===============================
+window.setNicho = setNicho;
+window.setTipo = setTipo;
+window.setCategoria = setCategoria;
+window.setCategoriaFarmacia = setCategoriaFarmacia;
+
+window.buscar = buscar;
+window.compararCesta = compararCesta;
+window.acharMelhorOpcao = acharMelhorOpcao;
+
+window.confirmarPreco = confirmarPreco;
+window.negarPreco = negarPreco;
