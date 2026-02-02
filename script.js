@@ -136,6 +136,7 @@ async function buscar() {
 // ===============================
 function compararCesta() {
   if (!elCestaResultado) return;
+
   if (!cesta.length) {
     elCestaResultado.innerHTML = "<p>Nenhum item selecionado.</p>";
     return;
@@ -149,7 +150,9 @@ function compararCesta() {
   });
 
   let menor = Infinity;
-  Object.values(porLoja).forEach(v => { if (v < menor) menor = v; });
+  Object.values(porLoja).forEach(v => {
+    if (v < menor) menor = v;
+  });
 
   let html = "<h3>Resultado da cesta</h3>";
   Object.keys(porLoja).forEach(loja => {
