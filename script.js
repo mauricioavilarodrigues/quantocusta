@@ -75,30 +75,43 @@ function setCategoriaFarmacia(c, b) {
 // ===============================
 // BUSCA (data.json)
 // ===============================
-async function buscar() 
+async function buscar() {
   if (!nichoAtual) return alert("Selecione um nicho.");
 
-  // obrigatoriedades por nicho (se você quiser manter assim)
-  if (nichoAtual === "combustivel" && !tipoAtual) return alert("Selecione o tipo (Comum/Aditivada).");
-  if (nichoAtual === "supermercado" && !categoriaAtual) return alert("Selecione a categoria (Alimentos/Limpeza).");
-  if (nichoAtual === "farmacia" && !categoriaFarmaciaAtual) return alert("Selecione a categoria (Remédio/Higiene).");
+  // obrigatoriedades por nicho
+  if (nichoAtual === "combustivel" && !tipoAtual) {
+    return alert("Selecione o tipo (Comum/Aditivada).");
+  }
+  if (nichoAtual === "supermercado" && !categoriaAtual) {
+    return alert("Selecione a categoria (Alimentos/Limpeza).");
+  }
+  if (nichoAtual === "farmacia" && !categoriaFarmaciaAtual) {
+    return alert("Selecione a categoria (Remédio/Higiene).");
+  }
 
   const termo = (elBusca?.value || "").toLowerCase();
 
+  // ✅ data.json é JSON
   const res = await fetch("./data.json?v=" + Date.now(), { cache: "no-store" });
-  const csvText = await res.text();
+  if (!res.ok) throw new Error("HTTP " + res.status);
+  const data = await res.json();
 
   const lista = Array.isArray(data[nichoAtual]) ? data[nichoAtual] : [];
-  let itens = lista.filter(p => (p.nome || "").toLowerCase().includes(termo));
+  let itens = lista.filter(p =>
+    (p.nome || "").toLowerCase().includes(termo)
+  );
 
   // filtros por nicho
   if (nichoAtual === "combustivel") {
-    // costuma ser "Gasolina Comum", "Gasolina Aditivada" etc no nome
-    itens = itens.filter(p => (p.nome || "").toLowerCase().includes(tipoAtual.toLowerCase()));
+    itens = itens.filter(p =>
+      (p.nome || "").toLowerCase().includes(tipoAtual.toLowerCase())
+    );
   }
+
   if (nichoAtual === "supermercado") {
     itens = itens.filter(p => (p.tipo || "") === categoriaAtual);
   }
+
   if (nichoAtual === "farmacia") {
     itens = itens.filter(p => (p.tipo || "") === categoriaFarmaciaAtual);
   }
@@ -111,7 +124,9 @@ async function buscar()
     const li = document.createElement("li");
 
     const precoNum = Number(p.preco);
-    const precoTxt = Number.isFinite(precoNum) ? precoNum.toFixed(2) : "0.00";
+    const precoTxt = Number.isFinite(precoNum)
+      ? precoNum.toFixed(2)
+      : "0.00";
 
     li.innerHTML =
       "<span><input type='checkbox' id='ck-" + index + "'> " +
