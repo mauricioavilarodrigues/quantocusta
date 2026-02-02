@@ -31,7 +31,7 @@ function limparAtivos(grupo) {
   document.querySelectorAll(grupo + " button").forEach(b => b.classList.remove("ativo"));
 }
 
-function setNicho(n, b) 
+function setNicho(n, b) {
   nichoAtual = n;
   tipoAtual = "";
   categoriaAtual = "";
