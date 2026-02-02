@@ -78,21 +78,14 @@ function setCategoriaFarmacia(c, b) {
 async function buscar() {
   if (!nichoAtual) return alert("Selecione um nicho.");
 
-  // obrigatoriedades por nicho
-  if (nichoAtual === "combustivel" && !tipoAtual) {
-    return alert("Selecione o tipo (Comum/Aditivada).");
-  }
-  if (nichoAtual === "supermercado" && !categoriaAtual) {
-    return alert("Selecione a categoria (Alimentos/Limpeza).");
-  }
-  if (nichoAtual === "farmacia" && !categoriaFarmaciaAtual) {
-    return alert("Selecione a categoria (Remédio/Higiene).");
-  }
+  // obrigatoriedades por nicho (se você quiser manter assim)
+  if (nichoAtual === "combustivel" && !tipoAtual) return alert("Selecione o tipo (Comum/Aditivada).");
+  if (nichoAtual === "supermercado" && !categoriaAtual) return alert("Selecione a categoria (Alimentos/Limpeza).");
+  if (nichoAtual === "farmacia" && !categoriaFarmaciaAtual) return alert("Selecione a categoria (Remédio/Higiene).");
 
   const termo = (elBusca?.value || "").toLowerCase();
 
   const res = await fetch("./data.json?v=" + Date.now(), { cache: "no-store" });
-  if (!res.ok) throw new Error("HTTP " + res.status);
   const data = await res.json();
 
   const lista = Array.isArray(data[nichoAtual]) ? data[nichoAtual] : [];
@@ -100,6 +93,7 @@ async function buscar() {
 
   // filtros por nicho
   if (nichoAtual === "combustivel") {
+    // costuma ser "Gasolina Comum", "Gasolina Aditivada" etc no nome
     itens = itens.filter(p => (p.nome || "").toLowerCase().includes(tipoAtual.toLowerCase()));
   }
   if (nichoAtual === "supermercado") {
@@ -142,7 +136,6 @@ async function buscar() {
 // ===============================
 function compararCesta() {
   if (!elCestaResultado) return;
-
   if (!cesta.length) {
     elCestaResultado.innerHTML = "<p>Nenhum item selecionado.</p>";
     return;
@@ -169,7 +162,7 @@ function compararCesta() {
 }
 
 // ===============================
-// MAPA + POSTOS (postos_rio_grande_rs.csv)
+// MAPA + POSTOS (postos.json)
 // ===============================
 const centroRG = [-32.035, -52.098];
 const mapEl = document.getElementById("map");
@@ -182,7 +175,7 @@ let postosIndex = []; // [{nome, latitude, longitude}]
 
 if (mapEl) {
   map = L.map("map").setView(centroRG, 13);
-  window.map = map;
+  window.map = map; // ✅ só depois que map existe
 
   L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
     attribution: "© OpenStreetMap"
@@ -209,68 +202,51 @@ if (mapEl) {
 } else {
   console.error("❌ Não achei a div #map no HTML.");
 }
-
 async function carregarPostosNoMapa() {
   try {
     if (!map || !layerPostos) {
-      console.warn("⚠️ Mapa ou layerPostos não inicializados.");
+      console.warn("⚠️ Mapa ou layerPostos não inicializados ainda.");
       return;
     }
 
-    const res = await fetch("postos_rio_grande_rs.csv?v=" + Date.now(), { cache: "no-store" });
+    const res = await fetch("./postos.json?v=" + Date.now(), { cache: "no-store" });
     if (!res.ok) throw new Error("HTTP " + res.status);
 
-    const text = await res.text();
+    const postos = await res.json();
+    if (!Array.isArray(postos)) throw new Error("postos.json não é array");
 
-    const linhas = text
-      .split(/\r?\n/)
-      .map(l => l.trim())
-      .filter(Boolean);
+    // aceita latitude/longitude ou lat/lng e também valores com vírgula
+    const toNum = (v) => Number(String(v).replace(",", "."));
 
-    if (linhas.length < 2) throw new Error("Arquivo vazio ou sem dados.");
-
-    // seu arquivo está com TAB: nome<TAB>latitude<TAB>longitude
-    const sep = linhas[0].includes("\t") ? "\t" : ",";
-
-    const header = linhas[0].split(sep).map(h => h.trim().toLowerCase());
-    const idxNome = header.indexOf("nome");
-    const idxLat = header.indexOf("latitude");
-    const idxLng = header.indexOf("longitude");
-
-    if (idxLat === -1 || idxLng === -1) {
-      throw new Error("Não achei colunas latitude/longitude. Cabeçalho: " + header.join(" | "));
-    }
-
-    const toNum = (v) => Number(String(v).trim().replace(",", "."));
-
-    postosIndex = linhas.slice(1)
-      .map(linha => {
-        const cols = linha.split(sep).map(c => c.trim());
-        return {
-          nome: (idxNome >= 0 ? cols[idxNome] : "Posto") || "Posto",
-          latitude: toNum(cols[idxLat]),
-          longitude: toNum(cols[idxLng])
-        };
-      })
+    postosIndex = postos
+      .map(p => ({
+        nome: p.nome || "Posto",
+        latitude: toNum(p.latitude ?? p.lat),
+        longitude: toNum(p.longitude ?? p.lng)
+      }))
       .filter(p => Number.isFinite(p.latitude) && Number.isFinite(p.longitude));
 
     layerPostos.clearLayers();
 
     let bounds = null;
+
     postosIndex.forEach(p => {
-      L.marker([p.latitude, p.longitude])
-        .addTo(layerPostos)
-        .bindPopup(`<b>${escapeHtml(p.nome)}</b><br><small>Rio Grande/RS</small>`);
+      const marker = L.marker([p.latitude, p.longitude]).addTo(layerPostos);
+      marker.bindPopup(`<b>${escapeHtml(p.nome)}</b><br><small>Rio Grande/RS</small>`);
 
       if (!bounds) bounds = L.latLngBounds([p.latitude, p.longitude], [p.latitude, p.longitude]);
       else bounds.extend([p.latitude, p.longitude]);
     });
 
-    if (bounds) map.fitBounds(bounds.pad(0.12));
+    if (bounds) {
+      map.fitBounds(bounds.pad(0.12));
+    } else {
+      console.warn("⚠️ Nenhum posto válido encontrado (lat/lng NaN). Confira o postos.json.");
+    }
 
     console.log("✅ Postos marcados no mapa:", postosIndex.length);
   } catch (e) {
-    console.error("❌ Erro ao carregar postos_rio_grande_rs.csv:", e);
+    console.error("❌ Erro ao carregar postos.json:", e);
   }
 }
 
@@ -279,6 +255,7 @@ function escapeHtml(str) {
     .replaceAll("&", "&amp;")
     .replaceAll("<", "&lt;")
     .replaceAll(">", "&gt;")
+    .replaceAll(">", "&gt;")
     .replaceAll('"', "&quot;")
     .replaceAll("'", "&#039;");
 }
@@ -286,18 +263,6 @@ function escapeHtml(str) {
 // ===============================
 // MELHOR OPÇÃO PERTO DE VOCÊ (com base em distância aos postos)
 // ===============================
-function distanciaKm(lat1, lon1, lat2, lon2) {
-  const R = 6371;
-  const dLat = (lat2 - lat1) * Math.PI / 180;
-  const dLon = (lon2 - lon1) * Math.PI / 180;
-  const a =
-    Math.sin(dLat / 2) ** 2 +
-    Math.cos(lat1 * Math.PI / 180) *
-      Math.cos(lat2 * Math.PI / 180) *
-      Math.sin(dLon / 2) ** 2;
-  return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-}
-
 function acharMelhorOpcao() {
   if (!map) return;
   if (!usuarioPosicao) return alert("Localização não encontrada (permita a localização no navegador).");
@@ -313,6 +278,18 @@ function acharMelhorOpcao() {
 
   map.setView([melhor.latitude, melhor.longitude], 16);
   alert(`📍 Posto mais perto:\n\n${melhor.nome}\nDistância: ${melhor.dist.toFixed(2)} km`);
+}
+
+function distanciaKm(lat1, lon1, lat2, lon2) {
+  const R = 6371;
+  const dLat = (lat2 - lat1) * Math.PI / 180;
+  const dLon = (lon2 - lon1) * Math.PI / 180;
+  const a =
+    Math.sin(dLat / 2) ** 2 +
+    Math.cos(lat1 * Math.PI / 180) *
+      Math.cos(lat2 * Math.PI / 180) *
+      Math.sin(dLon / 2) ** 2;
+  return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
 }
 
 // ===============================
