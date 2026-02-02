@@ -1,4 +1,3 @@
-@@ -1,63 +1,59 @@
 document.addEventListener("DOMContentLoaded", function () {
 
   const lista = document.getElementById("lista-produtos");
