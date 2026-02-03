@@ -339,3 +339,68 @@ window.acharMelhorOpcao = acharMelhorOpcao;
 
 window.confirmarPreco = confirmarPreco;
 window.negarPreco = negarPreco;
+// ===============================
+// BOTÃO EXTRA: "Inserir preço atualizado"
+// Aparece APENAS após clicar em "Não confere"
+// Não altera o que já existe; só adiciona UI nova.
+// ===============================
+(() => {
+  "use strict";
+
+  // Helper: identifica se o botão clicado é o "Não confere"
+  function isNaoConfereButton(btn) {
+    if (!btn) return false;
+
+    // 1) Se você tiver uma classe específica, prefira isso:
+    // return btn.classList.contains("btn-nao-confere");
+
+    // 2) Fallback: detecta pelo texto do botão (se não tiver classe)
+    const t = (btn.textContent || "").trim().toLowerCase();
+    return t === "não confere" || t === "nao confere";
+  }
+
+  // Insere o botão novo no item (se ainda não existir)
+  function ensureInserirPrecoButton(itemContainer) {
+    if (!itemContainer) return;
+
+    // Evita duplicar
+    if (itemContainer.querySelector(".btn-inserir-preco")) return;
+
+    const btn = document.createElement("button");
+    btn.type = "button";
+    btn.className = "btn-inserir-preco";
+    btn.textContent = "Inserir preço atualizado";
+
+    // Você pode colocar o botão onde quiser.
+    // Aqui: logo abaixo dos botões de conferir/não confere (no final do item)
+    itemContainer.appendChild(btn);
+  }
+
+  // Mostra o botão ao contestar
+  document.addEventListener("click", (e) => {
+    const alvo = e.target;
+
+    // Só age quando for clique no botão "Não confere"
+    if (!isNaoConfereButton(alvo)) return;
+
+    // Acha o "container do item" (li, card, etc)
+    // Ajuste para o seletor que vocês usam: "li", ".item", ".produto", etc.
+    const item = alvo.closest("li") || alvo.closest(".item-produto") || alvo.parentElement;
+    ensureInserirPrecoButton(item);
+  });
+
+  // (Opcional) Clique no botão "Inserir preço atualizado"
+  // Por enquanto só abre um prompt e imprime no console.
+  // Você disse que quer só inserir o botão, mas deixei o gancho pronto.
+  document.addEventListener("click", (e) => {
+    if (!e.target.classList.contains("btn-inserir-preco")) return;
+
+    const item = e.target.closest("li") || e.target.closest(".item-produto") || e.target.parentElement;
+
+    // Apenas para teste — pode remover se quiser só o botão
+    const valor = prompt("Digite o preço atualizado (ex: 5,99):");
+    if (!valor) return;
+
+    console.log("Preço atualizado informado:", valor, "Item:", item);
+  });
+})();
