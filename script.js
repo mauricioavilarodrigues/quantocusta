@@ -501,16 +501,17 @@ window.negarPreco = negarPreco;
   });
 
   // Função utilitária que você pode chamar no seu render:
-  // aplica overrides ao seu array de produtos
-  window.aplicarOverridesDePreco = function (produtos) {
-    const o = getOverrides();
-    return produtos.map(p => {
-      const id = String(p.id);
-      if (o[id]?.preco != null) {
-        return { ...p, preco: o[id].preco, preco_atualizado_em: o[id].dataISO };
-      }
-      return p;
-   })();
-  };
+// aplica overrides ao seu array de produtos
+window.aplicarOverridesDePreco = function (produtos) {
+  const o = getOverrides();
+  return produtos.map(p => {
+    const id = String(p.id);
+    if (o[id]?.preco != null) {
+      return { ...p, preco: o[id].preco, preco_atualizado_em: o[id].dataISO };
+    }
+    return p;
+  });
+};
+
+// fecha a IIFE (se seu arquivo começou com (() => { )
 })();
-}
