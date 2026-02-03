@@ -109,7 +109,7 @@ let itens = aplicarOverridesDePreco(lista)
   elResultado.innerHTML = "";
   cesta = [];
 
-  itens.forEach((p, index) => {
+itens.forEach((p, index) => {
   const li = document.createElement("li");
 
   li.dataset.id = p.id; // ✅ mantém o id no <li>
@@ -139,6 +139,10 @@ let itens = aplicarOverridesDePreco(lista)
         // opcional, mas recomendado: remove da cesta ao desmarcar
         cesta = cesta.filter(x => x.id !== p.id);
       }
+    });
+  }
+});
+
 
 // ===============================
 // CESTA
