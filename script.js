@@ -510,6 +510,6 @@ window.negarPreco = negarPreco;
         return { ...p, preco: o[id].preco, preco_atualizado_em: o[id].dataISO };
       }
       return p;
-    });
+   })();
   };
 })();
