@@ -1,47 +1,61 @@
-// init
 import express from "express";
 import cors from "cors";
-import routes from "./routes/index.js";
+import fs from "fs";
 
 const app = express();
 
-// CORS
-app.use(
-  cors({
-    origin: [
-      "http://localhost:5500",
-      "http://127.0.0.1:5500",
-      "https://mauricioavilarodrigues.github.io"
-    ],
-    methods: ["GET", "POST", "OPTIONS"],
-    allowedHeaders: ["Content-Type"],
-  })
-);
-
+app.use(cors());
 app.use(express.json());
 
-// estado em memória
-let contador = 0;
+const FILE_PATH = "./precos.json";
 
-// rota de teste
-app.post("/api/clique", (req, res) => {
-  contador++;
-  res.json({ total: contador });
+// função para ler o arquivo
+function lerPrecos() {
+  const data = fs.readFileSync(FILE_PATH, "utf-8");
+  return JSON.parse(data);
+}
+
+// função para salvar no arquivo
+function salvarPrecos(precos) {
+  fs.writeFileSync(FILE_PATH, JSON.stringify(precos, null, 2));
+}
+
+// rota para listar preços
+app.get("/api/precos", (req, res) => {
+  const precos = lerPrecos();
+  res.json(precos);
 });
 
-app.get("/api/clique", (req, res) => {
-  res.json({ total: contador });
-});
+// rota para cadastrar preço
+app.post("/api/precos", (req, res) => {
+  const { produto, preco, mercado, cidade } = req.body;
 
-// suas rotas existentes
-app.use("/api", routes);
+  if (!produto || !preco || !mercado) {
+    return res.status(400).json({ erro: "Dados incompletos" });
+  }
+
+  const precos = lerPrecos();
+
+  const novoPreco = {
+    produto,
+    preco,
+    mercado,
+    cidade,
+    data: new Date().toISOString()
+  };
+
+  precos.push(novoPreco);
+  salvarPrecos(precos);
+
+  res.json({ mensagem: "Preço salvo com sucesso!", novoPreco });
+});
 
 app.get("/", (req, res) => {
-  res.send("Quantocusta API rodando 🚀");
+  res.send("Backend Quantocusta rodando 🚀");
 });
 
-// porta
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
   console.log("Servidor rodando em http://localhost:" + PORT);
 });
+
