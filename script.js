@@ -139,7 +139,6 @@ let itens = aplicarOverridesDePreco(lista)
         // opcional, mas recomendado: remove da cesta ao desmarcar
         cesta = cesta.filter(x => x.id !== p.id);
       }
-    });
 
 // ===============================
 // CESTA
