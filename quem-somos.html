@@ -50,14 +50,27 @@
 <button onclick="registrarClique()">Clique aqui</button>
 
 <script>
+const backendURL = "https://backend-wg1b.onrender.com";
+
+// Busca o valor atual ao abrir a página
+async function carregarContador() {
+  const resposta = await fetch(backendURL + "/api/cliques");
+  const dados = await resposta.json();
+  document.getElementById("contador").innerText = dados.total;
+}
+
+// Registra novo clique
 async function registrarClique() {
-  const resposta = await fetch("https://backend-wg1b.onrender.com/api/cliques", {
+  const resposta = await fetch(backendURL + "/api/cliques", {
     method: "POST"
   });
 
   const dados = await resposta.json();
   document.getElementById("contador").innerText = dados.total;
 }
+
+// Executa automaticamente quando a página carregar
+carregarContador();
 </script>
 
 </body>
