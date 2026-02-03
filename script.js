@@ -110,22 +110,26 @@ let itens = aplicarOverridesDePreco(lista)
   cesta = [];
 
   itens.forEach((p, index) => {
-    const li = document.createElement("li");
+  const li = document.createElement("li");
 
-    const precoNum = Number(p.preco);
-    const precoTxt = Number.isFinite(precoNum) ? precoNum.toFixed(2) : "0.00";
+  li.dataset.id = p.id; // ✅ LINHA CRÍTICA (ESSA É A SOLUÇÃO)
 
-    li.innerHTML =
-      "<span><input type='checkbox' id='ck-" + index + "'> " +
-      (p.nome || "") +
-      "<br><small>" + (p.loja || p.posto || "") + "</small></span>" +
-      "<span class='preco'>R$ " + precoTxt + "</span>" +
-      "<div class='avaliacao'>" +
-      "<button onclick='confirmarPreco(" + index + ")'>Confere</button>" +
-      "<button onclick='negarPreco(" + index + ")'>Não confere</button>" +
-      "<div id='feedback-" + index + "'></div></div>";
+  const precoNum = Number(p.preco);
+  const precoTxt = Number.isFinite(precoNum) ? precoNum.toFixed(2) : "0.00";
 
-    elResultado.appendChild(li);
+  li.innerHTML =
+    "<span><input type='checkbox' id='ck-" + index + "'> " +
+    (p.nome || "") +
+    "<br><small>" + (p.loja || p.posto || "") + "</small></span>" +
+    "<span class='preco'>R$ " + precoTxt + "</span>" +
+    "<div class='avaliacao'>" +
+    "<button onclick='confirmarPreco(" + index + ")'>Confere</button>" +
+    "<button onclick='negarPreco(" + index + ")'>Não confere</button>" +
+    "<div id='feedback-" + index + "'></div></div>";
+
+  elResultado.appendChild(li);
+});
+
 
     li.querySelector("#ck-" + index).addEventListener("change", (e) => {
       if (e.target.checked) cesta.push(p);
