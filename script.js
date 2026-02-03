@@ -404,3 +404,100 @@ window.negarPreco = negarPreco;
     console.log("Preço atualizado informado:", valor, "Item:", item);
   });
 })();
+
+// ===============================
+// OVERRIDES DE PREÇO (por usuário / navegador)
+// Base: data.json (somente leitura)
+// Override: localStorage (preço atualizado)
+// ===============================
+(() => {
+  "use strict";
+
+  const LS_KEY_PRECOS = "precosAtualizados"; // { [itemId]: { preco, dataISO } }
+
+  function getOverrides() {
+    try { return JSON.parse(localStorage.getItem(LS_KEY_PRECOS) || "{}"); }
+    catch { return {}; }
+  }
+
+  function setOverride(itemId, novoPreco) {
+    const o = getOverrides();
+    o[itemId] = { preco: novoPreco, dataISO: new Date().toISOString() };
+    localStorage.setItem(LS_KEY_PRECOS, JSON.stringify(o));
+  }
+
+  // Tenta achar e atualizar visualmente o preço daquele item na lista
+  // Ajuste o seletor ".preco-valor" se seu HTML usar outro
+  function atualizarPrecoNaUI(itemEl, novoPreco) {
+    if (!itemEl) return;
+
+    // 1) se você tiver um span dedicado ao preço, perfeito:
+    const precoEl = itemEl.querySelector(".preco-valor");
+    if (precoEl) {
+      precoEl.textContent = "R$ " + Number(novoPreco).toFixed(2);
+      return;
+    }
+
+    // 2) fallback: tenta achar "R$" no texto do item e substituir (menos robusto)
+    // (use só se não tiver um elemento específico para o preço)
+    const texto = itemEl.innerText;
+    if (texto.includes("R$")) {
+      // não garante 100%, mas ajuda se seu layout for simples
+      itemEl.innerHTML = itemEl.innerHTML.replace(/R\$\s*\d+([.,]\d+)?/g, "R$ " + Number(novoPreco).toFixed(2));
+    }
+  }
+
+  // Quando clicar no botão "Inserir preço atualizado"
+  document.addEventListener("click", (e) => {
+    if (!e.target.classList.contains("btn-inserir-preco")) return;
+
+    const itemEl = e.target.closest("li") || e.target.closest(".item-produto") || e.target.parentElement;
+
+    // IMPORTANTE: precisamos de um ID do produto.
+    // Você já tem data-id no li? se não tiver, esse é o único ponto que você deve garantir no HTML.
+    const itemId = itemEl?.dataset?.id;
+    if (!itemId) {
+      alert("Não encontrei o ID do item (data-id). Sem isso não dá pra salvar o novo preço.");
+      return;
+    }
+
+    let valor = prompt("Digite o preço atualizado (ex: 5,99):");
+    if (!valor) return;
+
+    valor = valor.trim().replace(",", ".");
+    const novoPreco = Number(valor);
+    if (!Number.isFinite(novoPreco) || novoPreco <= 0) {
+      alert("Preço inválido.");
+      return;
+    }
+
+    // Salva override
+    setOverride(itemId, novoPreco);
+
+    // Atualiza a UI agora
+    atualizarPrecoNaUI(itemEl, novoPreco);
+
+    // Opcional: feedback visual simples
+    // (sem mexer no resto)
+    if (!itemEl.querySelector(".msg-preco-atualizado")) {
+      const msg = document.createElement("div");
+      msg.className = "msg-preco-atualizado";
+      msg.style.marginTop = "6px";
+      msg.textContent = "Preço atualizado registrado neste dispositivo.";
+      itemEl.appendChild(msg);
+    }
+  });
+
+  // Função utilitária que você pode chamar no seu render:
+  // aplica overrides ao seu array de produtos
+  window.aplicarOverridesDePreco = function (produtos) {
+    const o = getOverrides();
+    return produtos.map(p => {
+      const id = String(p.id);
+      if (o[id]?.preco != null) {
+        return { ...p, preco: o[id].preco, preco_atualizado_em: o[id].dataISO };
+      }
+      return p;
+    });
+  };
+})();
