@@ -112,7 +112,7 @@ let itens = aplicarOverridesDePreco(lista)
   itens.forEach((p, index) => {
   const li = document.createElement("li");
 
-  li.dataset.id = p.id; // ✅ LINHA CRÍTICA (ESSA É A SOLUÇÃO)
+  li.dataset.id = p.id; // ✅ mantém o id no <li>
 
   const precoNum = Number(p.preco);
   const precoTxt = Number.isFinite(precoNum) ? precoNum.toFixed(2) : "0.00";
@@ -128,14 +128,20 @@ let itens = aplicarOverridesDePreco(lista)
     "<div id='feedback-" + index + "'></div></div>";
 
   elResultado.appendChild(li);
-});
 
-
-    li.querySelector("#ck-" + index).addEventListener("change", (e) => {
-      if (e.target.checked) cesta.push(p);
+  // ✅ listener do checkbox precisa ficar DENTRO do forEach
+  const ck = li.querySelector("#ck-" + index);
+  if (ck) {
+    ck.addEventListener("change", (e) => {
+      if (e.target.checked) {
+        cesta.push(p);
+      } else {
+        // opcional, mas recomendado: remove da cesta ao desmarcar
+        cesta = cesta.filter(x => x.id !== p.id);
+      }
     });
-  });
-}
+  }
+});
 
 // ===============================
 // CESTA
