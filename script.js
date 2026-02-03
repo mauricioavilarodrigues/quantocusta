@@ -140,8 +140,6 @@ let itens = aplicarOverridesDePreco(lista)
         cesta = cesta.filter(x => x.id !== p.id);
       }
     });
-  }
-});
 
 // ===============================
 // CESTA
