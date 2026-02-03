@@ -91,7 +91,8 @@ async function buscar() {
   const data = await res.json();
 
   const lista = Array.isArray(data[nichoAtual]) ? data[nichoAtual] : [];
-  let itens = lista.filter(p => (p.nome || "").toLowerCase().includes(termo));
+let itens = aplicarOverridesDePreco(lista)
+  .filter(p => (p.nome || "").toLowerCase().includes(termo));
 
   // filtros por nicho
   if (nichoAtual === "combustivel") {
