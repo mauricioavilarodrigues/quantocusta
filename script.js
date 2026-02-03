@@ -91,8 +91,8 @@ async function buscar() {
   const data = await res.json();
 
   const lista = Array.isArray(data[nichoAtual]) ? data[nichoAtual] : [];
-let itens = aplicarOverridesDePreco(lista)
-  .filter(p => (p.nome || "").toLowerCase().includes(termo));
+  let itens = aplicarOverridesDePreco(lista)
+    .filter(p => (p.nome || "").toLowerCase().includes(termo));
 
   // filtros por nicho
   if (nichoAtual === "combustivel") {
@@ -109,40 +109,40 @@ let itens = aplicarOverridesDePreco(lista)
   elResultado.innerHTML = "";
   cesta = [];
 
-itens.forEach((p, index) => {
-  const li = document.createElement("li");
+  itens.forEach((p, index) => {
+    const li = document.createElement("li");
 
-  li.dataset.id = p.id; // ✅ mantém o id no <li>
+    li.dataset.id = p.id; // ✅ mantém o id no <li>
 
-  const precoNum = Number(p.preco);
-  const precoTxt = Number.isFinite(precoNum) ? precoNum.toFixed(2) : "0.00";
+    const precoNum = Number(p.preco);
+    const precoTxt = Number.isFinite(precoNum) ? precoNum.toFixed(2) : "0.00";
 
-  li.innerHTML =
-    "<span><input type='checkbox' id='ck-" + index + "'> " +
-    (p.nome || "") +
-    "<br><small>" + (p.loja || p.posto || "") + "</small></span>" +
-    "<span class='preco'>R$ " + precoTxt + "</span>" +
-    "<div class='avaliacao'>" +
-    "<button onclick='confirmarPreco(" + index + ")'>Confere</button>" +
-    "<button onclick='negarPreco(" + index + ")'>Não confere</button>" +
-    "<div id='feedback-" + index + "'></div></div>";
+    li.innerHTML =
+      "<span><input type='checkbox' id='ck-" + index + "'> " +
+      (p.nome || "") +
+      "<br><small>" + (p.loja || p.posto || "") + "</small></span>" +
+      "<span class='preco'>R$ " + precoTxt + "</span>" +
+      "<div class='avaliacao'>" +
+      "<button onclick='confirmarPreco(" + index + ")'>Confere</button>" +
+      "<button onclick='negarPreco(" + index + ")'>Não confere</button>" +
+      "<div id='feedback-" + index + "'></div></div>";
 
-  elResultado.appendChild(li);
+    elResultado.appendChild(li);
 
-  // ✅ listener do checkbox precisa ficar DENTRO do forEach
-  const ck = li.querySelector("#ck-" + index);
-  if (ck) {
-    ck.addEventListener("change", (e) => {
-      if (e.target.checked) {
-        cesta.push(p);
-      } else {
-        // opcional, mas recomendado: remove da cesta ao desmarcar
-        cesta = cesta.filter(x => x.id !== p.id);
-      }
-    });
-  }
-});
-
+    // ✅ listener do checkbox precisa ficar DENTRO do forEach
+    const ck = li.querySelector("#ck-" + index);
+    if (ck) {
+      ck.addEventListener("change", (e) => {
+        if (e.target.checked) {
+          cesta.push(p);
+        } else {
+          // opcional, mas recomendado: remove da cesta ao desmarcar
+          cesta = cesta.filter(x => x.id !== p.id);
+        }
+      });
+    }
+  });
+} // ✅ FECHA buscar() (CORREÇÃO)
 
 // ===============================
 // CESTA
@@ -162,9 +162,9 @@ function compararCesta() {
   });
 
   let menor = Infinity;
-for (const v of Object.values(porLoja)) {
-  if (v < menor) menor = v;
-}
+  for (const v of Object.values(porLoja)) {
+    if (v < menor) menor = v;
+  }
 
   let html = "<h3>Resultado da cesta</h3>";
   Object.keys(porLoja).forEach(loja => {
@@ -337,6 +337,7 @@ function negarPreco(index) {
 }
 
 console.log("✅ script.js carregado corretamente");
+
 // ===============================
 // EXPORTA FUNÇÕES PARA ONCLICK DO HTML
 // ===============================
@@ -351,6 +352,7 @@ window.acharMelhorOpcao = acharMelhorOpcao;
 
 window.confirmarPreco = confirmarPreco;
 window.negarPreco = negarPreco;
+
 // ===============================
 // BOTÃO EXTRA: "Inserir preço atualizado"
 // Aparece APENAS após clicar em "Não confere"
@@ -396,20 +398,17 @@ window.negarPreco = negarPreco;
     if (!isNaoConfereButton(alvo)) return;
 
     // Acha o "container do item" (li, card, etc)
-    // Ajuste para o seletor que vocês usam: "li", ".item", ".produto", etc.
     const item = alvo.closest("li") || alvo.closest(".item-produto") || alvo.parentElement;
     ensureInserirPrecoButton(item);
   });
 
   // (Opcional) Clique no botão "Inserir preço atualizado"
   // Por enquanto só abre um prompt e imprime no console.
-  // Você disse que quer só inserir o botão, mas deixei o gancho pronto.
   document.addEventListener("click", (e) => {
     if (!e.target.classList.contains("btn-inserir-preco")) return;
 
     const item = e.target.closest("li") || e.target.closest(".item-produto") || e.target.parentElement;
 
-    // Apenas para teste — pode remover se quiser só o botão
     const valor = prompt("Digite o preço atualizado (ex: 5,99):");
     if (!valor) return;
 
@@ -439,22 +438,19 @@ window.negarPreco = negarPreco;
   }
 
   // Tenta achar e atualizar visualmente o preço daquele item na lista
-  // Ajuste o seletor ".preco-valor" se seu HTML usar outro
   function atualizarPrecoNaUI(itemEl, novoPreco) {
     if (!itemEl) return;
 
-    // 1) se você tiver um span dedicado ao preço, perfeito:
-    const precoEl = itemEl.querySelector(".preco-valor");
+    // ✅ seu HTML usa <span class="preco">..., então é ".preco"
+    const precoEl = itemEl.querySelector(".preco");
     if (precoEl) {
       precoEl.textContent = "R$ " + Number(novoPreco).toFixed(2);
       return;
     }
 
-    // 2) fallback: tenta achar "R$" no texto do item e substituir (menos robusto)
-    // (use só se não tiver um elemento específico para o preço)
+    // fallback: substitui qualquer R$ no HTML do item
     const texto = itemEl.innerText;
     if (texto.includes("R$")) {
-      // não garante 100%, mas ajuda se seu layout for simples
       itemEl.innerHTML = itemEl.innerHTML.replace(/R\$\s*\d+([.,]\d+)?/g, "R$ " + Number(novoPreco).toFixed(2));
     }
   }
@@ -465,8 +461,6 @@ window.negarPreco = negarPreco;
 
     const itemEl = e.target.closest("li") || e.target.closest(".item-produto") || e.target.parentElement;
 
-    // IMPORTANTE: precisamos de um ID do produto.
-    // Você já tem data-id no li? se não tiver, esse é o único ponto que você deve garantir no HTML.
     const itemId = itemEl?.dataset?.id;
     if (!itemId) {
       alert("Não encontrei o ID do item (data-id). Sem isso não dá pra salvar o novo preço.");
@@ -489,8 +483,7 @@ window.negarPreco = negarPreco;
     // Atualiza a UI agora
     atualizarPrecoNaUI(itemEl, novoPreco);
 
-    // Opcional: feedback visual simples
-    // (sem mexer no resto)
+    // feedback simples
     if (!itemEl.querySelector(".msg-preco-atualizado")) {
       const msg = document.createElement("div");
       msg.className = "msg-preco-atualizado";
@@ -501,17 +494,15 @@ window.negarPreco = negarPreco;
   });
 
   // Função utilitária que você pode chamar no seu render:
-// aplica overrides ao seu array de produtos
-window.aplicarOverridesDePreco = function (produtos) {
-  const o = getOverrides();
-  return produtos.map(p => {
-    const id = String(p.id);
-    if (o[id]?.preco != null) {
-      return { ...p, preco: o[id].preco, preco_atualizado_em: o[id].dataISO };
-    }
-    return p;
-  });
-};
-
-// fecha a IIFE (se seu arquivo começou com (() => { )
-})();
+  // aplica overrides ao seu array de produtos
+  window.aplicarOverridesDePreco = function (produtos) {
+    const o = getOverrides();
+    return produtos.map(p => {
+      const id = String(p.id);
+      if (o[id]?.preco != null) {
+        return { ...p, preco: o[id].preco, preco_atualizado_em: o[id].dataISO };
+      }
+      return p;
+    });
+  };
+})(); // ✅ FECHA o IIFE de OVERRIDES (CORREÇÃO)
