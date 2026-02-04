@@ -1,6 +1,9 @@
 // ===============================
 // VARIÁVEIS / ESTADO
 // ===============================
+
+const API_BASE = "https://backend-wg1b.onrender.com";
+
 let nichoAtual = "";
 let tipoAtual = "";
 let categoriaAtual = "";
@@ -108,41 +111,54 @@ async function buscar() {
   if (!elResultado) return;
   elResultado.innerHTML = "";
   cesta = [];
+itens.forEach((p, index) => {
+  const li = document.createElement("li");
 
-  itens.forEach((p, index) => {
-    const li = document.createElement("li");
+  li.dataset.id = p.id;
 
-    li.dataset.id = p.id; // ✅ mantém o id no <li>
+  const precoNum = Number(p.preco);
+  const precoTxt = Number.isFinite(precoNum) ? precoNum.toFixed(2) : "0.00";
 
-    const precoNum = Number(p.preco);
-    const precoTxt = Number.isFinite(precoNum) ? precoNum.toFixed(2) : "0.00";
+  li.innerHTML =
+    "<span><input type='checkbox' id='ck-" + index + "'> " +
+    (p.nome || "") +
+    "<br><small>" + (p.loja || p.posto || "") + "</small></span>" +
+    "<span class='preco'>R$ " + precoTxt + "</span>" +
+    "<div class='avaliacao'>" +
+    "<button onclick='confirmarPreco(" + index + ")'>Confere</button>" +
+    "<button onclick='negarPreco(" + index + ")'>Não confere</button>" +
+    "<div id='feedback-" + index + "'></div></div>";
 
-    li.innerHTML =
-      "<span><input type='checkbox' id='ck-" + index + "'> " +
-      (p.nome || "") +
-      "<br><small>" + (p.loja || p.posto || "") + "</small></span>" +
-      "<span class='preco'>R$ " + precoTxt + "</span>" +
-      "<div class='avaliacao'>" +
-      "<button onclick='confirmarPreco(" + index + ")'>Confere</button>" +
-      "<button onclick='negarPreco(" + index + ")'>Não confere</button>" +
-      "<div id='feedback-" + index + "'></div></div>";
+  elResultado.appendChild(li);
 
-    elResultado.appendChild(li);
+  const ck = li.querySelector("#ck-" + index);
+  if (ck) {
+    ck.addEventListener("change", (e) => {
+      if (e.target.checked) cesta.push(p);
+      else cesta = cesta.filter(x => x.id !== p.id);
+    });
+  }
+});
+// ✅ Busca contadores reais no backend e aplica badges
+try {
+  const ids = Array.from(elResultado.querySelectorAll("li[data-id]"))
+    .map(li => li.dataset.id)
+    .filter(Boolean);
 
-    // ✅ listener do checkbox precisa ficar DENTRO do forEach
-    const ck = li.querySelector("#ck-" + index);
-    if (ck) {
-      ck.addEventListener("change", (e) => {
-        if (e.target.checked) {
-          cesta.push(p);
-        } else {
-          // opcional, mas recomendado: remove da cesta ao desmarcar
-          cesta = cesta.filter(x => x.id !== p.id);
-        }
-      });
-    }
-  });
-} // ✅ FECHA buscar() (CORREÇÃO)
+  if (ids.length) {
+    const contadores = await apiGetContadores(ids);
+
+    elResultado.querySelectorAll("li[data-id]").forEach(li => {
+      const id = li.dataset.id;
+      const totalContesta = contadores?.[id]?.contesta ?? 0;
+      aplicarBadge(li, totalContesta);
+    });
+  }
+} catch (e) {
+  console.warn("⚠️ Não consegui carregar contadores do backend:", e);
+}
+
+} // ✅ FECHA buscar()
 
 // ===============================
 // CESTA
@@ -329,14 +345,103 @@ function acharMelhorOpcao() {
 // FEEDBACK
 // ===============================
 function confirmarPreco(index) {
-  document.getElementById("feedback-" + index).innerText = "Obrigado por confirmar.";
+  const fb = document.getElementById("feedback-" + index);
+  if (!fb) return;
+
+  const li = fb.closest("li");
+  const id = li?.dataset?.id;
+
+  fb.innerText = "Obrigado por confirmar.";
+
+  if (id) {
+    apiEnviarAvaliacao(id, "confere").catch(e => {
+      console.warn("⚠️ Falha ao enviar confirmação:", e);
+    });
+  }
 }
 
 function negarPreco(index) {
-  document.getElementById("feedback-" + index).innerText = "Preço contestado.";
+  const fb = document.getElementById("feedback-" + index);
+  if (!fb) return;
+
+  const li = fb.closest("li");
+  const id = li?.dataset?.id;
+
+  fb.innerText = "Preço contestado.";
+
+  if (id) {
+    apiEnviarAvaliacao(id, "contesta")
+      .then(ret => {
+        // ideal: backend retorna { contesta: N, confere: M }
+        const total = ret?.contesta;
+
+        if (typeof total === "number") {
+          fb.innerText = `⚠️ Preço contestado por ${total} pessoa(s)`;
+          aplicarBadge(li, total);
+        }
+      })
+      .catch(e => {
+        console.warn("⚠️ Falha ao enviar contestação:", e);
+      });
+  }
 }
 
 console.log("✅ script.js carregado corretamente");
+async function apiGetContadores(ids) {
+  if (!ids.length) return {};
+  const url = `${API_BASE}/api/avaliacoes?ids=${encodeURIComponent(ids.join(","))}`;
+  const res = await fetch(url);
+  if (!res.ok) throw new Error("Falha ao buscar contadores: HTTP " + res.status);
+  return await res.json(); 
+  // esperado: { "1": { contesta: 3, confere: 10 }, "2": {...} }
+}
+
+async function apiEnviarAvaliacao(id, acao) {
+  const res = await fetch(`${API_BASE}/api/avaliacao`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ id: Number(id), acao }) // acao: "contesta" | "confere"
+  });
+  if (!res.ok) throw new Error("Falha ao enviar avaliação: HTTP " + res.status);
+  return await res.json();
+  // pode retornar o novo total, por ex: { contesta: 4, confere: 10 }
+}
+
+function garantirBadge(li) {
+  const precoEl = li.querySelector(".preco");
+  if (!precoEl) return null;
+
+  let badge = li.querySelector(".badge-contestado");
+  if (!badge) {
+    badge = document.createElement("span");
+    badge.className = "badge-contestado";
+    badge.style.marginLeft = "8px";
+    badge.style.fontSize = "12px";
+    badge.style.fontWeight = "700";
+    badge.style.display = "inline-block";
+    badge.style.padding = "2px 8px";
+    badge.style.borderRadius = "999px";
+    badge.style.border = "1px solid #f2a100";
+    badge.style.background = "#fff7e6";
+    badge.style.color = "#a15c00";
+    precoEl.appendChild(badge);
+  }
+  return badge;
+}
+
+function aplicarBadge(li, contesta) {
+  const badge = garantirBadge(li);
+  if (!badge) return;
+
+  const n = Number(contesta || 0);
+  if (n > 0) {
+    badge.textContent = `⚠️ Preço contestado por ${n} pessoa(s)`;
+    badge.style.display = "inline-block";
+  } else {
+    badge.textContent = "";
+    badge.style.display = "none";
+  }
+}
 
 // ===============================
 // EXPORTA FUNÇÕES PARA ONCLICK DO HTML
@@ -443,12 +548,15 @@ window.negarPreco = negarPreco;
 
     // ✅ seu HTML usa <span class="preco">..., então é ".preco"
     const precoEl = itemEl.querySelector(".preco");
-    if (precoEl) {
-      precoEl.textContent = "R$ " + Number(novoPreco).toFixed(2);
-      return;
-    }
+if (precoEl) {
+  // preserva badge se existir
+  const badge = precoEl.querySelector(".badge-contestado");
+  precoEl.textContent = "R$ " + Number(novoPreco).toFixed(2);
+  if (badge) precoEl.appendChild(badge);
+  return;
+}
 
-    // fallback: substitui qualquer R$ no HTML do item
+   // fallback: substitui qualquer R$ no HTML do item
     const texto = itemEl.innerText;
     if (texto.includes("R$")) {
       itemEl.innerHTML = itemEl.innerHTML.replace(/R\$\s*\d+([.,]\d+)?/g, "R$ " + Number(novoPreco).toFixed(2));
@@ -506,3 +614,22 @@ window.negarPreco = negarPreco;
     });
   };
 })(); // ✅ FECHA o IIFE de OVERRIDES (CORREÇÃO)
+// ===============================
+// EXPOR FUNÇÕES PARA DEBUG (CONSOLE)
+// Use SEMPRE qc_ no console pra evitar colisão.
+// ===============================
+window.qc_apiGetContadores = (ids) => apiGetContadores(ids);
+window.qc_apiEnviarAvaliacao = (id, acao) => apiEnviarAvaliacao(id, acao);
+window.qc_aplicarBadge = (li, n) => aplicarBadge(li, n);
+
+// (se você ainda quiser manter os nomes "normais", pode deixar também)
+window.apiGetContadores = apiGetContadores;
+window.apiEnviarAvaliacao = apiEnviarAvaliacao;
+window.aplicarBadge = aplicarBadge;
+window.garantirBadge = garantirBadge;
+
+// ===============================
+// MARCADOR DE VERSÃO (ANTI-CACHE / ANTI-DÚVIDA)
+// ===============================
+window.__QC_TESTE = "OK-" + Date.now();
+console.log("QC_TESTE carregou:", window.__QC_TESTE);
