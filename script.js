@@ -510,7 +510,10 @@ window.negarPreco = negarPreco;
   // (Opcional) Clique no botão "Inserir preço atualizado"
   // Por enquanto só abre um prompt e imprime no console.
   document.addEventListener("click", (e) => {
-    if (!e.target.classList.contains("btn-inserir-preco")) return;
+  if (!e.target.classList.contains("btn-inserir-preco")) return;
+
+  e.preventDefault();
+  e.stopPropagation();
 
     const item = e.target.closest("li") || e.target.closest(".item-produto") || e.target.parentElement;
 
