@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8">
+  <title>Editar item</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f2f2f2;
+      padding: 20px;
+    }
+
+    nav {
+      background: black;
+      padding: 10px;
+    }
+
+    nav a {
+      color: white;
+      margin-right: 15px;
+      text-decoration: none;
+      font-weight: bold;
+    }
+
+    .container {
+      background: white;
+      max-width: 500px;
+      margin: 30px auto;
+      padding: 20px;
+      border-radius: 8px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    }
+
+    h1 {
+      text-align: center;
+    }
+
+    label {
+      display: block;
+      margin-top: 15px;
+      font-weight: bold;
+    }
+
+    input, select, textarea {
+      width: 100%;
+      padding: 8px;
+      margin-top: 5px;
+      font-size: 16px;
+    }
+
+    button {
+      margin-top: 20px;
+      width: 100%;
+      padding: 12px;
+      font-size: 18px;
+      background: black;
+      color: white;
+      border: none;
+      cursor: pointer;
+    }
+
+    button:hover {
+      background: #333;
+    }
+  </style>
+</head>
+<body>
+
+<nav>
+  <a href="index.html">Início</a>
+  <a href="quem-somos.html">Quem somos</a>
+  <a href="parceiro.html">Seja parceiro</a>
+  <a href="contato.html">Fale conosco</a>
+</nav>
+
+<div class="container">
+  <h1>Editar item</h1>
+
+  <form id="form-editar">
+
+    <label>Nome do produto</label>
+    <input type="text" id="nome" required>
+
+    <label>Preço</label>
+    <input type="number" step="0.01" id="preco" required>
+
+    <label>Estabelecimento</label>
+    <input type="text" id="estabelecimento" required>
+
+    <label>Categoria</label>
+    <select id="categoria">
+      <option value="mercado">Mercado</option>
+      <option value="farmacia">Farmácia</option>
+      <option value="padaria">Padaria</option>
+      <option value="outros">Outros</option>
+    </select>
+
+    <label>Observação</label>
+    <textarea id="observacao"></textarea>
+
+    <button type="submit">Salvar alterações</button>
+
+  </form>
+</div>
+
+<script>
+  // Simulação: pegar ID da URL
+  const params = new URLSearchParams(window.location.search);
+  const itemId = params.get("id");
+
+  console.log("Editando item:", itemId);
+
+  // Aqui no futuro vocês vão buscar no backend
+  // fetch(`/api/item/${itemId}`)
+
+  document.getElementById("form-editar").addEventListener("submit", function(e) {
+    e.preventDefault();
+
+    const item = {
+      nome: document.getElementById("nome").value,
+      preco: document.getElementById("preco").value,
+      estabelecimento: document.getElementById("estabelecimento").value,
+      categoria: document.getElementById("categoria").value,
+      observacao: document.getElementById("observacao").value
+    };
+
+    console.log("Item salvo:", item);
+
+    alert("Item salvo (simulação).");
+
+    // No futuro:
+    // fetch("https://backend/api/item/" + itemId, { method: "PUT", body: JSON.stringify(item) })
+  });
+</script>
+
+</body>
+</html>
