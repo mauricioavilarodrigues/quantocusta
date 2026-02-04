@@ -3,6 +3,7 @@
 // ===============================
 
 const API_URL = "https://backend-wg1b.onrender.com/api";
+const API_BASE = API_URL;
 
 let nichoAtual = "";
 let tipoAtual = "";
