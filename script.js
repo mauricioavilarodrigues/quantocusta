@@ -389,7 +389,7 @@ function negarPreco(index) {
 console.log("✅ script.js carregado corretamente");
 async function apiGetContadores(ids) {
   if (!ids.length) return {};
-  const url = `${API_BASE}/api/avaliacoes?ids=${encodeURIComponent(ids.join(","))}`;
+  const url = `${API_BASE}/avaliacoes?ids=${encodeURIComponent(ids.join(","))}`;
   const res = await fetch(url);
   if (!res.ok) throw new Error("Falha ao buscar contadores: HTTP " + res.status);
   return await res.json(); 
@@ -397,7 +397,7 @@ async function apiGetContadores(ids) {
 }
 
 async function apiEnviarAvaliacao(id, acao) {
-  const res = await fetch(`${API_BASE}/api/avaliacao`, {
+  const res = await fetch(`${API_BASE}/avaliacao`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ id: Number(id), acao }) // acao: "contesta" | "confere"
