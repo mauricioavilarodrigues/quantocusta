@@ -77,6 +77,45 @@ function setCategoriaFarmacia(c, b) {
 }
 
 // ===============================
+// BADGE POSITIVO (CONFIRMAÇÃO)
+// ===============================
+function garantirBadgeConfere(li) {
+  const precoEl = li.querySelector(".preco");
+  if (!precoEl) return null;
+
+  let badge = li.querySelector(".badge-confere");
+  if (!badge) {
+    badge = document.createElement("span");
+    badge.className = "badge-confere";
+    badge.style.marginLeft = "8px";
+    badge.style.fontSize = "12px";
+    badge.style.fontWeight = "700";
+    badge.style.display = "inline-block";
+    badge.style.padding = "2px 8px";
+    badge.style.borderRadius = "999px";
+    badge.style.border = "1px solid #1f7a39";
+    badge.style.background = "#e8f7ee";
+    badge.style.color = "#1f7a39";
+    precoEl.appendChild(badge);
+  }
+  return badge;
+}
+
+function aplicarBadgeConfere(li, confere) {
+  const badge = garantirBadgeConfere(li);
+  if (!badge) return;
+
+  const n = Number(confere || 0);
+  if (n > 0) {
+    badge.textContent = `✅ Confirmado por ${n}`;
+    badge.style.display = "inline-block";
+  } else {
+    badge.textContent = "";
+    badge.style.display = "none";
+  }
+}
+
+// ===============================
 // BUSCA (data.json)
 // ===============================
 async function buscar() {
@@ -89,13 +128,14 @@ async function buscar() {
 
   const termo = (elBusca?.value || "").toLowerCase();
 
-  // ✅ data.json é JSON, então é res.json() e não res.text()
   const res = await fetch("./data.json?v=" + Date.now(), { cache: "no-store" });
   if (!res.ok) throw new Error("HTTP " + res.status);
   const data = await res.json();
 
   const lista = Array.isArray(data[nichoAtual]) ? data[nichoAtual] : [];
-  let itens = aplicarOverridesDePreco(lista)
+
+  // aplica overrides (se já carregou o IIFE de overrides), senão usa lista pura
+  let itens = (window.aplicarOverridesDePreco ? window.aplicarOverridesDePreco(lista) : lista)
     .filter(p => (p.nome || "").toLowerCase().includes(termo));
 
   // filtros por nicho
@@ -112,54 +152,61 @@ async function buscar() {
   if (!elResultado) return;
   elResultado.innerHTML = "";
   cesta = [];
-itens.forEach((p, index) => {
-  const li = document.createElement("li");
 
-  li.dataset.id = p.id;
+  itens.forEach((p, index) => {
+    const li = document.createElement("li");
+    li.dataset.id = p.id;
 
-  const precoNum = Number(p.preco);
-  const precoTxt = Number.isFinite(precoNum) ? precoNum.toFixed(2) : "0.00";
+    const precoNum = Number(p.preco);
+    const precoTxt = Number.isFinite(precoNum) ? precoNum.toFixed(2) : "0.00";
 
-  li.innerHTML =
-    "<span><input type='checkbox' id='ck-" + index + "'> " +
-    (p.nome || "") +
-    "<br><small>" + (p.loja || p.posto || "") + "</small></span>" +
-    "<span class='preco'>R$ " + precoTxt + "</span>" +
-    "<div class='avaliacao'>" +
-    "<button onclick='confirmarPreco(" + index + ")'>Confere</button>" +
-    "<button onclick='negarPreco(" + index + ")'>Não confere</button>" +
-    "<div id='feedback-" + index + "'></div></div>";
+    li.innerHTML =
+      "<span><input type='checkbox' id='ck-" + index + "'> " +
+      (p.nome || "") +
+      "<br><small>" + (p.loja || p.posto || "") + "</small></span>" +
+      "<span class='preco'>R$ " + precoTxt + "</span>" +
+      "<div class='avaliacao'>" +
+      "<button onclick='confirmarPreco(" + index + ")'>Confere <span id='confere-" + index + "'></span></button>" +
+      "<button class='btn-inserir-preco' type='button'>Atualizar preço</button>" +
+      "<div id='feedback-" + index + "'></div></div>";
 
-  elResultado.appendChild(li);
+    elResultado.appendChild(li);
 
-  const ck = li.querySelector("#ck-" + index);
-  if (ck) {
-    ck.addEventListener("change", (e) => {
-      if (e.target.checked) cesta.push(p);
-      else cesta = cesta.filter(x => x.id !== p.id);
-    });
+    const ck = li.querySelector("#ck-" + index);
+    if (ck) {
+      ck.addEventListener("change", (e) => {
+        if (e.target.checked) cesta.push(p);
+        else cesta = cesta.filter(x => x.id !== p.id);
+      });
+    }
+  });
+
+  // ✅ Busca contadores reais no backend e aplica contador + badge positivo
+  try {
+    const ids = Array.from(elResultado.querySelectorAll("li[data-id]"))
+      .map(li => li.dataset.id)
+      .filter(Boolean);
+
+    if (ids.length) {
+      const contadores = await apiGetContadores(ids);
+
+      elResultado.querySelectorAll("li[data-id]").forEach((li, idx) => {
+        const id = li.dataset.id;
+
+        const totalConfere = contadores?.[id]?.confere ?? 0;
+
+        // contador no botão
+        const spanConfere = document.getElementById("confere-" + idx);
+        if (spanConfere) spanConfere.textContent = totalConfere ? `(${totalConfere})` : "";
+
+        // badge positivo ao lado do preço
+        aplicarBadgeConfere(li, totalConfere);
+      });
+    }
+  } catch (e) {
+    console.warn("⚠️ Não consegui carregar contadores do backend:", e);
   }
-});
-// ✅ Busca contadores reais no backend e aplica badges
-try {
-  const ids = Array.from(elResultado.querySelectorAll("li[data-id]"))
-    .map(li => li.dataset.id)
-    .filter(Boolean);
-
-  if (ids.length) {
-    const contadores = await apiGetContadores(ids);
-
-    elResultado.querySelectorAll("li[data-id]").forEach(li => {
-      const id = li.dataset.id;
-      const totalContesta = contadores?.[id]?.contesta ?? 0;
-      aplicarBadge(li, totalContesta);
-    });
-  }
-} catch (e) {
-  console.warn("⚠️ Não consegui carregar contadores do backend:", e);
 }
-
-} // ✅ FECHA buscar()
 
 // ===============================
 // CESTA
@@ -316,12 +363,12 @@ function escapeHtml(str) {
 function distanciaKm(lat1, lon1, lat2, lon2) {
   const R = 6371;
   const dLat = (lat2 - lat1) * Math.PI / 180;
-  const dLon = (lon2 - lon1) * Math.PI / 180;
+  const dLon = (lat2 - lat1) * Math.PI / 180;
   const a =
     Math.sin(dLat / 2) ** 2 +
     Math.cos(lat1 * Math.PI / 180) *
-      Math.cos(lat2 * Math.PI / 180) *
-      Math.sin(dLon / 2) ** 2;
+    Math.cos(lat2 * Math.PI / 180) *
+    Math.sin(dLon / 2) ** 2;
   return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
 }
 
@@ -343,7 +390,7 @@ function acharMelhorOpcao() {
 }
 
 // ===============================
-// FEEDBACK
+// FEEDBACK / AVALIAÇÃO
 // ===============================
 function confirmarPreco(index) {
   const fb = document.getElementById("feedback-" + index);
@@ -355,45 +402,35 @@ function confirmarPreco(index) {
   fb.innerText = "Obrigado por confirmar.";
 
   if (id) {
-    apiEnviarAvaliacao(id, "confere").catch(e => {
-      console.warn("⚠️ Falha ao enviar confirmação:", e);
-    });
-  }
-}
-
-function negarPreco(index) {
-  const fb = document.getElementById("feedback-" + index);
-  if (!fb) return;
-
-  const li = fb.closest("li");
-  const id = li?.dataset?.id;
-
-  fb.innerText = "Preço contestado.";
-
-  if (id) {
-    apiEnviarAvaliacao(id, "contesta")
+    apiEnviarAvaliacao(id, "confere")
       .then(ret => {
-        // ideal: backend retorna { contesta: N, confere: M }
-        const total = ret?.contesta;
+        const totalConfere = ret?.confere;
 
-        if (typeof total === "number") {
-          fb.innerText = `⚠️ Preço contestado por ${total} pessoa(s)`;
-          aplicarBadge(li, total);
+        // contador no botão
+        const span = document.getElementById("confere-" + index);
+        if (span && typeof totalConfere === "number") {
+          span.textContent = totalConfere ? `(${totalConfere})` : "";
+        }
+
+        // badge positivo
+        if (typeof totalConfere === "number") {
+          aplicarBadgeConfere(li, totalConfere);
         }
       })
       .catch(e => {
-        console.warn("⚠️ Falha ao enviar contestação:", e);
+        console.warn("⚠️ Falha ao enviar confirmação:", e);
       });
   }
 }
 
 console.log("✅ script.js carregado corretamente");
+
 async function apiGetContadores(ids) {
   if (!ids.length) return {};
   const url = `${API_BASE}/avaliacoes?ids=${encodeURIComponent(ids.join(","))}`;
   const res = await fetch(url);
   if (!res.ok) throw new Error("Falha ao buscar contadores: HTTP " + res.status);
-  return await res.json(); 
+  return await res.json();
   // esperado: { "1": { contesta: 3, confere: 10 }, "2": {...} }
 }
 
@@ -401,47 +438,10 @@ async function apiEnviarAvaliacao(id, acao) {
   const res = await fetch(`${API_BASE}/avaliacao`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ id: Number(id), acao }) // acao: "contesta" | "confere"
+    body: JSON.stringify({ id: String(id), acao }) // acao: "confere"
   });
   if (!res.ok) throw new Error("Falha ao enviar avaliação: HTTP " + res.status);
   return await res.json();
-  // pode retornar o novo total, por ex: { contesta: 4, confere: 10 }
-}
-
-function garantirBadge(li) {
-  const precoEl = li.querySelector(".preco");
-  if (!precoEl) return null;
-
-  let badge = li.querySelector(".badge-contestado");
-  if (!badge) {
-    badge = document.createElement("span");
-    badge.className = "badge-contestado";
-    badge.style.marginLeft = "8px";
-    badge.style.fontSize = "12px";
-    badge.style.fontWeight = "700";
-    badge.style.display = "inline-block";
-    badge.style.padding = "2px 8px";
-    badge.style.borderRadius = "999px";
-    badge.style.border = "1px solid #f2a100";
-    badge.style.background = "#fff7e6";
-    badge.style.color = "#a15c00";
-    precoEl.appendChild(badge);
-  }
-  return badge;
-}
-
-function aplicarBadge(li, contesta) {
-  const badge = garantirBadge(li);
-  if (!badge) return;
-
-  const n = Number(contesta || 0);
-  if (n > 0) {
-    badge.textContent = `⚠️ Preço contestado por ${n} pessoa(s)`;
-    badge.style.display = "inline-block";
-  } else {
-    badge.textContent = "";
-    badge.style.display = "none";
-  }
 }
 
 // ===============================
@@ -457,73 +457,6 @@ window.compararCesta = compararCesta;
 window.acharMelhorOpcao = acharMelhorOpcao;
 
 window.confirmarPreco = confirmarPreco;
-window.negarPreco = negarPreco;
-
-// ===============================
-// BOTÃO EXTRA: "Inserir preço atualizado"
-// Aparece APENAS após clicar em "Não confere"
-// Não altera o que já existe; só adiciona UI nova.
-// ===============================
-(() => {
-  "use strict";
-
-  // Helper: identifica se o botão clicado é o "Não confere"
-  function isNaoConfereButton(btn) {
-    if (!btn) return false;
-
-    // 1) Se você tiver uma classe específica, prefira isso:
-    // return btn.classList.contains("btn-nao-confere");
-
-    // 2) Fallback: detecta pelo texto do botão (se não tiver classe)
-    const t = (btn.textContent || "").trim().toLowerCase();
-    return t === "não confere" || t === "nao confere";
-  }
-
-  // Insere o botão novo no item (se ainda não existir)
-  function ensureInserirPrecoButton(itemContainer) {
-    if (!itemContainer) return;
-
-    // Evita duplicar
-    if (itemContainer.querySelector(".btn-inserir-preco")) return;
-
-    const btn = document.createElement("button");
-    btn.type = "button";
-    btn.className = "btn-inserir-preco";
-    btn.textContent = "Inserir preço atualizado";
-
-    // Você pode colocar o botão onde quiser.
-    // Aqui: logo abaixo dos botões de conferir/não confere (no final do item)
-    itemContainer.appendChild(btn);
-  }
-
-  // Mostra o botão ao contestar
-  document.addEventListener("click", (e) => {
-    const alvo = e.target;
-
-    // Só age quando for clique no botão "Não confere"
-    if (!isNaoConfereButton(alvo)) return;
-
-    // Acha o "container do item" (li, card, etc)
-    const item = alvo.closest("li") || alvo.closest(".item-produto") || alvo.parentElement;
-    ensureInserirPrecoButton(item);
-  });
-
-  // (Opcional) Clique no botão "Inserir preço atualizado"
-  // Por enquanto só abre um prompt e imprime no console.
-  document.addEventListener("click", (e) => {
-  if (!e.target.classList.contains("btn-inserir-preco")) return;
-
-  e.preventDefault();
-  e.stopPropagation();
-
-    const item = e.target.closest("li") || e.target.closest(".item-produto") || e.target.parentElement;
-
-    const valor = prompt("Digite o preço atualizado (ex: 5,99):");
-    if (!valor) return;
-
-    console.log("Preço atualizado informado:", valor, "Item:", item);
-  });
-})();
 
 // ===============================
 // OVERRIDES DE PREÇO (por usuário / navegador)
@@ -546,56 +479,54 @@ window.negarPreco = negarPreco;
     localStorage.setItem(LS_KEY_PRECOS, JSON.stringify(o));
   }
 
-  // Tenta achar e atualizar visualmente o preço daquele item na lista
   function atualizarPrecoNaUI(itemEl, novoPreco) {
     if (!itemEl) return;
 
-    // ✅ seu HTML usa <span class="preco">..., então é ".preco"
     const precoEl = itemEl.querySelector(".preco");
-if (precoEl) {
-  // preserva badge se existir
-  const badge = precoEl.querySelector(".badge-contestado");
-  precoEl.textContent = "R$ " + Number(novoPreco).toFixed(2);
-  if (badge) precoEl.appendChild(badge);
-  return;
-}
+    if (precoEl) {
+      // preserva badge positivo se existir
+      const badgePos = precoEl.querySelector(".badge-confere");
+      precoEl.textContent = "R$ " + Number(novoPreco).toFixed(2);
+      if (badgePos) precoEl.appendChild(badgePos);
+      return;
+    }
 
-   // fallback: substitui qualquer R$ no HTML do item
+    // fallback
     const texto = itemEl.innerText;
     if (texto.includes("R$")) {
-      itemEl.innerHTML = itemEl.innerHTML.replace(/R\$\s*\d+([.,]\d+)?/g, "R$ " + Number(novoPreco).toFixed(2));
+      itemEl.innerHTML = itemEl.innerHTML.replace(
+        /R\$\s*\d+([.,]\d+)?/g,
+        "R$ " + Number(novoPreco).toFixed(2)
+      );
     }
   }
 
-  // Quando clicar no botão "Inserir preço atualizado"
+  // Clique no botão "Atualizar preço"
   document.addEventListener("click", (e) => {
     if (!e.target.classList.contains("btn-inserir-preco")) return;
 
     const itemEl = e.target.closest("li") || e.target.closest(".item-produto") || e.target.parentElement;
-
     const itemId = itemEl?.dataset?.id;
+
     if (!itemId) {
       alert("Não encontrei o ID do item (data-id). Sem isso não dá pra salvar o novo preço.");
       return;
     }
 
-    let valor = prompt("Digite o preço atualizado (ex: 5,99):");
+    let valor = prompt("Digite o novo preço (ex: 5,99):");
     if (!valor) return;
 
     valor = valor.trim().replace(",", ".");
     const novoPreco = Number(valor);
+
     if (!Number.isFinite(novoPreco) || novoPreco <= 0) {
       alert("Preço inválido.");
       return;
     }
 
-    // Salva override
     setOverride(itemId, novoPreco);
-
-    // Atualiza a UI agora
     atualizarPrecoNaUI(itemEl, novoPreco);
 
-    // feedback simples
     if (!itemEl.querySelector(".msg-preco-atualizado")) {
       const msg = document.createElement("div");
       msg.className = "msg-preco-atualizado";
@@ -605,8 +536,7 @@ if (precoEl) {
     }
   });
 
-  // Função utilitária que você pode chamar no seu render:
-  // aplica overrides ao seu array de produtos
+  // aplica overrides ao array de produtos
   window.aplicarOverridesDePreco = function (produtos) {
     const o = getOverrides();
     return produtos.map(p => {
@@ -617,23 +547,17 @@ if (precoEl) {
       return p;
     });
   };
-})(); // ✅ FECHA o IIFE de OVERRIDES (CORREÇÃO)
+})();
+
 // ===============================
-// EXPOR FUNÇÕES PARA DEBUG (CONSOLE)
-// Use SEMPRE qc_ no console pra evitar colisão.
+// DEBUG (opcional)
 // ===============================
 window.qc_apiGetContadores = (ids) => apiGetContadores(ids);
 window.qc_apiEnviarAvaliacao = (id, acao) => apiEnviarAvaliacao(id, acao);
-window.qc_aplicarBadge = (li, n) => aplicarBadge(li, n);
-
-// (se você ainda quiser manter os nomes "normais", pode deixar também)
-window.apiGetContadores = apiGetContadores;
-window.apiEnviarAvaliacao = apiEnviarAvaliacao;
-window.aplicarBadge = aplicarBadge;
-window.garantirBadge = garantirBadge;
+window.qc_aplicarBadgeConfere = (li, n) => aplicarBadgeConfere(li, n);
 
 // ===============================
-// MARCADOR DE VERSÃO (ANTI-CACHE / ANTI-DÚVIDA)
+// MARCADOR DE VERSÃO (ANTI-CACHE)
 // ===============================
 window.__QC_TESTE = "OK-" + Date.now();
 console.log("QC_TESTE carregou:", window.__QC_TESTE);
