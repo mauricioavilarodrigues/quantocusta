@@ -1,122 +1,209 @@
 :root{
-  --bg:#f4f5f7;
+  --bg:#f2f2f2;
   --card:#ffffff;
-  --texto:#111827;
-  --muted:#6b7280;
-  --linha:#e5e7eb;
+  --texto:#111111;
+  --muted:#555555;
+  --linha:#d9d9d9;
 
-  --acao:#111827;      /* botão principal */
+  --acao:#111111;          /* preto sólido = fácil de entender */
   --acao-hover:#000000;
 
-  --radius:4px;        /* QUADRADO */
+  --sec:#f7f7f7;           /* botão secundário */
+  --sec-hover:#efefef;
+
+  --radius:4px;            /* quadrado */
+  --shadow: 0 6px 16px rgba(0,0,0,.08);
 }
 
-/* ===============================
-   FUNDO GERAL
-=============================== */
 body{
   background: var(--bg);
   color: var(--texto);
+  font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+  padding: 18px;
 }
 
-/* ===============================
-   CAIXAS
-=============================== */
+/* título forte, sem gritar */
+h1{
+  text-align:center;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: .6px;
+  font-size: clamp(26px, 4vw, 40px);
+  margin: 8px 0 14px;
+}
+
+/* caixas tipo “cartão” simples */
 .caixa{
   background: var(--card);
-  border:1px solid var(--linha);
+  border: 1px solid var(--linha);
   border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  padding: 14px;
+  max-width: 980px;
+  margin: 14px auto;
 }
 
 /* ===============================
-   TÍTULO
+   NICHOS (botões grandes e óbvios)
 =============================== */
-h1{
-  font-weight: 900;
-  letter-spacing: .5px;
-  text-transform: uppercase;
+.topo{
+  display:flex;
+  justify-content:center;
+  gap:10px;
+  flex-wrap:wrap;
+  margin-bottom: 12px;
 }
 
-/* ===============================
-   BOTÕES DE NICHO (topo)
-=============================== */
 .topo button{
   background: var(--card);
   color: var(--texto);
-  border:1px solid var(--linha);
+  border: 2px solid var(--linha);
   border-radius: var(--radius);
-  padding: 14px 24px;
+
+  padding: 16px 22px;      /* grande */
+  min-width: 160px;        /* “botão de gente” */
   font-weight: 900;
   text-transform: uppercase;
+  letter-spacing: .6px;
+  font-size: 15px;
+
+  box-shadow: 0 3px 0 rgba(0,0,0,.10); /* sensação de “apertável” */
+  transition: transform .05s ease, background .12s ease, border-color .12s ease;
+}
+
+.topo button:active{
+  transform: translateY(1px);
 }
 
 .topo button.ativo{
   background: var(--acao);
-  color:#ffffff;
+  color: #fff;
   border-color: var(--acao);
 }
 
 /* ===============================
-   FILTROS
+   FILTROS (um pouco menores que nichos)
 =============================== */
+.filtros{
+  display:flex;
+  justify-content:center;
+  gap:10px;
+  flex-wrap:wrap;
+  margin-bottom: 12px;
+}
+
 .filtros button{
-  background: var(--card);
+  background: var(--sec);
   color: var(--texto);
-  border:1px solid var(--linha);
+  border: 1px solid var(--linha);
   border-radius: var(--radius);
-  padding: 10px 20px;
+
+  padding: 12px 18px;
   font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: .4px;
+  font-size: 13px;
 }
 
 .filtros button.ativo{
   background: var(--acao);
-  color:#ffffff;
+  color:#fff;
+  border-color: var(--acao);
 }
 
 /* ===============================
-   LISTA DE ITENS
+   LISTA
 =============================== */
+ul{
+  list-style:none;
+  padding:0;
+  max-width: 980px;
+  margin: 0 auto;
+}
+
 li{
   background: var(--card);
-  border:1px solid var(--linha);
+  border: 1px solid var(--linha);
   border-radius: var(--radius);
+  box-shadow: var(--shadow);
+
+  padding: 14px;
+  margin: 10px 0;
+
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap: 12px;
 }
 
-/* ===============================
-   PREÇO
-=============================== */
 .preco{
   font-weight: 900;
-  color:#000000;
+  font-size: 16px;
+  color:#000;
 }
 
 /* ===============================
-   BOTÕES DE AÇÃO
+   BOTÕES DE AÇÃO (Confere / Atualizar preço)
 =============================== */
-.avaliacao button{
-  background: var(--acao);
-  color:#ffffff;
-  border-radius: var(--radius);
-  font-weight: 900;
-  padding: 10px 16px;
+.avaliacao{
+  display:flex;
+  gap:10px;
+  align-items:center;
+  flex-wrap:wrap;
+  justify-content:flex-end;
 }
 
-.avaliacao button:hover{
+.avaliacao button{
+  border: 0;
+  border-radius: var(--radius);
+
+  padding: 12px 16px;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: .4px;
+  font-size: 13px;
+
+  cursor:pointer;
+}
+
+.avaliacao button:not(.btn-inserir-preco){
+  background: var(--acao);
+  color:#fff;
+}
+
+.avaliacao button:not(.btn-inserir-preco):hover{
   background: var(--acao-hover);
 }
 
-/* botão secundário */
-.btn-inserir-preco{
-  background:#ffffff;
+.avaliacao .btn-inserir-preco{
+  background: var(--sec);
   color: var(--texto);
-  border:1px solid var(--linha);
+  border: 1px solid var(--linha);
 }
 
-/* ===============================
-   FEEDBACK / BADGES
-=============================== */
-.badge-contestado{
-  border-radius: var(--radius);
-  font-size: 11px;
-  font-weight: 800;
+.avaliacao .btn-inserir-preco:hover{
+  background: var(--sec-hover);
+}
+
+/* checkbox maior (popular-friendly) */
+input[type="checkbox"]{
+  transform: scale(1.25);
+  margin-right: 10px;
+}
+
+/* badge verde do “confirmado por N” (se você estiver usando) */
+.badge-confere{
+  border-radius: var(--radius) !important;
+  border: 1px solid #1f7a39 !important;
+  background: #eaf7ee !important;
+  color: #1f7a39 !important;
+  font-size: 11px !important;
+  font-weight: 900 !important;
+}
+
+/* mobile: empilha os cards */
+@media (max-width: 640px){
+  li{ flex-direction: column; align-items: stretch; }
+  .avaliacao{ justify-content:flex-start; }
+  .topo button{ width: 100%; min-width: unset; }
 }
