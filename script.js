@@ -116,12 +116,64 @@ function aplicarBadgeConfere(li, confere) {
 }
 
 // ===============================
-// BUSCA (data.json)
+// API - AVALIAÇÕES
+// ===============================
+async function apiGetContadores(ids) {
+  if (!ids.length) return {};
+  const url = `${API_BASE}/avaliacoes?ids=${encodeURIComponent(ids.join(","))}`;
+  const res = await fetch(url, { cache: "no-store" });
+  if (!res.ok) throw new Error("Falha ao buscar contadores: HTTP " + res.status);
+  return await res.json();
+}
+
+async function apiEnviarAvaliacao(id, acao) {
+  const res = await fetch(`${API_BASE}/avaliacao`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ id: String(id), acao }) // acao: "confere"
+  });
+  if (!res.ok) throw new Error("Falha ao enviar avaliação: HTTP " + res.status);
+  return await res.json();
+}
+
+// ===============================
+// API - PREÇOS (sincronização)
+// ===============================
+async function apiGetOverridesAprovados(ids) {
+  if (!ids?.length) return {};
+  const url = `${API_BASE}/precos?status=aprovado&ids=${encodeURIComponent(ids.join(","))}`;
+  const res = await fetch(url, { cache: "no-store" });
+  if (!res.ok) throw new Error("Falha ao buscar overrides: HTTP " + res.status);
+  // esperado: { "1": { preco: 5.99 }, "2": { preco: 10.50 } }
+  return await res.json();
+}
+
+async function apiEnviarSugestaoPreco(payload) {
+  const res = await fetch(`${API_BASE}/precos`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(payload),
+  });
+  if (!res.ok) throw new Error("Falha ao enviar sugestão: HTTP " + res.status);
+  return await res.json();
+}
+
+// aplica overrides (obj por id) ao array de produtos
+function aplicarOverridesDePreco(produtos, overridesPorId = {}) {
+  return (produtos || []).map(p => {
+    const id = String(p.id);
+    const ov = overridesPorId?.[id];
+    if (ov?.preco != null) return { ...p, preco: ov.preco };
+    return p;
+  });
+}
+
+// ===============================
+// BUSCA (data.json + override do backend)
 // ===============================
 async function buscar() {
   if (!nichoAtual) return alert("Selecione um nicho.");
 
-  // obrigatoriedades por nicho
   if (nichoAtual === "combustivel" && !tipoAtual) return alert("Selecione o tipo (Comum/Aditivada).");
   if (nichoAtual === "supermercado" && !categoriaAtual) return alert("Selecione a categoria (Alimentos/Limpeza).");
   if (nichoAtual === "farmacia" && !categoriaFarmaciaAtual) return alert("Selecione a categoria (Remédio/Higiene).");
@@ -134,8 +186,17 @@ async function buscar() {
 
   const lista = Array.isArray(data[nichoAtual]) ? data[nichoAtual] : [];
 
-  // aplica overrides (se já carregou o IIFE de overrides), senão usa lista pura
-  let itens = (window.aplicarOverridesDePreco ? window.aplicarOverridesDePreco(lista) : lista)
+  // 1) carrega overrides aprovados (se backend existir)
+  let overridesPorId = {};
+  try {
+    const idsLista = (lista || []).map(p => String(p.id)).filter(Boolean);
+    if (idsLista.length) overridesPorId = await apiGetOverridesAprovados(idsLista);
+  } catch (e) {
+    console.warn("⚠️ Não consegui carregar overrides aprovados:", e);
+  }
+
+  // 2) aplica override + filtro texto
+  let itens = aplicarOverridesDePreco(lista, overridesPorId)
     .filter(p => (p.nome || "").toLowerCase().includes(termo));
 
   // filtros por nicho
@@ -181,7 +242,7 @@ async function buscar() {
     }
   });
 
-  // ✅ Busca contadores reais no backend e aplica contador + badge positivo
+  // contadores + badge positivo
   try {
     const ids = Array.from(elResultado.querySelectorAll("li[data-id]"))
       .map(li => li.dataset.id)
@@ -192,14 +253,11 @@ async function buscar() {
 
       elResultado.querySelectorAll("li[data-id]").forEach((li, idx) => {
         const id = li.dataset.id;
-
         const totalConfere = contadores?.[id]?.confere ?? 0;
 
-        // contador no botão
         const spanConfere = document.getElementById("confere-" + idx);
         if (spanConfere) spanConfere.textContent = totalConfere ? `(${totalConfere})` : "";
 
-        // badge positivo ao lado do preço
         aplicarBadgeConfere(li, totalConfere);
       });
     }
@@ -254,7 +312,7 @@ let postosIndex = []; // [{nome, latitude, longitude}]
 
 if (mapEl) {
   map = L.map("map").setView(centroRG, 13);
-  window.map = map; // ✅ só depois que map existe
+  window.map = map;
 
   L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
     attribution: "© OpenStreetMap"
@@ -262,7 +320,6 @@ if (mapEl) {
 
   layerPostos = L.layerGroup().addTo(map);
 
-  // localização do usuário
   map.locate({ setView: false, maxZoom: 15 });
 
   map.on("locationfound", (e) => {
@@ -272,9 +329,7 @@ if (mapEl) {
       .bindPopup("<b>Você está aqui</b>");
   });
 
-  map.on("locationerror", () => {
-    // ok
-  });
+  map.on("locationerror", () => {});
 
   carregarPostosNoMapa();
 } else {
@@ -283,10 +338,7 @@ if (mapEl) {
 
 async function carregarPostosNoMapa() {
   try {
-    if (!map || !layerPostos) {
-      console.warn("⚠️ Mapa ou layerPostos não inicializados.");
-      return;
-    }
+    if (!map || !layerPostos) return;
 
     const res = await fetch("postos_rio_grande_rs.csv?v=" + Date.now(), { cache: "no-store" });
     if (!res.ok) throw new Error("HTTP " + res.status);
@@ -300,7 +352,6 @@ async function carregarPostosNoMapa() {
 
     if (linhas.length < 2) throw new Error("Arquivo vazio ou sem dados.");
 
-    // detecta separador (TAB ou vírgula)
     const sep = linhas[0].includes("\t") ? "\t" : ",";
 
     const header = linhas[0].split(sep).map(h => h.trim().toLowerCase());
@@ -340,7 +391,6 @@ async function carregarPostosNoMapa() {
     });
 
     if (bounds) map.fitBounds(bounds.pad(0.12));
-
     console.log("✅ Postos marcados no mapa:", postosIndex.length);
 
   } catch (e) {
@@ -363,7 +413,7 @@ function escapeHtml(str) {
 function distanciaKm(lat1, lon1, lat2, lon2) {
   const R = 6371;
   const dLat = (lat2 - lat1) * Math.PI / 180;
-  const dLon = (lat2 - lat1) * Math.PI / 180;
+  const dLon = (lon2 - lon1) * Math.PI / 180;
   const a =
     Math.sin(dLat / 2) ** 2 +
     Math.cos(lat1 * Math.PI / 180) *
@@ -406,43 +456,79 @@ function confirmarPreco(index) {
       .then(ret => {
         const totalConfere = ret?.confere;
 
-        // contador no botão
         const span = document.getElementById("confere-" + index);
         if (span && typeof totalConfere === "number") {
           span.textContent = totalConfere ? `(${totalConfere})` : "";
         }
 
-        // badge positivo
         if (typeof totalConfere === "number") {
           aplicarBadgeConfere(li, totalConfere);
         }
       })
-      .catch(e => {
-        console.warn("⚠️ Falha ao enviar confirmação:", e);
-      });
+      .catch(e => console.warn("⚠️ Falha ao enviar confirmação:", e));
   }
 }
 
-console.log("✅ script.js carregado corretamente");
+// ===============================
+// Atualizar preço -> enviar pro backend (pendente)
+// ===============================
+document.addEventListener("click", async (e) => {
+  const btn = e.target;
+  if (!btn.classList?.contains("btn-inserir-preco")) return;
 
-async function apiGetContadores(ids) {
-  if (!ids.length) return {};
-  const url = `${API_BASE}/avaliacoes?ids=${encodeURIComponent(ids.join(","))}`;
-  const res = await fetch(url);
-  if (!res.ok) throw new Error("Falha ao buscar contadores: HTTP " + res.status);
-  return await res.json();
-  // esperado: { "1": { contesta: 3, confere: 10 }, "2": {...} }
-}
+  const itemEl = btn.closest("li");
+  const itemId = itemEl?.dataset?.id;
 
-async function apiEnviarAvaliacao(id, acao) {
-  const res = await fetch(`${API_BASE}/avaliacao`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ id: String(id), acao }) // acao: "confere"
-  });
-  if (!res.ok) throw new Error("Falha ao enviar avaliação: HTTP " + res.status);
-  return await res.json();
-}
+  if (!itemId) return alert("Não encontrei o ID do item (data-id).");
+
+  let valor = prompt("Digite o novo preço (ex: 5,99):");
+  if (!valor) return;
+
+  valor = valor.trim().replace(",", ".");
+  const novoPreco = Number(valor);
+
+  if (!Number.isFinite(novoPreco) || novoPreco <= 0) return alert("Preço inválido.");
+
+  // pega dados do item (nome/loja) do DOM
+  const nome = (itemEl.querySelector("span")?.innerText || "").split("\n")[0].trim() || "Produto";
+  const loja = (itemEl.querySelector("small")?.innerText || "").trim() || "Sem loja";
+
+  let msg = itemEl.querySelector(".msg-preco-atualizado");
+  if (!msg) {
+    msg = document.createElement("div");
+    msg.className = "msg-preco-atualizado";
+    msg.style.marginTop = "6px";
+    itemEl.appendChild(msg);
+  }
+  msg.textContent = "Enviando para aprovação…";
+
+  try {
+    await apiEnviarSugestaoPreco({
+      item_id: String(itemId),
+      nicho: nichoAtual || null,
+      tipo: (nichoAtual === "combustivel" ? tipoAtual : null),
+      categoria: (nichoAtual === "supermercado" ? categoriaAtual : (nichoAtual === "farmacia" ? categoriaFarmaciaAtual : null)),
+      produto: nome,
+      loja: loja,
+      preco: novoPreco,
+      cidade: "Rio Grande",
+    });
+
+    msg.textContent = "✅ Enviado para aprovação. Após aprovado, aparece em todos os dispositivos.";
+
+    // opcional: preview local
+    const precoEl = itemEl.querySelector(".preco");
+    if (precoEl) {
+      const badgePos = precoEl.querySelector(".badge-confere");
+      precoEl.textContent = "R$ " + Number(novoPreco).toFixed(2);
+      if (badgePos) precoEl.appendChild(badgePos);
+    }
+  } catch (err) {
+    console.warn(err);
+    msg.textContent = "❌ Falha ao enviar. Backend offline ou rota não existe.";
+    alert("Falha ao enviar para o servidor. Veja o console/logs.");
+  }
+});
 
 // ===============================
 // EXPORTA FUNÇÕES PARA ONCLICK DO HTML
@@ -459,105 +545,11 @@ window.acharMelhorOpcao = acharMelhorOpcao;
 window.confirmarPreco = confirmarPreco;
 
 // ===============================
-// OVERRIDES DE PREÇO (por usuário / navegador)
-// Base: data.json (somente leitura)
-// Override: localStorage (preço atualizado)
-// ===============================
-(() => {
-  "use strict";
-
-  const LS_KEY_PRECOS = "precosAtualizados"; // { [itemId]: { preco, dataISO } }
-
-  function getOverrides() {
-    try { return JSON.parse(localStorage.getItem(LS_KEY_PRECOS) || "{}"); }
-    catch { return {}; }
-  }
-
-  function setOverride(itemId, novoPreco) {
-    const o = getOverrides();
-    o[itemId] = { preco: novoPreco, dataISO: new Date().toISOString() };
-    localStorage.setItem(LS_KEY_PRECOS, JSON.stringify(o));
-  }
-
-  function atualizarPrecoNaUI(itemEl, novoPreco) {
-    if (!itemEl) return;
-
-    const precoEl = itemEl.querySelector(".preco");
-    if (precoEl) {
-      // preserva badge positivo se existir
-      const badgePos = precoEl.querySelector(".badge-confere");
-      precoEl.textContent = "R$ " + Number(novoPreco).toFixed(2);
-      if (badgePos) precoEl.appendChild(badgePos);
-      return;
-    }
-
-    // fallback
-    const texto = itemEl.innerText;
-    if (texto.includes("R$")) {
-      itemEl.innerHTML = itemEl.innerHTML.replace(
-        /R\$\s*\d+([.,]\d+)?/g,
-        "R$ " + Number(novoPreco).toFixed(2)
-      );
-    }
-  }
-
-  // Clique no botão "Atualizar preço"
-  document.addEventListener("click", (e) => {
-    if (!e.target.classList.contains("btn-inserir-preco")) return;
-
-    const itemEl = e.target.closest("li") || e.target.closest(".item-produto") || e.target.parentElement;
-    const itemId = itemEl?.dataset?.id;
-
-    if (!itemId) {
-      alert("Não encontrei o ID do item (data-id). Sem isso não dá pra salvar o novo preço.");
-      return;
-    }
-
-    let valor = prompt("Digite o novo preço (ex: 5,99):");
-    if (!valor) return;
-
-    valor = valor.trim().replace(",", ".");
-    const novoPreco = Number(valor);
-
-    if (!Number.isFinite(novoPreco) || novoPreco <= 0) {
-      alert("Preço inválido.");
-      return;
-    }
-
-    setOverride(itemId, novoPreco);
-    atualizarPrecoNaUI(itemEl, novoPreco);
-
-    if (!itemEl.querySelector(".msg-preco-atualizado")) {
-      const msg = document.createElement("div");
-      msg.className = "msg-preco-atualizado";
-      msg.style.marginTop = "6px";
-      msg.textContent = "Preço atualizado registrado neste dispositivo.";
-      itemEl.appendChild(msg);
-    }
-  });
-
-  // aplica overrides ao array de produtos
-  window.aplicarOverridesDePreco = function (produtos) {
-    const o = getOverrides();
-    return produtos.map(p => {
-      const id = String(p.id);
-      if (o[id]?.preco != null) {
-        return { ...p, preco: o[id].preco, preco_atualizado_em: o[id].dataISO };
-      }
-      return p;
-    });
-  };
-})();
-
-// ===============================
-// DEBUG (opcional)
+// DEBUG + ANTI-CACHE
 // ===============================
 window.qc_apiGetContadores = (ids) => apiGetContadores(ids);
 window.qc_apiEnviarAvaliacao = (id, acao) => apiEnviarAvaliacao(id, acao);
-window.qc_aplicarBadgeConfere = (li, n) => aplicarBadgeConfere(li, n);
 
-// ===============================
-// MARCADOR DE VERSÃO (ANTI-CACHE)
-// ===============================
 window.__QC_TESTE = "OK-" + Date.now();
+console.log("✅ script.js carregado corretamente");
 console.log("QC_TESTE carregou:", window.__QC_TESTE);
