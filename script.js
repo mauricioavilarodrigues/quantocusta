@@ -399,7 +399,7 @@ function confirmarPreco(index) {
   const li = fb.closest("li");
   const id = li?.dataset?.id;
 
-  fb.innerText = "Obrigado por confirmar.";
+  fb.innerText = "Obrigado por confirmar.✨️";
 
   if (id) {
     apiEnviarAvaliacao(id, "confere")
