@@ -5,13 +5,13 @@
   --muted:#555555;
   --linha:#d9d9d9;
 
-  --acao:#111111;          /* preto sólido = fácil de entender */
+  --acao:#111111;
   --acao-hover:#000000;
 
-  --sec:#f7f7f7;           /* botão secundário */
+  --sec:#f7f7f7;
   --sec-hover:#efefef;
 
-  --radius:4px;            /* quadrado */
+  --radius:4px;
   --shadow: 0 6px 16px rgba(0,0,0,.08);
 }
 
@@ -19,7 +19,7 @@ body{
   background: var(--bg);
   color: var(--texto);
   font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
-  body{ padding: 0;
+  padding: 18px;
 }
 
 /* título forte, sem gritar */
@@ -60,14 +60,14 @@ h1{
   border: 2px solid var(--linha);
   border-radius: var(--radius);
 
-  padding: 16px 22px;      /* grande */
-  min-width: 160px;        /* “botão de gente” */
+  padding: 16px 22px;
+  min-width: 160px;
   font-weight: 900;
   text-transform: uppercase;
   letter-spacing: .6px;
   font-size: 15px;
 
-  box-shadow: 0 3px 0 rgba(0,0,0,.10); /* sensação de “apertável” */
+  box-shadow: 0 3px 0 rgba(0,0,0,.10);
   transition: transform .05s ease, background .12s ease, border-color .12s ease;
 }
 
@@ -209,7 +209,7 @@ input[type="checkbox"]{
 }
 
 /* ===============================
-   TOPO (HEADER) - alinhado ao tema do site
+   TOPO (HEADER) - ARRUMADO (coerente com o tema neutro)
 ================================ */
 
 .topbar{
@@ -228,7 +228,7 @@ input[type="checkbox"]{
   flex-wrap: wrap;
 }
 
-/* marca/título clicável (neutro, forte) */
+/* marca/título clicável */
 .brand{
   text-decoration: none;
   font-weight: 900;
@@ -244,7 +244,7 @@ input[type="checkbox"]{
 .brand .cifrao{ color: var(--texto); }
 .brand .icon{ font-size: 18px; opacity: .9; }
 
-/* menu coerente com o tema */
+/* menu */
 .menu{
   display: flex;
   gap: 14px;
