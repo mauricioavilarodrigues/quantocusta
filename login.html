@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <title>Entrar</title>
+  <link rel="stylesheet" href="style.css" />
+  <style>
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background: #f2f2f2;
+    }
+
+    /* HEADER */
+    header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 12px 24px;
+      background: #ffffff;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    }
+
+    nav a {
+      margin-right: 15px;
+      text-decoration: none;
+      color: #333;
+      font-weight: bold;
+    }
+
+    .auth-buttons a {
+      margin-left: 10px;
+      text-decoration: none;
+      padding: 8px 14px;
+      border-radius: 6px;
+      font-weight: bold;
+    }
+
+    .login-btn {
+      color: #333;
+    }
+
+    .register-btn {
+      background: #4CAF50;
+      color: white;
+    }
+
+    /* LOGIN CARD */
+    .login-container {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: calc(100vh - 70px);
+    }
+
+    .login-card {
+      background: white;
+      padding: 30px;
+      width: 350px;
+      border-radius: 10px;
+      box-shadow: 0 0 15px rgba(0,0,0,0.15);
+      text-align: center;
+    }
+
+    .login-card h2 {
+      margin-bottom: 20px;
+    }
+
+    .google-btn {
+      background: #4285F4;
+      color: white;
+      border: none;
+      padding: 12px;
+      width: 100%;
+      border-radius: 6px;
+      font-size: 16px;
+      cursor: pointer;
+    }
+
+    .divider {
+      margin: 15px 0;
+      color: #999;
+    }
+
+    input {
+      width: 100%;
+      padding: 10px;
+      margin-top: 10px;
+      border-radius: 6px;
+      border: 1px solid #ccc;
+    }
+
+    .login-submit {
+      margin-top: 15px;
+      background: #333;
+      color: white;
+      border: none;
+      padding: 12px;
+      width: 100%;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+  </style>
+</head>
+
+<body>
+
+<header>
+  <nav>
+    <a href="index.html">Início</a>
+    <a href="quem-somos.html">Quem somos</a>
+    <a href="parceiro.html">Seja parceiro</a>
+    <a href="contato.html">Fale conosco</a>
+  </nav>
+
+  <div class="auth-buttons">
+    <a href="login.html" class="login-btn">Entrar</a>
+    <a href="cadastro.html" class="register-btn">Cadastre-se gratuitamente</a>
+  </div>
+</header>
+
+<div class="login-container">
+  <div class="login-card">
+    <h2>Entrar</h2>
+
+    <button class="google-btn">
+      Entrar com Google
+    </button>
+
+    <div class="divider">ou</div>
+
+    <input type="email" placeholder="E-mail" />
+    <input type="password" placeholder="Senha" />
+
+    <button class="login-submit">
+      Entrar
+    </button>
+  </div>
+</div>
+
+</body>
+</html>
