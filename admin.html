@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <title>Painel Administrativo - Quantocusta</title>
+  <link rel="stylesheet" href="css/style.css" />
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f2f2f2;
+      margin: 0;
+      padding: 0;
+    }
+
+    header {
+      background: #222;
+      color: white;
+      padding: 15px 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    main {
+      padding: 20px;
+    }
+
+    h1, h2 {
+      margin-top: 0;
+    }
+
+    .card {
+      background: white;
+      padding: 15px;
+      border-radius: 8px;
+      margin-bottom: 20px;
+      box-shadow: 0 0 5px rgba(0,0,0,0.1);
+    }
+
+    input, button {
+      padding: 8px;
+      margin: 5px 0;
+    }
+
+    button {
+      cursor: pointer;
+    }
+
+    ul {
+      list-style: none;
+      padding: 0;
+    }
+
+    li {
+      padding: 10px;
+      border-bottom: 1px solid #ddd;
+    }
+
+    .acoes button {
+      margin-right: 5px;
+    }
+
+    .logout {
+      background: crimson;
+      color: white;
+      border: none;
+      padding: 8px 12px;
+      border-radius: 5px;
+    }
+  </style>
+</head>
+
+<body>
+
+<header>
+  <h1>Quantocusta - Admin</h1>
+  <button class="logout">Sair</button>
+</header>
+
+<main>
+
+  <!-- Criar novo produto -->
+  <div class="card">
+    <h2>Adicionar novo produto</h2>
+    <input type="text" id="nome" placeholder="Nome do produto"><br>
+    <input type="text" id="preco" placeholder="Preço (ex: 5.99)"><br>
+    <input type="text" id="mercado" placeholder="Mercado / Farmácia"><br>
+    <button onclick="adicionarProduto()">Salvar produto</button>
+  </div>
+
+  <!-- Lista de produtos -->
+  <div class="card">
+    <h2>Produtos cadastrados</h2>
+    <ul id="listaProdutos">
+      <!-- Produtos aparecem aqui -->
+    </ul>
+  </div>
+
+</main>
+
+<script>
+let produtos = [
+  { id: 1, nome: "Arroz 5kg", preco: 20.00, mercado: "Mercado Central" },
+  { id: 2, nome: "Leite 1L", preco: 6.50, mercado: "Super Bom" }
+];
+
+function renderizarProdutos() {
+  const lista = document.getElementById("listaProdutos");
+  lista.innerHTML = "";
+
+  produtos.forEach(produto => {
+    const li = document.createElement("li");
+    li.innerHTML = `
+      <strong>${produto.nome}</strong><br>
+      Preço: R$ ${produto.preco.toFixed(2)}<br>
+      Mercado: ${produto.mercado}<br>
+      <div class="acoes">
+        <button onclick="editarProduto(${produto.id})">Editar</button>
+        <button onclick="removerProduto(${produto.id})">Remover</button>
+      </div>
+    `;
+    lista.appendChild(li);
+  });
+}
+
+function adicionarProduto() {
+  const nome = document.getElementById("nome").value;
+  const preco = document.getElementById("preco").value;
+  const mercado = document.getElementById("mercado").value;
+
+  if (!nome || !preco || !mercado) {
+    alert("Preencha todos os campos.");
+    return;
+  }
+
+  produtos.push({
+    id: Date.now(),
+    nome,
+    preco: Number(preco),
+    mercado
+  });
+
+  renderizarProdutos();
+
+  document.getElementById("nome").value = "";
+  document.getElementById("preco").value = "";
+  document.getElementById("mercado").value = "";
+}
+
+function editarProduto(id) {
+  const produto = produtos.find(p => p.id === id);
+  const novoNome = prompt("Novo nome:", produto.nome);
+  const novoPreco = prompt("Novo preço:", produto.preco);
+  const novoMercado = prompt("Novo mercado:", produto.mercado);
+
+  if (!novoNome || !novoPreco || !novoMercado) return;
+
+  produto.nome = novoNome;
+  produto.preco = Number(novoPreco);
+  produto.mercado = novoMercado;
+
+  renderizarProdutos();
+}
+
+function removerProduto(id) {
+  if (!confirm("Deseja remover este produto?")) return;
+  produtos = produtos.filter(p => p.id !== id);
+  renderizarProdutos();
+}
+
+renderizarProdutos();
+</script>
+
+</body>
+</html>
