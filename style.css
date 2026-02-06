@@ -228,7 +228,7 @@ input[type="checkbox"]{
   flex-wrap: wrap;
 }
 
-/* marca/título clicável (mesma pegada dos botões) */
+/* marca/título clicável (neutro, forte) */
 .brand{
   text-decoration: none;
   font-weight: 900;
@@ -241,15 +241,8 @@ input[type="checkbox"]{
   gap: 6px;
 }
 
-/* $ e ícone sem “arco-íris” */
-.brand .cifrao{
-  color: var(--texto);
-}
-
-.brand .icon{
-  font-size: 18px;
-  opacity: .9;
-}
+.brand .cifrao{ color: var(--texto); }
+.brand .icon{ font-size: 18px; opacity: .9; }
 
 /* menu coerente com o tema */
 .menu{
@@ -279,7 +272,6 @@ input[type="checkbox"]{
   color: var(--texto);
 }
 
-/* mobile */
 @media (max-width:600px){
   .topbar-container{ justify-content: center; }
 }
