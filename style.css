@@ -207,3 +207,65 @@ input[type="checkbox"]{
   .avaliacao{ justify-content:flex-start; }
   .topo button{ width: 100%; min-width: unset; }
 }
+/* ===============================
+   TOPO (HEADER)
+================================ */
+
+.topbar{
+  background:#fff;
+  border-bottom:1px solid #e6e6e6;
+  padding:14px 16px;
+}
+
+.topbar-container{
+  max-width:900px;
+  margin:0 auto;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:14px;
+  flex-wrap:wrap;
+}
+
+/* marca/título clicável */
+.brand{
+  text-decoration:none;
+  font-weight:900;
+  letter-spacing:1px;
+  font-size:30px;
+  color:#4b1fa6;
+  display:flex;
+  align-items:baseline;
+  gap:6px;
+}
+
+.brand .cifrao{ color:#2ecc71; }
+.brand .icon{ font-size:22px; }
+
+/* menu */
+.menu{
+  display:flex;
+  gap:16px;
+  flex-wrap:wrap;
+  justify-content:center;
+}
+
+.menu a{
+  text-decoration:none;
+  color:#333;
+  font-weight:700;
+  padding:6px 4px;
+  border-bottom:2px solid transparent;
+  transition:all .2s ease;
+}
+
+.menu a:hover{
+  color:#4b1fa6;
+  border-bottom-color:#4b1fa6;
+}
+
+/* mobile */
+@media (max-width:600px){
+  .topbar-container{ justify-content:center; }
+  .brand{ font-size:26px; }
+}
