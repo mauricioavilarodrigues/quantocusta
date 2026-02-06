@@ -1,174 +1,151 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-  <meta charset="UTF-8" />
-  <title>Painel Administrativo - Quantocusta</title>
-  <link rel="stylesheet" href="css/style.css" />
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      background: #f2f2f2;
-      margin: 0;
-      padding: 0;
-    }
+<meta charset="UTF-8" />
+<title>Painel Admin - Quantocusta</title>
 
-    header {
-      background: #222;
-      color: white;
-      padding: 15px 20px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
+<style>
+body {
+  font-family: Arial, sans-serif;
+  margin: 0;
+  background: #f3f3f3;
+}
 
-    main {
-      padding: 20px;
-    }
+header {
+  background: #111;
+  color: white;
+  padding: 15px 20px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
 
-    h1, h2 {
-      margin-top: 0;
-    }
+main {
+  padding: 20px;
+}
 
-    .card {
-      background: white;
-      padding: 15px;
-      border-radius: 8px;
-      margin-bottom: 20px;
-      box-shadow: 0 0 5px rgba(0,0,0,0.1);
-    }
+.card {
+  background: white;
+  padding: 15px;
+  border-radius: 8px;
+  margin-bottom: 20px;
+  box-shadow: 0 0 5px rgba(0,0,0,0.1);
+}
 
-    input, button {
-      padding: 8px;
-      margin: 5px 0;
-    }
+.status {
+  padding: 4px 8px;
+  border-radius: 5px;
+  font-size: 12px;
+  color: white;
+}
 
-    button {
-      cursor: pointer;
-    }
+.pendente { background: orange; }
+.aprovado { background: green; }
+.rejeitado { background: crimson; }
 
-    ul {
-      list-style: none;
-      padding: 0;
-    }
+button {
+  padding: 6px 10px;
+  margin-right: 5px;
+  cursor: pointer;
+}
 
-    li {
-      padding: 10px;
-      border-bottom: 1px solid #ddd;
-    }
+.item {
+  border-bottom: 1px solid #ddd;
+  padding: 10px 0;
+}
 
-    .acoes button {
-      margin-right: 5px;
-    }
-
-    .logout {
-      background: crimson;
-      color: white;
-      border: none;
-      padding: 8px 12px;
-      border-radius: 5px;
-    }
-  </style>
+.logout {
+  background: crimson;
+  color: white;
+  border: none;
+  padding: 8px 12px;
+  border-radius: 5px;
+}
+</style>
 </head>
 
 <body>
 
 <header>
-  <h1>Quantocusta - Admin</h1>
+  <h1>Quantocusta - Painel Admin</h1>
   <button class="logout">Sair</button>
 </header>
 
 <main>
 
-  <!-- Criar novo produto -->
-  <div class="card">
-    <h2>Adicionar novo produto</h2>
-    <input type="text" id="nome" placeholder="Nome do produto"><br>
-    <input type="text" id="preco" placeholder="Preço (ex: 5.99)"><br>
-    <input type="text" id="mercado" placeholder="Mercado / Farmácia"><br>
-    <button onclick="adicionarProduto()">Salvar produto</button>
-  </div>
-
-  <!-- Lista de produtos -->
-  <div class="card">
-    <h2>Produtos cadastrados</h2>
-    <ul id="listaProdutos">
-      <!-- Produtos aparecem aqui -->
-    </ul>
-  </div>
+<div class="card">
+  <h2>Alterações pendentes</h2>
+  <div id="listaPendentes"></div>
+</div>
 
 </main>
 
 <script>
-let produtos = [
-  { id: 1, nome: "Arroz 5kg", preco: 20.00, mercado: "Mercado Central" },
-  { id: 2, nome: "Leite 1L", preco: 6.50, mercado: "Super Bom" }
+let alteracoes = [
+  {
+    id: 1,
+    produto: "Arroz 5kg",
+    mercado: "Mercado Central",
+    precoAntigo: 20.00,
+    precoNovo: 18.50,
+    status: "pendente"
+  },
+  {
+    id: 2,
+    produto: "Leite 1L",
+    mercado: "Super Bom",
+    precoAntigo: 6.00,
+    precoNovo: 7.20,
+    status: "pendente"
+  }
 ];
 
-function renderizarProdutos() {
-  const lista = document.getElementById("listaProdutos");
-  lista.innerHTML = "";
+function renderizar() {
+  const div = document.getElementById("listaPendentes");
+  div.innerHTML = "";
 
-  produtos.forEach(produto => {
-    const li = document.createElement("li");
-    li.innerHTML = `
-      <strong>${produto.nome}</strong><br>
-      Preço: R$ ${produto.preco.toFixed(2)}<br>
-      Mercado: ${produto.mercado}<br>
-      <div class="acoes">
-        <button onclick="editarProduto(${produto.id})">Editar</button>
-        <button onclick="removerProduto(${produto.id})">Remover</button>
-      </div>
+  alteracoes.forEach(item => {
+    const card = document.createElement("div");
+    card.className = "item";
+
+    card.innerHTML = `
+      <strong>${item.produto}</strong><br>
+      Mercado: ${item.mercado}<br>
+      Preço antigo: R$ ${item.precoAntigo.toFixed(2)}<br>
+      Preço novo: R$ ${item.precoNovo.toFixed(2)}<br>
+      Status: <span class="status ${item.status}">${item.status}</span><br><br>
+      <button onclick="aprovar(${item.id})">Aprovar</button>
+      <button onclick="editar(${item.id})">Editar</button>
+      <button onclick="rejeitar(${item.id})">Rejeitar</button>
     `;
-    lista.appendChild(li);
+
+    div.appendChild(card);
   });
 }
 
-function adicionarProduto() {
-  const nome = document.getElementById("nome").value;
-  const preco = document.getElementById("preco").value;
-  const mercado = document.getElementById("mercado").value;
-
-  if (!nome || !preco || !mercado) {
-    alert("Preencha todos os campos.");
-    return;
-  }
-
-  produtos.push({
-    id: Date.now(),
-    nome,
-    preco: Number(preco),
-    mercado
-  });
-
-  renderizarProdutos();
-
-  document.getElementById("nome").value = "";
-  document.getElementById("preco").value = "";
-  document.getElementById("mercado").value = "";
+function aprovar(id) {
+  const item = alteracoes.find(i => i.id === id);
+  item.status = "aprovado";
+  renderizar();
 }
 
-function editarProduto(id) {
-  const produto = produtos.find(p => p.id === id);
-  const novoNome = prompt("Novo nome:", produto.nome);
-  const novoPreco = prompt("Novo preço:", produto.preco);
-  const novoMercado = prompt("Novo mercado:", produto.mercado);
-
-  if (!novoNome || !novoPreco || !novoMercado) return;
-
-  produto.nome = novoNome;
-  produto.preco = Number(novoPreco);
-  produto.mercado = novoMercado;
-
-  renderizarProdutos();
+function rejeitar(id) {
+  const item = alteracoes.find(i => i.id === id);
+  item.status = "rejeitado";
+  renderizar();
 }
 
-function removerProduto(id) {
-  if (!confirm("Deseja remover este produto?")) return;
-  produtos = produtos.filter(p => p.id !== id);
-  renderizarProdutos();
+function editar(id) {
+  const item = alteracoes.find(i => i.id === id);
+
+  const novoPreco = prompt("Corrigir preço:", item.precoNovo);
+  if (!novoPreco) return;
+
+  item.precoNovo = Number(novoPreco);
+  renderizar();
 }
 
-renderizarProdutos();
+renderizar();
 </script>
 
 </body>
