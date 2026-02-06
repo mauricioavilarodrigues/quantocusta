@@ -275,3 +275,20 @@ input[type="checkbox"]{
 @media (max-width:600px){
   .topbar-container{ justify-content: center; }
 }
+.auth-buttons {
+  position: absolute;
+  right: 20px;
+  top: 15px;
+}
+
+.auth-buttons a {
+  margin-left: 10px;
+  text-decoration: none;
+  padding: 8px 12px;
+  border-radius: 5px;
+}
+
+.register-btn {
+  background: #4CAF50;
+  color: white;
+}
