@@ -2,7 +2,7 @@
 // VARIÁVEIS / ESTADO
 // ===============================
 
-const API_URL = "https://backend-wg1b.onrender.com/api";
+const API_URL = "https://backend-wg1b.onrender.com";
 const API_BASE = API_URL;
 
 let nichoAtual = "";
