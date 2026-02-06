@@ -2,7 +2,7 @@
 <html lang="pt-br">
 <head>
   <meta charset="UTF-8" />
-  <title>quantocu$ta</title>
+  <title>QUANTOCU$TA</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
@@ -25,8 +25,7 @@
   </nav>
 
   <h1 class="titulo">
-    
-    <a class="slogan-botao" href="index.html" title="Voltar ao início" aria-label="Voltar ao início">quantocu$ta 💰</a>
+    <a class="slogan-botao" href="index.html" title="Voltar ao início" aria-label="Voltar ao início">QUANTOCU$TA💰</a>
   </h1>
 
   <div class="topo">
@@ -51,6 +50,12 @@
   </div>
 
   <div class="busca">
+
+    <!-- Botão: Ler Nota (QR) - dentro da busca, mas fora do form -->
+    <div style="max-width:900px;margin:12px auto;display:flex;justify-content:center;gap:10px;flex-wrap:wrap;">
+      <button id="btnLerNota" type="button">📷 Ler Nota (QR)</button>
+    </div>
+
     <form onsubmit="buscar(); return false;">
       <input id="busca" placeholder="Buscar..." />
       <button type="submit">Buscar</button>
@@ -117,6 +122,39 @@
     </div>
   </div>
 
+  <!-- ===============================
+       NFC-e: Modal + Resultado
+       (fora do .busca e antes do script.js)
+       =============================== -->
+
+  <!-- Modal simples do Scanner -->
+  <div id="qrModal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,.6); z-index:9999;">
+    <div style="max-width:520px;margin:6vh auto;background:#fff;border-radius:12px;padding:14px;">
+      <div style="display:flex;justify-content:space-between;align-items:center;gap:12px;">
+        <h3 style="margin:0;">Ler QR da NFC-e</h3>
+        <button id="btnFecharQr" type="button">✖</button>
+      </div>
+
+      <p style="margin:10px 0 12px;color:#444;">
+        Aponte a câmera para o QR da nota fiscal (NFC-e).
+      </p>
+
+      <div id="qrReader" style="width:100%;"></div>
+
+      <div id="qrStatus" style="margin-top:10px;font-size:.95rem;color:#333;"></div>
+    </div>
+  </div>
+
+  <!-- Área para mostrar a importação -->
+  <div class="caixa" style="max-width:900px;margin:16px auto;">
+    <h3>Importação da NFC-e</h3>
+    <div id="nfceResultado">Nenhuma nota importada ainda.</div>
+  </div>
+
+  <!-- Lib do scanner (CDN) - precisa vir antes do script.js -->
+  <script src="https://unpkg.com/html5-qrcode"></script>
+
+  <!-- Leaflet + Seu JS -->
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
   <script src="script.js"></script>
 </body>
