@@ -161,5 +161,26 @@
 
   <!-- anti-cache simples no GitHub Pages -->
   <script defer src="script.js?v=1"></script>
+
+  <script type="module">
+import { onAuthChange } from "./js/auth.js";
+
+onAuthChange((session) => {
+  const btnEntrar = document.getElementById("btnEntrar");
+  const btnCadastrar = document.getElementById("btnCadastrar");
+  const areaUsuario = document.getElementById("areaUsuario");
+
+  if (session) {
+    btnEntrar.style.display = "none";
+    btnCadastrar.style.display = "none";
+    areaUsuario.style.display = "block";
+  } else {
+    areaUsuario.style.display = "none";
+    btnEntrar.style.display = "inline-block";
+    btnCadastrar.style.display = "inline-block";
+  }
+});
+</script>
+
 </body>
 </html>
