@@ -5,7 +5,7 @@
   <title>QUANTOCU$TA</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
 
-  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="anonymous"/>
   <link rel="stylesheet" href="style.css" />
 
   <!-- CSS mínimo pro botão/accordion funcionar -->
@@ -50,8 +50,7 @@
   </div>
 
   <div class="busca">
-
-    <!-- Botão: Ler Nota (QR) - dentro da busca, mas fora do form -->
+    <!-- Botão: Ler Nota (QR) -->
     <div style="max-width:900px;margin:12px auto;display:flex;justify-content:center;gap:10px;flex-wrap:wrap;">
       <button id="btnLerNota" type="button">📷 Ler Nota (QR)</button>
     </div>
@@ -81,9 +80,7 @@
   <!-- CONTRIBUIR -->
   <div class="caixa contribuir-wrap">
     <h3>💬 Viu um preço diferente?</h3>
-    <p style="margin-bottom:14px;">
-      Clique no botão para abrir o formulário e contribuir.
-    </p>
+    <p style="margin-bottom:14px;">Clique no botão para abrir o formulário e contribuir.</p>
 
     <button
       id="btnContribuir"
@@ -102,7 +99,6 @@
       ➕ Contribuir com um preço
     </button>
 
-    <!-- IMPORTANTE: sem display:none inline -->
     <div id="boxContribuir" class="contribuir-box">
       <iframe
         src="https://docs.google.com/forms/d/e/1FAIpQLScvGANZ_AGCKNR7dpM7AAyts2fyD6ZkgTA6TCIyEi97ySGTmg/viewform?embedded=true"
@@ -124,7 +120,6 @@
 
   <!-- ===============================
        NFC-e: Modal + Resultado
-       (fora do .busca e antes do script.js)
        =============================== -->
 
   <!-- Modal simples do Scanner -->
@@ -135,12 +130,9 @@
         <button id="btnFecharQr" type="button">✖</button>
       </div>
 
-      <p style="margin:10px 0 12px;color:#444;">
-        Aponte a câmera para o QR da nota fiscal (NFC-e).
-      </p>
+      <p style="margin:10px 0 12px;color:#444;">Aponte a câmera para o QR da nota fiscal (NFC-e).</p>
 
       <div id="qrReader" style="width:100%;"></div>
-
       <div id="qrStatus" style="margin-top:10px;font-size:.95rem;color:#333;"></div>
     </div>
   </div>
@@ -152,10 +144,12 @@
   </div>
 
   <!-- Lib do scanner (CDN) - precisa vir antes do script.js -->
-  <script src="https://unpkg.com/html5-qrcode"></script>
+  <script src="https://unpkg.com/html5-qrcode" crossorigin="anonymous"></script>
 
   <!-- Leaflet + Seu JS -->
-  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-  <script src="script.js"></script>
+  <script defer src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin="anonymous"></script>
+
+  <!-- anti-cache simples no GitHub Pages -->
+  <script defer src="script.js?v=1"></script>
 </body>
 </html>
