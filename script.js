@@ -2,8 +2,8 @@
 // VARIÁVEIS / ESTADO
 // ===============================
 
-const API_URL = "https://backend-wg1b.onrender.com";
-const API_BASE = API_URL;
+const API_ROOT = "https://backend-wg1b.onrender.com";
+const API_BASE = `${API_ROOT}/api`;
 
 let nichoAtual = "";
 let tipoAtual = "";
@@ -553,3 +553,167 @@ window.qc_apiEnviarAvaliacao = (id, acao) => apiEnviarAvaliacao(id, acao);
 window.__QC_TESTE = "OK-" + Date.now();
 console.log("✅ script.js carregado corretamente");
 console.log("QC_TESTE carregou:", window.__QC_TESTE);
+// ===============================
+// NFC-e QR Import (scanner + chamada backend)
+// ===============================
+let html5Qr = null;
+
+const elQrModal = document.getElementById("qrModal");
+const elQrStatus = document.getElementById("qrStatus");
+const elNfceResultado = document.getElementById("nfceResultado");
+const btnLerNota = document.getElementById("btnLerNota");
+const btnFecharQr = document.getElementById("btnFecharQr");
+
+// debug mínimo (mostra erro no celular)
+window.addEventListener("error", (e) => {
+  console.warn("ERRO JS:", e.message || e.error);
+});
+window.addEventListener("unhandledrejection", (e) => {
+  console.warn("PROMISE ERRO:", e.reason);
+});
+
+if (btnLerNota && btnFecharQr && elQrModal) {
+  btnLerNota.addEventListener("click", abrirScannerQr);
+  btnFecharQr.addEventListener("click", fecharScannerQr);
+
+  elQrModal.addEventListener("click", (e) => {
+    if (e.target === elQrModal) fecharScannerQr();
+  });
+} else {
+  console.warn("⚠️ Elementos do QR não encontrados no HTML:", {
+    btnLerNota: !!btnLerNota,
+    btnFecharQr: !!btnFecharQr,
+    qrModal: !!elQrModal,
+    qrReader: !!document.getElementById("qrReader"),
+    qrStatus: !!elQrStatus,
+    nfceResultado: !!elNfceResultado,
+  });
+}
+
+async function abrirScannerQr() {
+  elQrModal.style.display = "block";
+  if (elQrStatus) elQrStatus.textContent = "Abrindo câmera...";
+
+  try {
+    if (typeof Html5Qrcode === "undefined") {
+      throw new Error("Lib html5-qrcode não carregou. Confira a ordem dos <script> no index.");
+    }
+
+    if (!html5Qr) html5Qr = new Html5Qrcode("qrReader");
+
+    const config = { fps: 10, qrbox: { width: 250, height: 250 } };
+
+    await html5Qr.start(
+      { facingMode: "environment" },
+      config,
+      async (decodedText) => {
+        if (elQrStatus) elQrStatus.textContent = "QR lido! Importando...";
+        await onQrLido(decodedText);
+      },
+      () => {}
+    );
+
+    if (elQrStatus) elQrStatus.textContent = "Aponte para o QR da nota…";
+  } catch (err) {
+    console.error(err);
+    if (elQrStatus) elQrStatus.textContent = "❌ Não consegui abrir a câmera. Verifique permissões.";
+    alert("Falha ao abrir câmera/QR: " + (err?.message || err));
+  }
+}
+
+async function fecharScannerQr() {
+  try {
+    if (html5Qr && html5Qr.isScanning) {
+      await html5Qr.stop();
+      await html5Qr.clear();
+    }
+  } catch (e) {}
+  elQrModal.style.display = "none";
+  if (elQrStatus) elQrStatus.textContent = "";
+}
+
+async function onQrLido(decodedText) {
+  await fecharScannerQr();
+
+  const url = String(decodedText || "").trim();
+  if (!url.startsWith("http")) {
+    if (elNfceResultado) elNfceResultado.innerHTML = `<p>❌ QR não retornou URL válida.</p><pre>${escapeHtml(url)}</pre>`;
+    return;
+  }
+
+  if (elNfceResultado) {
+    elNfceResultado.innerHTML = `<p>🔎 Enviando para o servidor…</p><pre style="white-space:pre-wrap;">${escapeHtml(url)}</pre>`;
+  }
+
+  try {
+    const resp = await fetch(`${API_BASE}/nfce/parse`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ url })
+    });
+
+    if (!resp.ok) {
+      const txt = await resp.text();
+      throw new Error(`HTTP ${resp.status} - ${txt}`);
+    }
+
+    const data = await resp.json();
+    renderNfce(data);
+  } catch (err) {
+    console.error(err);
+    if (elNfceResultado) {
+      elNfceResultado.innerHTML = `
+        <p>❌ Falha ao importar NFC-e.</p>
+        <p style="color:#555;">${escapeHtml(err.message)}</p>
+        <p style="color:#777;font-size:.95rem;">
+          Se o servidor respondeu, mas não extraiu itens, é ajuste de parser por estado/SEFAZ.
+        </p>
+      `;
+    }
+    alert("Falha ao importar NFC-e: " + (err?.message || err));
+  }
+}
+
+function renderNfce(nfce) {
+  const warnings = (nfce.warnings || []).map(w => `<li>${escapeHtml(w)}</li>`).join("");
+
+  const itensHtml = (nfce.itens || []).map((it, idx) => `
+    <tr>
+      <td style="padding:6px;border-bottom:1px solid #eee;">${idx + 1}</td>
+      <td style="padding:6px;border-bottom:1px solid #eee;">${escapeHtml(it.descricao || "")}</td>
+      <td style="padding:6px;border-bottom:1px solid #eee;">${escapeHtml(String(it.qtd ?? ""))}</td>
+      <td style="padding:6px;border-bottom:1px solid #eee;">${escapeHtml(it.un || "")}</td>
+      <td style="padding:6px;border-bottom:1px solid #eee;">${escapeHtml(String(it.vUnit ?? ""))}</td>
+      <td style="padding:6px;border-bottom:1px solid #eee;">${escapeHtml(String(it.vTotal ?? ""))}</td>
+    </tr>
+  `).join("");
+
+  if (!elNfceResultado) return;
+
+  elNfceResultado.innerHTML = `
+    <div style="display:flex;flex-direction:column;gap:6px;">
+      <div><b>Emitente:</b> ${escapeHtml(nfce.emitente || "—")}</div>
+      <div><b>CNPJ:</b> ${escapeHtml(nfce.cnpj || "—")}</div>
+      <div><b>Data:</b> ${escapeHtml(nfce.dataEmissao || "—")}</div>
+      <div><b>Total:</b> ${escapeHtml(String(nfce.total ?? "—"))}</div>
+      <div style="margin-top:6px;"><b>Fonte:</b> <a href="${escapeHtml(nfce.sourceUrl || "#")}" target="_blank">abrir consulta</a></div>
+      ${warnings ? `<ul style="margin:10px 0;color:#8a6d3b;">${warnings}</ul>` : ""}
+    </div>
+
+    <div style="overflow:auto;margin-top:12px;">
+      <table style="border-collapse:collapse;width:100%;min-width:720px;">
+        <thead>
+          <tr>
+            <th style="text-align:left;padding:6px;border-bottom:2px solid #ddd;">#</th>
+            <th style="text-align:left;padding:6px;border-bottom:2px solid #ddd;">Produto</th>
+            <th style="text-align:left;padding:6px;border-bottom:2px solid #ddd;">Qtd</th>
+            <th style="text-align:left;padding:6px;border-bottom:2px solid #ddd;">Un</th>
+            <th style="text-align:left;padding:6px;border-bottom:2px solid #ddd;">V. Unit</th>
+            <th style="text-align:left;padding:6px;border-bottom:2px solid #ddd;">V. Total</th>
+          </tr>
+        </thead>
+        <tbody>${itensHtml || ""}</tbody>
+      </table>
+    </div>
+  `;
+}
