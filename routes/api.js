@@ -2,14 +2,13 @@ import { Router } from "express";
 
 const router = Router();
 
-// ===============================
-// AVALIAÇÕES (memória)
-// ===============================
-const counters = new Map(); // id -> { confere, contesta }
+// Armazenamento simples em memória (para testar).
+// (No Render isso zera quando reinicia; depois a gente troca por DB/arquivo)
+const counters = new Map(); // id -> {up, down, contestacoes}
 
 function getOrCreate(id) {
   const key = String(id);
-  if (!counters.has(key)) counters.set(key, { confere: 0, contesta: 0 });
+  if (!counters.has(key)) counters.set(key, { up: 0, down: 0, contestacoes: 0 });
   return counters.get(key);
 }
 
@@ -21,64 +20,37 @@ router.get("/avaliacoes", (req, res) => {
   }
 
   const ids = idsRaw.split(",").map(s => s.trim()).filter(Boolean);
-
-  // ✅ formato que seu frontend está usando: { "1": {confere, contesta}, "2": ... }
   const porId = Object.fromEntries(ids.map(id => [String(id), getOrCreate(id)]));
-  return res.json(porId);
+
+  return res.json({ porId });
 });
 
 // POST /api/avaliacao
-// Body: { id, acao: "confere" | "contesta" }
+// Aceita vários formatos pra bater com teu frontend:
+// { id, tipo: "up"|"down"|"contestacao" }
+// { id, avaliacao: "up"|"down" }
+// { itemId, tipo: ... }
 router.post("/avaliacao", (req, res) => {
   const b = req.body || {};
   const id = b.id ?? b.itemId ?? b.produtoId;
-  const acao = b.acao ?? b.tipo ?? b.avaliacao;
+  const tipo = b.tipo ?? b.avaliacao ?? b.acao;
 
   if (id === undefined || id === null) {
     return res.status(400).json({ erro: "Body inválido: faltou 'id' (ou itemId/produtoId)." });
   }
-  if (!acao || typeof acao !== "string") {
-    return res.status(400).json({ erro: "Body inválido: faltou 'acao' (ex: confere/contesta)." });
+  if (!tipo || typeof tipo !== "string") {
+    return res.status(400).json({ erro: "Body inválido: faltou 'tipo' (ex: up/down/contestacao)." });
   }
 
   const c = getOrCreate(id);
-  const t = acao.toLowerCase();
+  const t = tipo.toLowerCase();
 
-  if (t === "confere" || t === "up" || t === "confirmar" || t === "positivo") c.confere += 1;
-  else if (t === "contesta" || t === "contestacao" || t === "down" || t === "negar" || t === "negativo") c.contesta += 1;
-  else return res.status(400).json({ erro: `Ação inválida: ${acao}` });
+  if (t === "up" || t === "confirmar" || t === "positivo") c.up += 1;
+  else if (t === "down" || t === "negar" || t === "negativo") c.down += 1;
+  else if (t === "contestacao" || t === "contestar") c.contestacoes += 1;
+  else return res.status(400).json({ erro: `Tipo inválido: ${tipo}` });
 
-  // ✅ retorno que seu frontend espera: { confere: N, contesta: M }
-  return res.json({ ok: true, id: String(id), ...c });
-});
-
-// ===============================
-// NFC-e (MVP) — cria a rota que está dando 404
-// ===============================
-
-// POST /api/nfce/parse
-// Body: { url: "https://..." }
-router.post("/nfce/parse", async (req, res) => {
-  try {
-    const { url } = req.body || {};
-    if (!url || typeof url !== "string") {
-      return res.status(400).json({ error: "url ausente" });
-    }
-
-    // MVP: por enquanto só devolve a URL para provar que a rota existe
-    return res.json({
-      sourceUrl: url,
-      emitente: null,
-      cnpj: null,
-      dataEmissao: null,
-      total: null,
-      itens: [],
-      warnings: ["Rota /api/nfce/parse OK. Próximo passo: implementar parser para RS."]
-    });
-  } catch (e) {
-    console.error(e);
-    return res.status(500).json({ error: "erro interno" });
-  }
+  return res.json({ ok: true, id: String(id), contadores: c });
 });
 
 export default router;
