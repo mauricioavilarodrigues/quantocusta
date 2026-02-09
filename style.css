@@ -292,3 +292,26 @@ input[type="checkbox"]{
   background: #4CAF50;
   color: white;
 }
+
+.modal {
+  display: none;
+  position: fixed;
+  z-index: 9999;
+  inset: 0;
+  background: rgba(0,0,0,0.5);
+}
+
+.modal-content {
+  background: white;
+  width: 320px;
+  margin: 10% auto;
+  padding: 20px;
+  border-radius: 8px;
+  text-align: center;
+}
+
+.fechar {
+  float: right;
+  font-size: 22px;
+  cursor: pointer;
+}
