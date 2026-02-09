@@ -1,26 +1,99 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <title>Login</title>
 
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+    }
+
+    /* fundo escuro */
+    .modal {
+      display: none;
+      position: fixed;
+      z-index: 1000;
+      left: 0;
+      top: 0;
+      width: 100%;
+      height: 100%;
+      background-color: rgba(0,0,0,0.5);
+    }
+
+    /* caixa branca */
+    .modal-content {
+      background-color: #fff;
+      margin: 10% auto;
+      padding: 20px;
+      width: 300px;
+      border-radius: 8px;
+      text-align: center;
+    }
+
+    #fecharModal {
+      float: right;
+      cursor: pointer;
+      font-size: 20px;
+    }
+
+    input {
+      width: 90%;
+      padding: 8px;
+      margin: 8px 0;
+    }
+
+    button {
+      padding: 8px 12px;
+      margin-top: 10px;
+      cursor: pointer;
+    }
+  </style>
+</head>
+
+<body>
+
+<!-- Botão para abrir o modal -->
+<button id="btnAbrirLogin">Entrar</button>
+
+<!-- Modal -->
 <div id="loginModal" class="modal">
   <div class="modal-content">
     <span id="fecharModal">&times;</span>
-    
+
     <h2>Entrar</h2>
-    <button>Entrar com Google</button>
-    <input type="email">
-    <input type="password">
+
+    <button id="googleLoginBtn">Entrar com Google</button>
+
+    <hr>
+
+    <input type="email" placeholder="Digite seu e-mail">
+    <input type="password" placeholder="Digite sua senha">
+
+    <button>Entrar</button>
   </div>
 </div>
-  
-<button id="googleLoginBtn">Entrar com Google</button>
 
 <script>
-const btn = document.getElementById("btnAbrirLogin");
+const btnAbrir = document.getElementById("btnAbrirLogin");
 const modal = document.getElementById("loginModal");
 const fechar = document.getElementById("fecharModal");
 
-btn.onclick = () => modal.style.display = "block";
-fechar.onclick = () => modal.style.display = "none";
+btnAbrir.onclick = () => {
+  modal.style.display = "block";
+};
+
+fechar.onclick = () => {
+  modal.style.display = "none";
+};
+
+// fechar clicando fora da caixa
+window.onclick = (event) => {
+  if (event.target === modal) {
+    modal.style.display = "none";
+  }
+};
 </script>
 
+</body>
 </html>
