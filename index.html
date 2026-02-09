@@ -12,27 +12,30 @@
 
 <body>
   <!-- TOPO / BARRA INICIAL -->
-  <header class="topbar">
-
-  <nav class="menu">
-     <a href="index.html">Início</a>
-     <a href="quem-somos.html">Quem somos</a>
-     <a href="parceiro.html">Seja parceiro</a>
-     <a href="contato.html">Fale conosco</a>
+ <header>
+  <nav>
+    <a href="index.html">Início</a>
+    <a href="quem-somos.html">Quem somos</a>
+    <a href="parceiro.html">Seja parceiro</a>
+    <a href="contato.html">Fale conosco</a>
   </nav>
-    
-    <h1 class="titulo">
-  
-   <a class="slogan-botao" href="index.html" title="Voltar ao início" aria-label="Voltar ao início">Masquantocusta 💰</a>
-</h1>
 
-<div class="auth-buttons">
-  <button id="btnAbrirLogin">Entrar</button>
-  <a href="cadastro.html" class="register-btn">Cadastre-se gratuitamente</a>
-</div>
+  <h1 class="titulo">
+    <a class="slogan-botao" href="index.html">Masquantocusta 💰</a>
+  </h1>
+
+  <div class="auth-buttons">
+    <button id="btnAbrirLogin">Entrar</button>
+    <a id="btnCadastrar" href="cadastro.html" class="register-btn">Cadastre-se gratuitamente</a>
+  </div>
+
+  <!-- Área do usuário logado -->
+  <div id="areaUsuario" style="display:none;">
+    <span id="nomeUsuario"></span>
+    <button id="btnLogout">Sair</button>
+  </div>
 </header>
 
-  <!-- MODAL LOGIN -->
 <div id="loginModal" class="modal">
   <div class="modal-content">
     <span id="fecharModal" class="fechar">&times;</span>
@@ -176,22 +179,26 @@
   <script defer src="script.js?v=1"></script>
 
   <script type="module">
-import { onAuthChange } from "./js/auth.js";
+import { onAuthChange, loginWithGoogle, logout } from "./js/auth.js";
 
 const btnEntrar = document.getElementById("btnAbrirLogin");
 const btnCadastrar = document.getElementById("btnCadastrar");
 const areaUsuario = document.getElementById("areaUsuario");
+const nomeUsuario = document.getElementById("nomeUsuario");
+const btnLogout = document.getElementById("btnLogout");
 
 const modal = document.getElementById("loginModal");
 const fechar = document.getElementById("fecharModal");
+const googleBtn = document.getElementById("googleLoginBtn");
 
-// Controle de sessão (Supabase / Auth)
+// Sessão
 onAuthChange((session) => {
   if (session) {
     btnEntrar.style.display = "none";
     btnCadastrar.style.display = "none";
     areaUsuario.style.display = "block";
-    modal.style.display = "none"; // fecha modal se logar
+    nomeUsuario.textContent = session.user.email;
+    modal.style.display = "none";
   } else {
     areaUsuario.style.display = "none";
     btnEntrar.style.display = "inline-block";
@@ -209,12 +216,16 @@ fechar.addEventListener("click", () => {
   modal.style.display = "none";
 });
 
-// Fechar ao clicar fora
+// Fechar clicando fora
 window.addEventListener("click", (e) => {
-  if (e.target === modal) {
-    modal.style.display = "none";
-  }
+  if (e.target === modal) modal.style.display = "none";
 });
+
+// Login Google
+googleBtn.addEventListener("click", loginWithGoogle);
+
+// Logout
+btnLogout.addEventListener("click", logout);
 </script>
 
 </body>
