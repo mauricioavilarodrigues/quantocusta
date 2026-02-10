@@ -8,11 +8,66 @@
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="anonymous"/>
 <link rel="stylesheet" href="style.css?v=3" />
 
+<style>
+  /* Área central do login */
+  .login-container {
+    display: flex;
+    justify-content: center;
+    margin-top: 60px;
+  }
+
+  .login-box {
+    background: #fff;
+    padding: 24px 30px;
+    border-radius: 10px;
+    width: 320px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+    text-align: center;
+  }
+
+  .login-box h2 {
+    margin-bottom: 16px;
+  }
+
+  .login-box input {
+    width: 100%;
+    padding: 10px;
+    margin: 8px 0;
+    border-radius: 6px;
+    border: 1px solid #ccc;
+    font-size: 14px;
+  }
+
+  .login-box button {
+    width: 100%;
+    padding: 10px;
+    margin-top: 10px;
+    border-radius: 6px;
+    border: none;
+    cursor: pointer;
+    font-size: 15px;
+  }
+
+  #googleLoginBtn {
+    background: #4285f4;
+    color: white;
+  }
+
+  .login-box button:last-of-type {
+    background: #333;
+    color: white;
+  }
+
+  hr {
+    margin: 16px 0;
+  }
+</style>
 </head>
 
 <body>
-  <!-- TOPO / BARRA INICIAL -->
- <header>
+
+<!-- TOPO / BARRA INICIAL -->
+<header>
   <nav>
     <a href="index.html">Início</a>
     <a href="quem-somos.html">Quem somos</a>
@@ -26,22 +81,31 @@
 
   <div class="auth-buttons">
     <a href="login.html">
-  <button id="btnAbrirLogin">Entrar</button>
-</a>
-    <a id="btnCadastrar" href="cadastro.html" class="register-btn">Cadastre-se gratuitamente</a>
+      <button id="btnAbrirLogin">Entrar</button>
+    </a>
+    <a id="btnCadastrar" href="cadastro.html" class="register-btn">
+      Cadastre-se gratuitamente
+    </a>
   </div>
- </header>
+</header>
 
-<h2>Entrar</h2>
+<!-- ÁREA DE LOGIN -->
+<div class="login-container">
+  <div class="login-box">
 
-<button id="googleLoginBtn">Entrar com Google</button>
+    <h2>Entrar</h2>
 
-<hr>
+    <button id="googleLoginBtn">Entrar com Google</button>
 
-<input type="email" placeholder="Digite seu e-mail">
-<input type="password" placeholder="Digite sua senha">
+    <hr>
 
-<button>Entrar</button>
+    <input type="email" placeholder="Digite seu e-mail">
+    <input type="password" placeholder="Digite sua senha">
+
+    <button>Entrar</button>
+
+  </div>
+</div>
 
 <script type="module">
 import { loginWithGoogle } from "./js/auth.js";
@@ -49,3 +113,6 @@ import { loginWithGoogle } from "./js/auth.js";
 document.getElementById("googleLoginBtn")
   .addEventListener("click", loginWithGoogle);
 </script>
+
+</body>
+</html>
