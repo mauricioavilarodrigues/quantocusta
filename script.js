@@ -573,48 +573,224 @@ console.log("✅ script.js carregado corretamente");
 console.log("QC_TESTE carregou:", window.__QC_TESTE);
 
 // ===============================
-// NFC-e QR Import (scanner + chamada backend)
+// NFC-e (QR + Ler URL + Prévia + Importar)
+// Compatível com o HTML novo: btnAbrirQr, btnNfceLer, btnNfceImportar,
+// nfceUrl, nfceCidade, nfceStatus, nfcePreview, nfceResultado
 // ===============================
 let html5Qr = null;
+let qrLendo = false;
 
+// guarda a última NFC-e parseada pra poder importar
+let ultimoNfce = null;
+
+// elementos do HTML novo
 const elQrModal = document.getElementById("qrModal");
 const elQrStatus = document.getElementById("qrStatus");
 const elNfceResultado = document.getElementById("nfceResultado");
-const btnLerNota = document.getElementById("btnLerNota");
+
+const btnAbrirQr = document.getElementById("btnAbrirQr");
 const btnFecharQr = document.getElementById("btnFecharQr");
 
-// guarda a última NFC-e parseada pra poder enviar depois
-let ultimoNfce = null;
+const btnNfceLer = document.getElementById("btnNfceLer");
+const btnNfceImportar = document.getElementById("btnNfceImportar");
 
-// debug mínimo (mostra erro no celular)
-window.addEventListener("error", (e) => {
-  console.warn("ERRO JS:", e.message || e.error);
-});
-window.addEventListener("unhandledrejection", (e) => {
-  console.warn("PROMISE ERRO:", e.reason);
-});
+const elNfceUrl = document.getElementById("nfceUrl");
+const elNfceCidade = document.getElementById("nfceCidade");
 
-if (btnLerNota && btnFecharQr && elQrModal) {
-  btnLerNota.addEventListener("click", abrirScannerQr);
-  btnFecharQr.addEventListener("click", fecharScannerQr);
+const elNfceStatus = document.getElementById("nfceStatus");
+const elNfcePreview = document.getElementById("nfcePreview");
 
-  elQrModal.addEventListener("click", (e) => {
-    if (e.target === elQrModal) fecharScannerQr();
-  });
-} else {
-  console.warn("⚠️ Elementos do QR não encontrados no HTML:", {
-    btnLerNota: !!btnLerNota,
-    btnFecharQr: !!btnFecharQr,
-    qrModal: !!elQrModal,
-    qrReader: !!document.getElementById("qrReader"),
-    qrStatus: !!elQrStatus,
-    nfceResultado: !!elNfceResultado,
-  });
+// debug mínimo (celular)
+window.addEventListener("error", (e) => console.warn("ERRO JS:", e.message || e.error));
+window.addEventListener("unhandledrejection", (e) => console.warn("PROMISE ERRO:", e.reason));
+
+function nfceSetStatus(msg, isErr = false) {
+  if (!elNfceStatus) return;
+  elNfceStatus.textContent = msg || "";
+  elNfceStatus.style.color = isErr ? "crimson" : "#333";
 }
 
-let qrLendo = false;
+function nfceEnableImport(can) {
+  if (btnNfceImportar) btnNfceImportar.disabled = !can;
+}
 
+function nfceRenderPreview(nfce) {
+  if (!elNfcePreview) return;
+
+  const warnings = Array.isArray(nfce?.warnings) ? nfce.warnings : [];
+  const itens = Array.isArray(nfce?.itens) ? nfce.itens : [];
+
+  const warningsHtml = warnings.length
+    ? `<ul style="margin:10px 0;color:#8a6d3b;">${warnings
+        .map((w) => `<li>${escapeHtml(w)}</li>`)
+        .join("")}</ul>`
+    : "";
+
+  const itensHtml = itens
+    .slice(0, 30)
+    .map(
+      (it, idx) => `
+      <tr>
+        <td style="padding:6px;border-bottom:1px solid #eee;">${idx + 1}</td>
+        <td style="padding:6px;border-bottom:1px solid #eee;">${escapeHtml(it.descricao || "")}</td>
+        <td style="padding:6px;border-bottom:1px solid #eee;">${escapeHtml(String(it.qtd ?? ""))}</td>
+        <td style="padding:6px;border-bottom:1px solid #eee;">${escapeHtml(it.un || "")}</td>
+        <td style="padding:6px;border-bottom:1px solid #eee;">${escapeHtml(String(it.vUnit ?? ""))}</td>
+        <td style="padding:6px;border-bottom:1px solid #eee;">${escapeHtml(String(it.vTotal ?? ""))}</td>
+      </tr>
+    `
+    )
+    .join("");
+
+  elNfcePreview.innerHTML = `
+    <div style="display:flex;flex-direction:column;gap:6px;">
+      <div><b>Emitente:</b> ${escapeHtml(nfce?.emitente || "—")}</div>
+      <div><b>CNPJ:</b> ${escapeHtml(nfce?.cnpj || "—")}</div>
+      <div><b>Data:</b> ${escapeHtml(nfce?.dataEmissao || "—")}</div>
+      <div><b>Total:</b> ${escapeHtml(String(nfce?.total ?? "—"))}</div>
+      <div style="margin-top:6px;"><b>Fonte:</b> ${
+        nfce?.sourceUrl
+          ? `<a href="${escapeHtml(nfce.sourceUrl)}" target="_blank">abrir consulta</a>`
+          : "—"
+      }</div>
+      ${warningsHtml}
+    </div>
+
+    <div style="overflow:auto;margin-top:12px;">
+      <table style="border-collapse:collapse;width:100%;min-width:720px;">
+        <thead>
+          <tr>
+            <th style="text-align:left;padding:6px;border-bottom:2px solid #ddd;">#</th>
+            <th style="text-align:left;padding:6px;border-bottom:2px solid #ddd;">Produto</th>
+            <th style="text-align:left;padding:6px;border-bottom:2px solid #ddd;">Qtd</th>
+            <th style="text-align:left;padding:6px;border-bottom:2px solid #ddd;">Un</th>
+            <th style="text-align:left;padding:6px;border-bottom:2px solid #ddd;">V. Unit</th>
+            <th style="text-align:left;padding:6px;border-bottom:2px solid #ddd;">V. Total</th>
+          </tr>
+        </thead>
+        <tbody>${itensHtml || ""}</tbody>
+      </table>
+      ${itens.length > 30 ? `<div style="margin-top:6px; opacity:.8">Mostrando 30 primeiros itens</div>` : ""}
+    </div>
+  `;
+}
+
+async function nfceLerUrl(url) {
+  const u = String(url || "").trim();
+  if (!u) {
+    nfceSetStatus("Cole a URL da NFC-e.", true);
+    return;
+  }
+  if (!u.startsWith("http")) {
+    nfceSetStatus("A URL precisa começar com http/https.", true);
+    return;
+  }
+
+  ultimoNfce = null;
+  nfceEnableImport(false);
+  if (elNfcePreview) elNfcePreview.innerHTML = "";
+  nfceSetStatus("Lendo NFC-e…");
+
+  try {
+    const resp = await fetch(`${API_BASE}/nfce/parse`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ url: u }),
+    });
+
+    const data = await resp.json().catch(() => ({}));
+
+    if (!resp.ok) {
+      nfceSetStatus(data?.erro || `Falha ao ler NFC-e (HTTP ${resp.status}).`, true);
+      return;
+    }
+
+    ultimoNfce = data;
+    nfceRenderPreview(data);
+
+    const okToImport = !!data?.cnpj && Array.isArray(data?.itens) && data.itens.length > 0;
+    nfceEnableImport(okToImport);
+
+    nfceSetStatus(okToImport ? "NFC-e lida. Pronto para importar." : "Li a NFC-e, mas faltou CNPJ ou itens.", !okToImport);
+  } catch (err) {
+    console.error(err);
+    nfceSetStatus("Erro ao ler NFC-e. Veja console/logs.", true);
+    alert("Falha ao ler NFC-e: " + (err?.message || err));
+  }
+}
+
+async function nfceImportar() {
+  if (!ultimoNfce) {
+    nfceSetStatus("Primeiro leia a NFC-e (QR ou URL).", true);
+    return;
+  }
+
+  const cidade = (elNfceCidade?.value || "").trim() || "Rio Grande";
+
+  const itens = Array.isArray(ultimoNfce.itens) ? ultimoNfce.itens : [];
+  if (!ultimoNfce.cnpj || !itens.length) {
+    nfceSetStatus("NFC-e inválida (sem CNPJ ou itens).", true);
+    return;
+  }
+
+  const payload = {
+    cidade,
+    sourceUrl: ultimoNfce.sourceUrl || null,
+    emitente: ultimoNfce.emitente || null,
+    cnpj: ultimoNfce.cnpj || null,
+    dataEmissao: ultimoNfce.dataEmissao || null,
+    itens: itens.map((it) => ({
+      descricao: it.descricao || "",
+      qtd: it.qtd ?? null,
+      un: it.un ?? null,
+      vUnit: it.vUnit ?? null,
+      vTotal: it.vTotal ?? null,
+    })),
+  };
+
+  nfceSetStatus("Importando preços…");
+  nfceEnableImport(false);
+
+  try {
+    const resp = await fetch(`${API_BASE}/nfce/import-precos`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
+    });
+
+    const data = await resp.json().catch(() => ({}));
+
+    if (!resp.ok) {
+      const msg = data?.erro ? `${data.erro}${data.detalhe ? " - " + data.detalhe : ""}` : `HTTP ${resp.status}`;
+      throw new Error(msg);
+    }
+
+    nfceSetStatus(`✅ Importação OK. Enviados: ${data?.enviados ?? 0} | Ignorados: ${data?.ignorados ?? 0}`);
+    if (elNfceResultado) {
+      elNfceResultado.innerHTML = `
+        <div style="padding:10px;border:1px solid #e6e6e6;border-radius:12px;">
+          <div><b>Importação concluída</b></div>
+          <div>Enviados: <b>${data?.enviados ?? 0}</b> | Ignorados: <b>${data?.ignorados ?? 0}</b></div>
+          <div style="margin-top:6px; color:#666;">${escapeHtml(ultimoNfce.emitente || "")}</div>
+        </div>
+      `;
+    }
+
+    // mantém preview, mas desabilita reimport direto
+    nfceEnableImport(false);
+  } catch (err) {
+    console.error(err);
+    nfceSetStatus("❌ Erro ao importar (veja console).", true);
+    nfceEnableImport(true);
+    alert("Falha ao importar preços: " + (err?.message || err));
+  }
+}
+
+// -------------------
+// QR Modal
+// -------------------
 async function abrirScannerQr() {
+  if (!elQrModal) return;
   elQrModal.style.display = "block";
   if (elQrStatus) elQrStatus.textContent = "Abrindo câmera...";
 
@@ -635,18 +811,19 @@ async function abrirScannerQr() {
         if (qrLendo) return;
         qrLendo = true;
 
-        if (elQrStatus) elQrStatus.textContent = "QR lido! Importando...";
-
-        // para o scanner imediatamente (evita múltiplas leituras)
+        // para o scanner (evita múltiplas leituras)
         try {
           await html5Qr.stop();
           await html5Qr.clear();
         } catch (e) {}
 
-        elQrModal.style.display = "none";
+        if (elQrModal) elQrModal.style.display = "none";
         if (elQrStatus) elQrStatus.textContent = "";
 
-        await onQrLido(decodedText);
+        const url = String(decodedText || "").trim();
+        if (elNfceUrl) elNfceUrl.value = url;
+
+        await nfceLerUrl(url);
       },
       () => {}
     );
@@ -666,175 +843,33 @@ async function fecharScannerQr() {
       await html5Qr.clear();
     }
   } catch (e) {}
-  elQrModal.style.display = "none";
+  if (elQrModal) elQrModal.style.display = "none";
   if (elQrStatus) elQrStatus.textContent = "";
 }
 
-async function onQrLido(decodedText) {
-  await fecharScannerQr();
+// -------------------
+// Bind de botões (HTML novo)
+// -------------------
+(function initNfceUI() {
+  // se os elementos não existirem (página diferente), não quebra
+  if (btnAbrirQr) btnAbrirQr.addEventListener("click", abrirScannerQr);
+  if (btnFecharQr) btnFecharQr.addEventListener("click", fecharScannerQr);
 
-  const url = String(decodedText || "").trim();
-  if (!url.startsWith("http")) {
-    if (elNfceResultado) elNfceResultado.innerHTML = `<p>❌ QR não retornou URL válida.</p><pre>${escapeHtml(url)}</pre>`;
-    return;
-  }
-
-  if (elNfceResultado) {
-    elNfceResultado.innerHTML = `<p>🔎 Enviando para o servidor…</p><pre style="white-space:pre-wrap;">${escapeHtml(url)}</pre>`;
-  }
-
-  try {
-    const resp = await fetch(`${API_BASE}/nfce/parse`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ url }),
+  if (elQrModal) {
+    elQrModal.addEventListener("click", (e) => {
+      if (e.target === elQrModal) fecharScannerQr();
     });
-
-    if (!resp.ok) {
-      const txt = await resp.text();
-      throw new Error(`HTTP ${resp.status} - ${txt}`);
-    }
-
-    const data = await resp.json();
-    ultimoNfce = data; // guarda pra enviar depois
-    renderNfce(data);
-  } catch (err) {
-    console.error(err);
-    if (elNfceResultado) {
-      elNfceResultado.innerHTML = `
-        <p>❌ Falha ao importar NFC-e.</p>
-        <p style="color:#555;">${escapeHtml(err.message)}</p>
-        <p style="color:#777;font-size:.95rem;">
-          Se o servidor respondeu, mas não extraiu itens, é ajuste de parser por estado/SEFAZ.
-        </p>
-      `;
-    }
-    alert("Falha ao importar NFC-e: " + (err?.message || err));
   }
-}
 
-function renderNfce(nfce) {
-  const warnings = (nfce.warnings || []).map((w) => `<li>${escapeHtml(w)}</li>`).join("");
-
-  const itensHtml = (nfce.itens || [])
-    .map(
-      (it, idx) => `
-    <tr>
-      <td style="padding:6px;border-bottom:1px solid #eee;">${idx + 1}</td>
-      <td style="padding:6px;border-bottom:1px solid #eee;">${escapeHtml(it.descricao || "")}</td>
-      <td style="padding:6px;border-bottom:1px solid #eee;">${escapeHtml(String(it.qtd ?? ""))}</td>
-      <td style="padding:6px;border-bottom:1px solid #eee;">${escapeHtml(it.un || "")}</td>
-      <td style="padding:6px;border-bottom:1px solid #eee;">${escapeHtml(String(it.vUnit ?? ""))}</td>
-      <td style="padding:6px;border-bottom:1px solid #eee;">${escapeHtml(String(it.vTotal ?? ""))}</td>
-    </tr>
-  `
-    )
-    .join("");
-
-  if (!elNfceResultado) return;
-
-  elNfceResultado.innerHTML = `
-    <div style="display:flex;flex-direction:column;gap:6px;">
-      <div><b>Emitente:</b> ${escapeHtml(nfce.emitente || "—")}</div>
-      <div><b>CNPJ:</b> ${escapeHtml(nfce.cnpj || "—")}</div>
-      <div><b>Data:</b> ${escapeHtml(nfce.dataEmissao || "—")}</div>
-      <div><b>Total:</b> ${escapeHtml(String(nfce.total ?? "—"))}</div>
-      <div style="margin-top:6px;"><b>Fonte:</b> <a href="${escapeHtml(nfce.sourceUrl || "#")}" target="_blank">abrir consulta</a></div>
-      ${warnings ? `<ul style="margin:10px 0;color:#8a6d3b;">${warnings}</ul>` : ""}
-    </div>
-
-    <div style="overflow:auto;margin-top:12px;">
-      <table style="border-collapse:collapse;width:100%;min-width:720px;">
-        <thead>
-          <tr>
-            <th style="text-align:left;padding:6px;border-bottom:2px solid #ddd;">#</th>
-            <th style="text-align:left;padding:6px;border-bottom:2px solid #ddd;">Produto</th>
-            <th style="text-align:left;padding:6px;border-bottom:2px solid #ddd;">Qtd</th>
-            <th style="text-align:left;padding:6px;border-bottom:2px solid #ddd;">Un</th>
-            <th style="text-align:left;padding:6px;border-bottom:2px solid #ddd;">V. Unit</th>
-            <th style="text-align:left;padding:6px;border-bottom:2px solid #ddd;">V. Total</th>
-          </tr>
-        </thead>
-        <tbody>${itensHtml || ""}</tbody>
-      </table>
-    </div>
-
-    <div style="margin-top:12px; display:flex; gap:10px; flex-wrap:wrap; align-items:center;">
-      <button id="btnEnviarPrecosNfce" type="button"
-        style="padding:10px 14px;border:1px solid #222;border-radius:10px;background:#fff;font-weight:700;cursor:pointer;">
-        📤 Enviar preços ao Quantocu$ta
-      </button>
-      <span id="nfceEnvioStatus" style="color:#555;font-size:.95rem;"></span>
-    </div>
-  `;
-
-  // liga o click do botão (precisa ser depois do innerHTML)
-  const btnEnviar = document.getElementById("btnEnviarPrecosNfce");
-  const elStatus = document.getElementById("nfceEnvioStatus");
-
-  if (btnEnviar) {
-    btnEnviar.onclick = () => enviarPrecosNfce(nfce, elStatus);
+  if (btnNfceLer) {
+    btnNfceLer.addEventListener("click", () => nfceLerUrl(elNfceUrl?.value || ""));
   }
-}
 
-// envia itens da NFC-e para o backend (rota a criar no server: POST /api/nfce/import-precos)
-async function enviarPrecosNfce(nfce, elStatus) {
-  try {
-    if (!nfce) nfce = ultimoNfce;
-
-    if (!nfce || !nfce.cnpj) {
-      if (elStatus) elStatus.textContent = "❌ NFC-e inválida (sem CNPJ).";
-      return;
-    }
-
-    const itens = Array.isArray(nfce.itens) ? nfce.itens : [];
-    if (!itens.length) {
-      if (elStatus) elStatus.textContent = "⚠️ Não há itens para enviar.";
-      return;
-    }
-
-    const payload = {
-      cidade: "Rio Grande",
-      sourceUrl: nfce.sourceUrl || null,
-      emitente: nfce.emitente || null,
-      cnpj: nfce.cnpj || null,
-      dataEmissao: nfce.dataEmissao || null,
-      itens: itens.map((it) => ({
-        descricao: it.descricao || "",
-        qtd: it.qtd ?? null,
-        un: it.un ?? null,
-        vUnit: it.vUnit ?? null,
-        vTotal: it.vTotal ?? null,
-      })),
-    };
-
-    if (elStatus) elStatus.textContent = "Enviando…";
-
-    const resp = await fetch(`${API_BASE}/nfce/import-precos`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(payload),
-    });
-
-    const txt = await resp.text();
-    let data = null;
-    try {
-      data = JSON.parse(txt);
-    } catch (e) {}
-
-    if (!resp.ok) {
-      const msg = data?.erro
-        ? `${data.erro}${data.detalhe ? " - " + data.detalhe : ""}`
-        : txt;
-      throw new Error(`HTTP ${resp.status} - ${msg}`);
-    }
-
-    if (elStatus) {
-      elStatus.textContent = `✅ Enviado! (${data?.enviados ?? 0} itens, ${data?.ignorados ?? 0} ignorados)`;
-    }
-  } catch (err) {
-    console.error(err);
-    if (elStatus) elStatus.textContent = "❌ Erro ao enviar (veja console).";
-    alert("Falha ao enviar preços: " + (err?.message || err));
+  if (btnNfceImportar) {
+    btnNfceImportar.addEventListener("click", nfceImportar);
   }
-}
+
+  // estado inicial
+  nfceEnableImport(false);
+})();
+
