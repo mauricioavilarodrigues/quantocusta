@@ -8,11 +8,82 @@
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="anonymous"/>
 <link rel="stylesheet" href="style.css?v=3" />
 
+<style>
+  /* Área central do cadastro */
+  .cadastro-container {
+    display: flex;
+    justify-content: center;
+    margin-top: 60px;
+  }
+
+  .cadastro-box {
+    background: #fff;
+    padding: 24px 30px;
+    border-radius: 10px;
+    width: 360px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+  }
+
+  .cadastro-box h1 {
+    text-align: center;
+    margin-bottom: 8px;
+  }
+
+  .cadastro-box p {
+    text-align: center;
+    margin-bottom: 16px;
+    color: #555;
+  }
+
+  .cadastro-box label {
+    display: block;
+    margin-top: 10px;
+    font-size: 14px;
+  }
+
+  .cadastro-box input {
+    width: 100%;
+    padding: 10px;
+    margin-top: 4px;
+    border-radius: 6px;
+    border: 1px solid #ccc;
+    font-size: 14px;
+  }
+
+  .cadastro-box button {
+    width: 100%;
+    padding: 10px;
+    margin-top: 16px;
+    border-radius: 6px;
+    border: none;
+    cursor: pointer;
+    font-size: 15px;
+    background: #333;
+    color: white;
+  }
+
+  #mensagem {
+    text-align: center;
+    margin-top: 10px;
+  }
+
+  .login-link {
+    text-align: center;
+    margin-top: 14px;
+  }
+
+  .login-link a {
+    color: #0066cc;
+    text-decoration: none;
+  }
+</style>
+
 </head>
 
 <body>
-  <!-- TOPO / BARRA INICIAL -->
- <header>
+
+<!-- TOPO / BARRA INICIAL -->
+<header>
   <nav>
     <a href="index.html">Início</a>
     <a href="quem-somos.html">Quem somos</a>
@@ -26,52 +97,58 @@
 
   <div class="auth-buttons">
     <a href="login.html">
-  <button id="btnAbrirLogin">Entrar</button>
-</a>
-    
-    <a id="btnCadastrar" href="cadastro.html" class="register-btn">Cadastre-se gratuitamente</a>
+      <button id="btnAbrirLogin">Entrar</button>
+    </a>
+    <a id="btnCadastrar" href="cadastro.html" class="register-btn">
+      Cadastre-se gratuitamente
+    </a>
   </div>
+</header>
 
-<main class="container-login">
+<!-- ÁREA DE CADASTRO -->
+<div class="cadastro-container">
+  <main class="cadastro-box">
 
-  <h1>Cadastre-se gratuitamente</h1>
-  <p>Crie sua conta para colaborar com preços no Quantocusta.</p>
+    <h1>Cadastre-se gratuitamente</h1>
+    <p>Crie sua conta para colaborar com preços no Quantocusta.</p>
 
-  <form id="formCadastro">
+    <form id="formCadastro">
 
-    <label>
-      Nome completo:
-      <input type="text" id="nome" required />
-    </label>
+      <label>
+        Nome completo:
+        <input type="text" id="nome" required />
+      </label>
 
-    <label>
-      Email:
-      <input type="email" id="email" required />
-    </label>
+      <label>
+        Email:
+        <input type="email" id="email" required />
+      </label>
 
-    <label>
-      Senha:
-      <input type="password" id="senha" required />
-    </label>
+      <label>
+        Senha:
+        <input type="password" id="senha" required />
+      </label>
 
-    <label>
-      Confirmar senha:
-      <input type="password" id="confirmarSenha" required />
-    </label>
+      <label>
+        Confirmar senha:
+        <input type="password" id="confirmarSenha" required />
+      </label>
 
-    <button type="submit">Criar conta</button>
+      <button type="submit">Criar conta</button>
 
-  </form>
+    </form>
 
-  <p id="mensagem"></p>
+    <p id="mensagem"></p>
 
-  <p>
-    Já tem conta?
-    <a href="login.html">Entrar</a>
-  </p>
+    <div class="login-link">
+      Já tem conta?
+      <a href="login.html">Entrar</a>
+    </div>
 
-</main>
+  </main>
+</div>
 
 <script src="js/cadastro.js"></script>
+
 </body>
 </html>
