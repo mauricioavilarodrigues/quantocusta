@@ -590,6 +590,8 @@ if (btnLerNota && btnFecharQr && elQrModal) {
   });
 }
 
+let qrLendo = false;
+
 async function abrirScannerQr() {
   elQrModal.style.display = "block";
   if (elQrStatus) elQrStatus.textContent = "Abrindo câmera...";
@@ -600,6 +602,7 @@ async function abrirScannerQr() {
     }
 
     if (!html5Qr) html5Qr = new Html5Qrcode("qrReader");
+    qrLendo = false;
 
     const config = { fps: 10, qrbox: { width: 250, height: 250 } };
 
@@ -607,7 +610,20 @@ async function abrirScannerQr() {
       { facingMode: "environment" },
       config,
       async (decodedText) => {
+        if (qrLendo) return;
+        qrLendo = true;
+
         if (elQrStatus) elQrStatus.textContent = "QR lido! Importando...";
+
+        // para o scanner imediatamente (evita múltiplas leituras)
+        try {
+          await html5Qr.stop();
+          await html5Qr.clear();
+        } catch (e) {}
+
+        elQrModal.style.display = "none";
+        if (elQrStatus) elQrStatus.textContent = "";
+
         await onQrLido(decodedText);
       },
       () => {}
