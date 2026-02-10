@@ -179,7 +179,7 @@
   <!-- anti-cache simples no GitHub Pages -->
   <script defer src="script.js?v=1"></script>
 
-  <script type="module">
+<script type="module">
 import { loginWithGoogle } from "./js/auth.js";
 
 const btnEntrar = document.getElementById("btnAbrirLogin");
@@ -187,23 +187,31 @@ const modal = document.getElementById("loginModal");
 const fechar = document.getElementById("fecharModal");
 const googleBtn = document.getElementById("googleLoginBtn");
 
-console.log(btnEntrar, modal, fechar, googleBtn);
+console.log("Login elements:", btnEntrar, modal, fechar, googleBtn);
 
-btnEntrar.addEventListener("click", () => {
-  modal.style.display = "block";
-});
+if (btnEntrar && modal && fechar && googleBtn) {
 
-fechar.addEventListener("click", () => {
-  modal.style.display = "none";
-});
+  btnEntrar.addEventListener("click", (e) => {
+    e.preventDefault();
+    modal.style.display = "block";
+  });
 
-window.addEventListener("click", (e) => {
-  if (e.target === modal) {
+  fechar.addEventListener("click", () => {
     modal.style.display = "none";
-  }
-});
+  });
 
-googleBtn.addEventListener("click", loginWithGoogle);
+  modal.addEventListener("click", (e) => {
+    if (e.target === modal) modal.style.display = "none";
+  });
+
+  googleBtn.addEventListener("click", (e) => {
+    e.preventDefault();
+    loginWithGoogle();
+  });
+
+} else {
+  console.error("❌ Elementos do login não encontrados no DOM");
+}
 </script>
 
 </body>
