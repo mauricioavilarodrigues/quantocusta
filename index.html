@@ -88,7 +88,6 @@
     <h3>Mapa de Localização</h3>
     <div id="map" style="height: 420px; width: 100%; border-radius: 12px;"></div>
   </div>
-
   <!-- CONTRIBUIR -->
   <div class="caixa contribuir-wrap">
     <h3>💬 Viu um preço diferente?</h3>
@@ -149,9 +148,35 @@
     </div>
   </div>
 
-  <!-- Área para mostrar a importação -->
+  <!-- Área de Importação + Prévia (URL ou QR) -->
   <div class="caixa" style="max-width:900px;margin:16px auto;">
     <h3>Importação da NFC-e</h3>
+
+    <div style="display:flex; gap:10px; flex-wrap:wrap; margin-bottom:10px;">
+      <button id="btnAbrirQr" type="button">📷 Ler QR (câmera)</button>
+      <button id="btnNfceLer" type="button">🔗 Ler URL</button>
+      <button id="btnNfceImportar" type="button" disabled>⬆️ Importar preços</button>
+    </div>
+
+    <input
+      id="nfceUrl"
+      type="text"
+      placeholder="Cole aqui a URL da NFC-e (do QR Code)"
+      style="width:100%; padding:10px; margin-bottom:8px;"
+    />
+
+    <input
+      id="nfceCidade"
+      type="text"
+      placeholder="Cidade (ex: Rio Grande/RS)"
+      style="width:100%; padding:10px; margin-bottom:10px;"
+    />
+
+    <div id="nfceStatus" style="margin:8px 0; font-size:.95rem;"></div>
+    <div id="nfcePreview" style="margin-top:10px;"></div>
+
+    <hr style="margin:14px 0; border:none; border-top:1px solid #eee;" />
+
     <div id="nfceResultado">Nenhuma nota importada ainda.</div>
   </div>
 
@@ -164,7 +189,6 @@
   <!-- anti-cache simples no GitHub Pages -->
   <script defer src="script.js?v=1"></script>
 
-}
 </script>
 
 </body>
