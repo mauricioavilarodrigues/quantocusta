@@ -32,7 +32,7 @@ btnContribuir?.addEventListener("click", () => {
 // CONTROLES DE FILTRO
 // ===============================
 function limparAtivos(grupo) {
-  document.querySelectorAll(grupo + " button").forEach(b => b.classList.remove("ativo"));
+  document.querySelectorAll(grupo + " button").forEach((b) => b.classList.remove("ativo"));
 }
 
 function setNicho(n, b) {
@@ -130,7 +130,7 @@ async function apiEnviarAvaliacao(id, acao) {
   const res = await fetch(`${API_BASE}/avaliacao`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ id: String(id), acao }) // acao: "confere"
+    body: JSON.stringify({ id: String(id), acao }), // acao: "confere"
   });
   if (!res.ok) throw new Error("Falha ao enviar avaliação: HTTP " + res.status);
   return await res.json();
@@ -160,7 +160,7 @@ async function apiEnviarSugestaoPreco(payload) {
 
 // aplica overrides (obj por id) ao array de produtos
 function aplicarOverridesDePreco(produtos, overridesPorId = {}) {
-  return (produtos || []).map(p => {
+  return (produtos || []).map((p) => {
     const id = String(p.id);
     const ov = overridesPorId?.[id];
     if (ov?.preco != null) return { ...p, preco: ov.preco };
@@ -189,25 +189,26 @@ async function buscar() {
   // 1) carrega overrides aprovados (se backend existir)
   let overridesPorId = {};
   try {
-    const idsLista = (lista || []).map(p => String(p.id)).filter(Boolean);
+    const idsLista = (lista || []).map((p) => String(p.id)).filter(Boolean);
     if (idsLista.length) overridesPorId = await apiGetOverridesAprovados(idsLista);
   } catch (e) {
     console.warn("⚠️ Não consegui carregar overrides aprovados:", e);
   }
 
   // 2) aplica override + filtro texto
-  let itens = aplicarOverridesDePreco(lista, overridesPorId)
-    .filter(p => (p.nome || "").toLowerCase().includes(termo));
+  let itens = aplicarOverridesDePreco(lista, overridesPorId).filter((p) =>
+    (p.nome || "").toLowerCase().includes(termo)
+  );
 
   // filtros por nicho
   if (nichoAtual === "combustivel") {
-    itens = itens.filter(p => (p.nome || "").toLowerCase().includes(tipoAtual.toLowerCase()));
+    itens = itens.filter((p) => (p.nome || "").toLowerCase().includes(tipoAtual.toLowerCase()));
   }
   if (nichoAtual === "supermercado") {
-    itens = itens.filter(p => (p.tipo || "") === categoriaAtual);
+    itens = itens.filter((p) => (p.tipo || "") === categoriaAtual);
   }
   if (nichoAtual === "farmacia") {
-    itens = itens.filter(p => (p.tipo || "") === categoriaFarmaciaAtual);
+    itens = itens.filter((p) => (p.tipo || "") === categoriaFarmaciaAtual);
   }
 
   if (!elResultado) return;
@@ -222,14 +223,26 @@ async function buscar() {
     const precoTxt = Number.isFinite(precoNum) ? precoNum.toFixed(2) : "0.00";
 
     li.innerHTML =
-      "<span><input type='checkbox' id='ck-" + index + "'> " +
+      "<span><input type='checkbox' id='ck-" +
+      index +
+      "'> " +
       (p.nome || "") +
-      "<br><small>" + (p.loja || p.posto || "") + "</small></span>" +
-      "<span class='preco'>R$ " + precoTxt + "</span>" +
+      "<br><small>" +
+      (p.loja || p.posto || "") +
+      "</small></span>" +
+      "<span class='preco'>R$ " +
+      precoTxt +
+      "</span>" +
       "<div class='avaliacao'>" +
-      "<button onclick='confirmarPreco(" + index + ")'>Confere <span id='confere-" + index + "'></span></button>" +
+      "<button onclick='confirmarPreco(" +
+      index +
+      ")'>Confere <span id='confere-" +
+      index +
+      "'></span></button>" +
       "<button class='btn-inserir-preco' type='button'>Atualizar preço</button>" +
-      "<div id='feedback-" + index + "'></div></div>";
+      "<div id='feedback-" +
+      index +
+      "'></div></div>";
 
     elResultado.appendChild(li);
 
@@ -237,7 +250,7 @@ async function buscar() {
     if (ck) {
       ck.addEventListener("change", (e) => {
         if (e.target.checked) cesta.push(p);
-        else cesta = cesta.filter(x => x.id !== p.id);
+        else cesta = cesta.filter((x) => x.id !== p.id);
       });
     }
   });
@@ -245,7 +258,7 @@ async function buscar() {
   // contadores + badge positivo
   try {
     const ids = Array.from(elResultado.querySelectorAll("li[data-id]"))
-      .map(li => li.dataset.id)
+      .map((li) => li.dataset.id)
       .filter(Boolean);
 
     if (ids.length) {
@@ -277,7 +290,7 @@ function compararCesta() {
   }
 
   const porLoja = {};
-  cesta.forEach(p => {
+  cesta.forEach((p) => {
     const loja = p.loja || p.posto || "Sem loja";
     const preco = Number(p.preco) || 0;
     porLoja[loja] = (porLoja[loja] || 0) + preco;
@@ -289,7 +302,7 @@ function compararCesta() {
   }
 
   let html = "<h3>Resultado da cesta</h3>";
-  Object.keys(porLoja).forEach(loja => {
+  Object.keys(porLoja).forEach((loja) => {
     const total = porLoja[loja];
     const cls = total === menor ? "menor" : "";
     html += `<div class="${cls}">${loja}: R$ ${total.toFixed(2)}</div>`;
@@ -315,7 +328,7 @@ if (mapEl) {
   window.map = map;
 
   L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
-    attribution: "© OpenStreetMap"
+    attribution: "© OpenStreetMap",
   }).addTo(map);
 
   layerPostos = L.layerGroup().addTo(map);
@@ -347,14 +360,14 @@ async function carregarPostosNoMapa() {
 
     const linhas = csvText
       .split(/\r?\n/)
-      .map(l => l.trim())
+      .map((l) => l.trim())
       .filter(Boolean);
 
     if (linhas.length < 2) throw new Error("Arquivo vazio ou sem dados.");
 
     const sep = linhas[0].includes("\t") ? "\t" : ",";
 
-    const header = linhas[0].split(sep).map(h => h.trim().toLowerCase());
+    const header = linhas[0].split(sep).map((h) => h.trim().toLowerCase());
 
     const idxNome = header.indexOf("nome");
     const idxLat = header.indexOf("latitude");
@@ -366,22 +379,23 @@ async function carregarPostosNoMapa() {
 
     const toNum = (v) => Number(String(v).trim().replace(",", "."));
 
-    postosIndex = linhas.slice(1)
-      .map(linha => {
-        const cols = linha.split(sep).map(c => c.trim());
+    postosIndex = linhas
+      .slice(1)
+      .map((linha) => {
+        const cols = linha.split(sep).map((c) => c.trim());
         return {
           nome: (idxNome >= 0 ? cols[idxNome] : "Posto") || "Posto",
           latitude: toNum(cols[idxLat]),
-          longitude: toNum(cols[idxLng])
+          longitude: toNum(cols[idxLng]),
         };
       })
-      .filter(p => Number.isFinite(p.latitude) && Number.isFinite(p.longitude));
+      .filter((p) => Number.isFinite(p.latitude) && Number.isFinite(p.longitude));
 
     layerPostos.clearLayers();
 
     let bounds = null;
 
-    postosIndex.forEach(p => {
+    postosIndex.forEach((p) => {
       L.marker([p.latitude, p.longitude])
         .addTo(layerPostos)
         .bindPopup(`<b>${escapeHtml(p.nome)}</b><br><small>Rio Grande/RS</small>`);
@@ -392,7 +406,6 @@ async function carregarPostosNoMapa() {
 
     if (bounds) map.fitBounds(bounds.pad(0.12));
     console.log("✅ Postos marcados no mapa:", postosIndex.length);
-
   } catch (e) {
     console.error("❌ Erro ao carregar postos_rio_grande_rs.csv:", e);
   }
@@ -412,13 +425,13 @@ function escapeHtml(str) {
 // ===============================
 function distanciaKm(lat1, lon1, lat2, lon2) {
   const R = 6371;
-  const dLat = (lat2 - lat1) * Math.PI / 180;
-  const dLon = (lon2 - lon1) * Math.PI / 180;
+  const dLat = ((lat2 - lat1) * Math.PI) / 180;
+  const dLon = ((lon2 - lon1) * Math.PI) / 180;
   const a =
     Math.sin(dLat / 2) ** 2 +
-    Math.cos(lat1 * Math.PI / 180) *
-    Math.cos(lat2 * Math.PI / 180) *
-    Math.sin(dLon / 2) ** 2;
+    Math.cos((lat1 * Math.PI) / 180) *
+      Math.cos((lat2 * Math.PI) / 180) *
+      Math.sin(dLon / 2) ** 2;
   return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
 }
 
@@ -428,7 +441,7 @@ function acharMelhorOpcao() {
   if (!postosIndex.length) return alert("Não há postos carregados no mapa.");
 
   let melhor = null;
-  postosIndex.forEach(p => {
+  postosIndex.forEach((p) => {
     const d = distanciaKm(usuarioPosicao.lat, usuarioPosicao.lng, p.latitude, p.longitude);
     if (!melhor || d < melhor.dist) melhor = { ...p, dist: d };
   });
@@ -453,7 +466,7 @@ function confirmarPreco(index) {
 
   if (id) {
     apiEnviarAvaliacao(id, "confere")
-      .then(ret => {
+      .then((ret) => {
         const totalConfere = ret?.confere;
 
         const span = document.getElementById("confere-" + index);
@@ -465,7 +478,7 @@ function confirmarPreco(index) {
           aplicarBadgeConfere(li, totalConfere);
         }
       })
-      .catch(e => console.warn("⚠️ Falha ao enviar confirmação:", e));
+      .catch((e) => console.warn("⚠️ Falha ao enviar confirmação:", e));
   }
 }
 
@@ -506,8 +519,13 @@ document.addEventListener("click", async (e) => {
     await apiEnviarSugestaoPreco({
       item_id: String(itemId),
       nicho: nichoAtual || null,
-      tipo: (nichoAtual === "combustivel" ? tipoAtual : null),
-      categoria: (nichoAtual === "supermercado" ? categoriaAtual : (nichoAtual === "farmacia" ? categoriaFarmaciaAtual : null)),
+      tipo: nichoAtual === "combustivel" ? tipoAtual : null,
+      categoria:
+        nichoAtual === "supermercado"
+          ? categoriaAtual
+          : nichoAtual === "farmacia"
+          ? categoriaFarmaciaAtual
+          : null,
       produto: nome,
       loja: loja,
       preco: novoPreco,
@@ -553,6 +571,7 @@ window.qc_apiEnviarAvaliacao = (id, acao) => apiEnviarAvaliacao(id, acao);
 window.__QC_TESTE = "OK-" + Date.now();
 console.log("✅ script.js carregado corretamente");
 console.log("QC_TESTE carregou:", window.__QC_TESTE);
+
 // ===============================
 // NFC-e QR Import (scanner + chamada backend)
 // ===============================
@@ -563,6 +582,9 @@ const elQrStatus = document.getElementById("qrStatus");
 const elNfceResultado = document.getElementById("nfceResultado");
 const btnLerNota = document.getElementById("btnLerNota");
 const btnFecharQr = document.getElementById("btnFecharQr");
+
+// guarda a última NFC-e parseada pra poder enviar depois
+let ultimoNfce = null;
 
 // debug mínimo (mostra erro no celular)
 window.addEventListener("error", (e) => {
@@ -665,7 +687,7 @@ async function onQrLido(decodedText) {
     const resp = await fetch(`${API_BASE}/nfce/parse`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ url })
+      body: JSON.stringify({ url }),
     });
 
     if (!resp.ok) {
@@ -674,6 +696,7 @@ async function onQrLido(decodedText) {
     }
 
     const data = await resp.json();
+    ultimoNfce = data; // guarda pra enviar depois
     renderNfce(data);
   } catch (err) {
     console.error(err);
@@ -691,9 +714,11 @@ async function onQrLido(decodedText) {
 }
 
 function renderNfce(nfce) {
-  const warnings = (nfce.warnings || []).map(w => `<li>${escapeHtml(w)}</li>`).join("");
+  const warnings = (nfce.warnings || []).map((w) => `<li>${escapeHtml(w)}</li>`).join("");
 
-  const itensHtml = (nfce.itens || []).map((it, idx) => `
+  const itensHtml = (nfce.itens || [])
+    .map(
+      (it, idx) => `
     <tr>
       <td style="padding:6px;border-bottom:1px solid #eee;">${idx + 1}</td>
       <td style="padding:6px;border-bottom:1px solid #eee;">${escapeHtml(it.descricao || "")}</td>
@@ -702,7 +727,9 @@ function renderNfce(nfce) {
       <td style="padding:6px;border-bottom:1px solid #eee;">${escapeHtml(String(it.vUnit ?? ""))}</td>
       <td style="padding:6px;border-bottom:1px solid #eee;">${escapeHtml(String(it.vTotal ?? ""))}</td>
     </tr>
-  `).join("");
+  `
+    )
+    .join("");
 
   if (!elNfceResultado) return;
 
@@ -731,5 +758,83 @@ function renderNfce(nfce) {
         <tbody>${itensHtml || ""}</tbody>
       </table>
     </div>
+
+    <div style="margin-top:12px; display:flex; gap:10px; flex-wrap:wrap; align-items:center;">
+      <button id="btnEnviarPrecosNfce" type="button"
+        style="padding:10px 14px;border:1px solid #222;border-radius:10px;background:#fff;font-weight:700;cursor:pointer;">
+        📤 Enviar preços ao Quantocu$ta
+      </button>
+      <span id="nfceEnvioStatus" style="color:#555;font-size:.95rem;"></span>
+    </div>
   `;
+
+  // liga o click do botão (precisa ser depois do innerHTML)
+  const btnEnviar = document.getElementById("btnEnviarPrecosNfce");
+  const elStatus = document.getElementById("nfceEnvioStatus");
+
+  if (btnEnviar) {
+    btnEnviar.onclick = () => enviarPrecosNfce(nfce, elStatus);
+  }
+}
+
+// envia itens da NFC-e para o backend (rota a criar no server: POST /api/nfce/import-precos)
+async function enviarPrecosNfce(nfce, elStatus) {
+  try {
+    if (!nfce) nfce = ultimoNfce;
+
+    if (!nfce || !nfce.cnpj) {
+      if (elStatus) elStatus.textContent = "❌ NFC-e inválida (sem CNPJ).";
+      return;
+    }
+
+    const itens = Array.isArray(nfce.itens) ? nfce.itens : [];
+    if (!itens.length) {
+      if (elStatus) elStatus.textContent = "⚠️ Não há itens para enviar.";
+      return;
+    }
+
+    const payload = {
+      cidade: "Rio Grande",
+      sourceUrl: nfce.sourceUrl || null,
+      emitente: nfce.emitente || null,
+      cnpj: nfce.cnpj || null,
+      dataEmissao: nfce.dataEmissao || null,
+      itens: itens.map((it) => ({
+        descricao: it.descricao || "",
+        qtd: it.qtd ?? null,
+        un: it.un ?? null,
+        vUnit: it.vUnit ?? null,
+        vTotal: it.vTotal ?? null,
+      })),
+    };
+
+    if (elStatus) elStatus.textContent = "Enviando…";
+
+    const resp = await fetch(`${API_BASE}/nfce/import-precos`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
+    });
+
+    const txt = await resp.text();
+    let data = null;
+    try {
+      data = JSON.parse(txt);
+    } catch (e) {}
+
+    if (!resp.ok) {
+      const msg = data?.erro
+        ? `${data.erro}${data.detalhe ? " - " + data.detalhe : ""}`
+        : txt;
+      throw new Error(`HTTP ${resp.status} - ${msg}`);
+    }
+
+    if (elStatus) {
+      elStatus.textContent = `✅ Enviado! (${data?.enviados ?? 0} itens, ${data?.ignorados ?? 0} ignorados)`;
+    }
+  } catch (err) {
+    console.error(err);
+    if (elStatus) elStatus.textContent = "❌ Erro ao enviar (veja console).";
+    alert("Falha ao enviar preços: " + (err?.message || err));
+  }
 }
