@@ -1,7 +1,7 @@
 import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm";
 
-const supabaseUrl = "https://abcd1234efgh.supabase.co"; // ⬅️ URL REAL
-const supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."; // ⬅️ ANON KEY REAL
+const supabaseUrl = "https://qhkzyrtuvdifglxeupru.supabase.co";
+const supabaseKey = "COLE_AQUI_SUA_ANON_PUBLIC_KEY";
 
 export const supabase = createClient(supabaseUrl, supabaseKey);
 
@@ -9,11 +9,9 @@ export async function loginWithGoogle() {
   const { error } = await supabase.auth.signInWithOAuth({
     provider: "google",
     options: {
-      redirectTo: window.location.origin + "/admin.html"
-    }
+      redirectTo: window.location.origin + "/index.html",
+    },
   });
 
-  if (error) {
-    alert("Erro no login: " + error.message);
-  }
+  if (error) alert("Erro no login: " + error.message);
 }
