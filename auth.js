@@ -1,13 +1,19 @@
 import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm";
 
-const supabaseUrl = "https://SEU_PROJETO.supabase.co";
-const supabaseKey = "SUA_PUBLIC_ANON_KEY";
+// 🔹 COLE AQUI OS DADOS DO SEU PROJETO SUPABASE
+const supabaseUrl = "https://SEU-PROJETO.supabase.co";
+const supabaseKey = "SUA_ANON_PUBLIC_KEY";
 
-const supabase = createClient(supabaseUrl, supabaseKey);
+// 🔹 CLIENTE SUPABASE
+export const supabase = createClient(supabaseUrl, supabaseKey);
 
+// 🔹 LOGIN COM GOOGLE
 export async function loginWithGoogle() {
   const { error } = await supabase.auth.signInWithOAuth({
-    provider: "google"
+    provider: "google",
+    options: {
+      redirectTo: window.location.origin + "/index.html"
+    }
   });
 
   if (error) {
