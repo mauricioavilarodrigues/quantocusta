@@ -157,7 +157,18 @@ async function apiEnviarSugestaoPreco(payload) {
   if (!res.ok) throw new Error("Falha ao enviar sugestão: HTTP " + res.status);
   return await res.json();
 }
+async function apiGetNfceItensAprovados({ cidade, q, nicho, limit = 60 } = {}) {
+  const qs = new URLSearchParams();
+  if (cidade) qs.set("cidade", cidade);
+  if (q) qs.set("q", q);
+  if (nicho) qs.set("nicho", nicho);
+  qs.set("limit", String(limit));
 
+  const url = `${API_BASE}/nfce/itens?${qs.toString()}`;
+  const res = await fetch(url, { cache: "no-store" });
+  if (!res.ok) throw new Error("Falha ao buscar NFC-e: HTTP " + res.status);
+  return await res.json(); // [{id,nome,loja,preco,origem,...}]
+}
 // aplica overrides (obj por id) ao array de produtos
 function aplicarOverridesDePreco(produtos, overridesPorId = {}) {
   return (produtos || []).map((p) => {
@@ -210,7 +221,42 @@ async function buscar() {
   if (nichoAtual === "farmacia") {
     itens = itens.filter((p) => (p.tipo || "") === categoriaFarmaciaAtual);
   }
+// 3) integra itens NFC-e aprovados (misturados na busca normal)
+try {
+  const cidade = "Rio Grande"; // depois a gente pode ligar num input
+  const nfce = await apiGetNfceItensAprovados({
+    cidade,
+    q: termo || "",
+    nicho: nichoAtual || "",
+    limit: termo && termo.length >= 2 ? 120 : 60,
+  });
 
+  // normaliza formato para ficar igual ao data.json
+  const nfceItens = (nfce || []).map((x) => ({
+  id: x.id,
+  nome: extrairNomeLimpoNfce(x.nome),
+  loja: x.loja,
+  preco: Number(x.preco), // normaliza para número
+  origem: "nfce",
+  dataEmissao: x.dataEmissao,
+  sourceUrl: x.sourceUrl,
+}));
+
+  // evita duplicar: se já existir item com mesmo (nome+loja), não adiciona
+  const seen = new Set(
+    (itens || []).map((p) => `${normTxt(p.nome)}|${normTxt(p.loja || p.posto)}`)
+  );
+
+  for (const p of nfceItens) {
+    const key = `${normTxt(p.nome)}|${normTxt(p.loja)}`;
+    if (!seen.has(key)) {
+      seen.add(key);
+      itens.push(p);
+    }
+  }
+} catch (e) {
+  console.warn("⚠️ NFC-e não integrou:", e);
+}
   if (!elResultado) return;
   elResultado.innerHTML = "";
   cesta = [];
@@ -221,12 +267,16 @@ async function buscar() {
 
     const precoNum = Number(p.preco);
     const precoTxt = Number.isFinite(precoNum) ? precoNum.toFixed(2) : "0.00";
-
-    li.innerHTML =
+    const isNfce = p.origem === "nfce";
+    const seloNfce = isNfce
+    ? " <span style='display:inline-block;margin-left:6px;font-size:12px;font-weight:900;padding:2px 8px;border:1px solid #333;border-radius:999px;background:#fffdf2;'>🧾 NFC-e</span>"
+    : "";
+   
+     li.innerHTML =
       "<span><input type='checkbox' id='ck-" +
       index +
       "'> " +
-      (p.nome || "") +
+      (p.nome || "") + seloNfce +
       "<br><small>" +
       (p.loja || p.posto || "") +
       "</small></span>" +
@@ -418,6 +468,22 @@ function escapeHtml(str) {
     .replaceAll(">", "&gt;")
     .replaceAll('"', "&quot;")
     .replaceAll("'", "&#039;");
+}
+function normTxt(s) {
+  return String(s || "")
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+function extrairNomeLimpoNfce(nomeBruto) {
+  // tenta pegar só o começo antes de "(Código:" pra ficar bonito
+  const s = String(nomeBruto || "").trim();
+  const i = s.toLowerCase().indexOf("(código:");
+  if (i > 0) return s.slice(0, i).trim();
+  return s;
 }
 
 // ===============================
