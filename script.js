@@ -384,47 +384,51 @@ async function buscar() {
   if (nichoAtual === "farmacia") {
     itens = itens.filter((p) => (p.tipo || "") === categoriaFarmaciaAtual);
   }
+// 3) integra itens NFC-e aprovados (legado)
+// 3) integra itens NFC-e aprovados (legado)
+try {
+  const cidade = "Rio Grande"; // depois a gente liga num input
 
-  // 3) integra itens NFC-e aprovados (legado)
-  try {
-    const cidade = "Rio Grande";
-    const nfce = await apiGetNfceItensAprovados({
-     console.log("NFCe primeiro item:", nfce?.[0]); cidade,
-      q: termo || "",
-      nicho: nichoAtual || "",
-      limit: termo && termo.length >= 2 ? 120 : 60,
-    });
+  const nfce = await apiGetNfceItensAprovados({
+    cidade,
+    q: termo || "",
+    nicho: nichoAtual || "",
+    limit: termo && termo.length >= 2 ? 120 : 60,
+  });
 
-   const nfceItens = (nfce || []).map((x) => {
-  const lojaOk =
-    String(x.loja || "").trim() ||
-    (x.cnpj ? `CNPJ ${String(x.cnpj).trim()}` : "Supermercado não identificado");
+  console.log("NFCe primeiro item:", nfce?.[0]);
 
-  return {
-    id: x.id,
-    nome: extrairNomeLimpoNfce(x.nome),
-    loja: lojaOk,
-    preco: Number(x.preco),
-    origem: "nfce",
-    dataEmissao: x.dataEmissao,
-    sourceUrl: x.sourceUrl,
-    cidade: x.cidade || "",
-    cnpj: x.cnpj || "",
-  };
-});
+  const nfceItens = (nfce || []).map((x) => {
+    const lojaOk =
+      String(x.loja || "").trim() ||
+      (x.cnpj ? `CNPJ ${String(x.cnpj).trim()}` : "Supermercado não identificado");
 
-    const seen = new Set((itens || []).map((p) => `${normTxt(p.nome)}|${normTxt(p.loja || p.posto)}`));
+    return {
+      id: x.id,
+      nome: extrairNomeLimpoNfce(x.nome),
+      loja: lojaOk,
+      preco: Number(x.preco),
+      cidade: x.cidade || "",
+      origem: "nfce",
+      dataEmissao: x.dataEmissao,
+      sourceUrl: x.sourceUrl,
+      cnpj: x.cnpj || "",
+    };
+  });
 
-    for (const p of nfceItens) {
-      const key = `${normTxt(p.nome)}|${normTxt(p.loja)}`;
-      if (!seen.has(key)) {
-        seen.add(key);
-        itens.push(p);
-      }
+  const seen = new Set((itens || []).map((p) => `${normTxt(p.nome)}|${normTxt(p.loja || p.posto)}`));
+
+  for (const p of nfceItens) {
+    const key = `${normTxt(p.nome)}|${normTxt(p.loja)}`;
+    if (!seen.has(key)) {
+      seen.add(key);
+      itens.push(p);
     }
-  } catch (e) {
-    console.warn("⚠️ NFC-e não integrou:", e);
   }
+} catch (e) {
+  console.warn("⚠️ NFC-e não integrou:", e);
+}
+
 
   // ====== NOVO: Também puxa do catálogo colaborativo (opcional) ======
   // Se tiver termo, puxa do catálogo e mistura como "catalogo"
