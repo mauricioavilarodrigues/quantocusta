@@ -1,42 +1,39 @@
 <!DOCTYPE html>
 <html lang="pt-br">
 <head>
-<meta charset="UTF-8" />
-<title>QUANTOCU$TA</title>
-<meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta charset="UTF-8" />
+  <title>QUANTOCU$TA</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
 
-<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="anonymous"/>
-<link rel="stylesheet" href="style.css?v=3" />
-
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="anonymous"/>
+  <link rel="stylesheet" href="style.css?v=3" />
 </head>
 
 <body>
   <!-- TOPO / BARRA INICIAL -->
- <header>
-  <nav>
-    <a href="index.html">Início</a>
-    <a href="quem-somos.html">Quem somos</a>
-    <a href="parceiro.html">Seja parceiro</a>
-    <a href="contato.html">Fale conosco</a>
-  </nav>
+  <header>
+    <nav>
+      <a href="index.html">Início</a>
+      <a href="quem-somos.html">Quem somos</a>
+      <a href="parceiro.html">Seja parceiro</a>
+      <a href="contato.html">Fale conosco</a>
+    </nav>
 
-  <h1 class="titulo">
-    <a class="slogan-botao" href="index.html">Masquantocusta 💰</a>
-  </h1>
+    <h1 class="titulo">
+      <a class="slogan-botao" href="index.html">Masquantocusta 💰</a>
+    </h1>
 
-  <div class="auth-buttons">
-    <a href="login.html">
-  <button id="btnAbrirLogin">Entrar</button>
-</a>
-    <a id="btnCadastrar" href="cadastro.html" class="register-btn">Cadastre-se gratuitamente</a>
-  </div>
+    <div class="auth-buttons">
+      <a href="login.html"><button id="btnAbrirLogin" type="button">Entrar</button></a>
+      <a id="btnCadastrar" href="cadastro.html" class="register-btn">Cadastre-se gratuitamente</a>
+    </div>
 
-  <!-- Área do usuário logado -->
-  <div id="areaUsuario" style="display:none;">
-    <span id="nomeUsuario"></span>
-    <button id="btnLogout">Sair</button>
-  </div>
-</header>
+    <!-- Área do usuário logado -->
+    <div id="areaUsuario" style="display:none;">
+      <span id="nomeUsuario"></span>
+      <button id="btnLogout" type="button">Sair</button>
+    </div>
+  </header>
 
   <!-- NICHOS -->
   <div class="topo">
@@ -60,18 +57,17 @@
     <button type="button" onclick="setCategoriaFarmacia('higiene',this)">🧴 Higiene</button>
   </div>
 
-    <form onsubmit="buscar(); return false;">
-      <div style="max-width:900px;margin:12px auto;display:flex;justify-content:center;gap:10px;flex-wrap:wrap;">
+  <!-- BUSCA -->
+  <form onsubmit="buscar(); return false;">
+    <div style="max-width:900px;margin:12px auto;display:flex;justify-content:center;gap:10px;flex-wrap:wrap;">
       <input id="busca" placeholder="Buscar..." />
       <button type="submit">Buscar</button>
-    </form>
-  </div>
+    </div>
+  </form>
 
   <div class="busca">
-  <ul id="resultado"></ul>
-</div>
-
-  <ul id="resultado"></ul>
+    <ul id="resultado"></ul>
+  </div>
 
   <div class="caixa">
     <button type="button" onclick="compararCesta()">🧺 Comparar cesta</button>
@@ -86,35 +82,32 @@
     <h3>Mapa de Localização</h3>
     <div id="map" style="height: 420px; width: 100%; border-radius: 12px;"></div>
   </div>
+
   <!-- CONTRIBUIR -->
   <div class="caixa contribuir-wrap">
     <h3>💬 Viu um preço diferente?</h3>
     <p style="margin-bottom:14px;">Clique no botão para abrir o formulário e contribuir.</p>
 
     <a href="contribuir.html">
-  <button
-    style="
-      background:#4f5dff;
-      color:#fff;
-      padding:14px 22px;
-      border-radius:999px;
-      font-weight:700;
-      border:none;
-      cursor:pointer;
-      box-shadow:0 8px 20px rgba(79,93,255,.35);
-    "
-  >
-    ➕ Contribuir com um preço
-  </button>
-</a>
-
+      <button
+        type="button"
+        style="
+          background:#4f5dff;
+          color:#fff;
+          padding:14px 22px;
+          border-radius:999px;
+          font-weight:700;
+          border:none;
+          cursor:pointer;
+          box-shadow:0 8px 20px rgba(79,93,255,.35);
+        "
+      >
+        ➕ Contribuir com um preço
+      </button>
+    </a>
   </div>
 
-  <!-- ===============================
-       NFC-e: Modal + Resultado
-       =============================== -->
-
-  <!-- Modal simples do Scanner -->
+  <!-- NFC-e: Modal + Resultado -->
   <div id="qrModal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,.6); z-index:9999;">
     <div style="max-width:520px;margin:6vh auto;background:#fff;border-radius:12px;padding:14px;">
       <div style="display:flex;justify-content:space-between;align-items:center;gap:12px;">
@@ -129,7 +122,6 @@
     </div>
   </div>
 
-  <!-- Área de Importação + Prévia (URL ou QR) -->
   <div class="caixa" style="max-width:900px;margin:16px auto;">
     <h3>Importação da NFC-e</h3>
 
@@ -164,11 +156,10 @@
   <!-- Lib do scanner (CDN) - precisa vir antes do script.js -->
   <script src="https://unpkg.com/html5-qrcode" crossorigin="anonymous"></script>
 
-  <!-- Leaflet + Seu JS -->
-  <script defer src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin="anonymous"></script>
+  <!-- Leaflet (carrega antes do seu script) -->
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin="anonymous"></script>
 
-  <!-- anti-cache simples no GitHub Pages -->
-  <script defer src="script.js?v=1"></script>
-
+  <!-- Seu JS -->
+  <script src="script.js?v=1"></script>
 </body>
 </html>
