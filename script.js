@@ -137,14 +137,13 @@ async function apiEnviarAvaliacao(id, acao) {
 }
 
 // ===============================
-// API - PREÇOS (sincronização)
+// API - PREÇOS (sincronização) - legado
 // ===============================
 async function apiGetOverridesAprovados(ids) {
   if (!ids?.length) return {};
   const url = `${API_BASE}/precos?status=aprovado&ids=${encodeURIComponent(ids.join(","))}`;
   const res = await fetch(url, { cache: "no-store" });
   if (!res.ok) throw new Error("Falha ao buscar overrides: HTTP " + res.status);
-  // esperado: { "1": { preco: 5.99 }, "2": { preco: 10.50 } }
   return await res.json();
 }
 
@@ -157,6 +156,10 @@ async function apiEnviarSugestaoPreco(payload) {
   if (!res.ok) throw new Error("Falha ao enviar sugestão: HTTP " + res.status);
   return await res.json();
 }
+
+// ===============================
+// API - NFC-e (legado para listar aprovados)
+// ===============================
 async function apiGetNfceItensAprovados({ cidade, q, nicho, limit = 60 } = {}) {
   const qs = new URLSearchParams();
   if (cidade) qs.set("cidade", cidade);
@@ -167,8 +170,9 @@ async function apiGetNfceItensAprovados({ cidade, q, nicho, limit = 60 } = {}) {
   const url = `${API_BASE}/nfce/itens?${qs.toString()}`;
   const res = await fetch(url, { cache: "no-store" });
   if (!res.ok) throw new Error("Falha ao buscar NFC-e: HTTP " + res.status);
-  return await res.json(); // [{id,nome,loja,preco,origem,...}]
+  return await res.json();
 }
+
 // aplica overrides (obj por id) ao array de produtos
 function aplicarOverridesDePreco(produtos, overridesPorId = {}) {
   return (produtos || []).map((p) => {
@@ -180,7 +184,165 @@ function aplicarOverridesDePreco(produtos, overridesPorId = {}) {
 }
 
 // ===============================
-// BUSCA (data.json + override do backend)
+// ===== NOVO: CATÁLOGO/OFERTAS =====
+// ===============================
+async function apiCatalogoBusca({ q, limit = 50 } = {}) {
+  const qs = new URLSearchParams();
+  if (q) qs.set("q", q);
+  qs.set("limit", String(limit));
+  const url = `${API_BASE}/catalogo/busca?${qs.toString()}`;
+  const res = await fetch(url, { cache: "no-store" });
+  if (!res.ok) throw new Error("Falha ao buscar catálogo: HTTP " + res.status);
+  return await res.json(); // [{id,nome,ean,nicho,categoria,status}]
+}
+
+async function apiOfertasPorItem({ item_id, limit = 50 } = {}) {
+  const qs = new URLSearchParams();
+  qs.set("item_id", String(item_id));
+  qs.set("limit", String(limit));
+  const url = `${API_BASE}/ofertas?${qs.toString()}`;
+  const res = await fetch(url, { cache: "no-store" });
+  if (!res.ok) throw new Error("Falha ao buscar ofertas: HTTP " + res.status);
+  return await res.json(); // [{preco,loja,cidade,uf,latitude,longitude,...}]
+}
+
+// ===============================
+// ===== NOVO: MODAL OFERTAS =====
+// (sem depender do HTML)
+// ===============================
+let qcModal = null;
+
+function ensureModal() {
+  if (qcModal) return qcModal;
+
+  const wrap = document.createElement("div");
+  wrap.id = "qcModalOfertas";
+  wrap.style.position = "fixed";
+  wrap.style.inset = "0";
+  wrap.style.background = "rgba(0,0,0,.45)";
+  wrap.style.display = "none";
+  wrap.style.zIndex = "9999";
+  wrap.style.padding = "20px";
+
+  wrap.innerHTML = `
+    <div style="max-width:860px;margin:0 auto;background:#fff;border-radius:16px;padding:16px;box-shadow:0 20px 60px rgba(0,0,0,.25);">
+      <div style="display:flex;justify-content:space-between;gap:12px;align-items:center;">
+        <div style="font-weight:900;font-size:16px;" id="qcModalTitulo">Ofertas</div>
+        <button id="qcModalFechar" style="border:0;background:#111;color:#fff;border-radius:999px;padding:8px 12px;cursor:pointer;">Fechar</button>
+      </div>
+      <div id="qcModalBody" style="margin-top:12px;max-height:70vh;overflow:auto;"></div>
+    </div>
+  `;
+
+  wrap.addEventListener("click", (e) => {
+    if (e.target === wrap) hideModal();
+  });
+
+  document.body.appendChild(wrap);
+  qcModal = wrap;
+
+  wrap.querySelector("#qcModalFechar")?.addEventListener("click", hideModal);
+  return qcModal;
+}
+
+function showModal({ titulo, html }) {
+  const m = ensureModal();
+  const t = m.querySelector("#qcModalTitulo");
+  const b = m.querySelector("#qcModalBody");
+  if (t) t.textContent = titulo || "Ofertas";
+  if (b) b.innerHTML = html || "";
+  m.style.display = "block";
+}
+
+function hideModal() {
+  if (qcModal) qcModal.style.display = "none";
+}
+
+async function abrirOfertasDoItem({ itemId, nome }) {
+  if (!itemId) return;
+
+  showModal({ titulo: nome || "Ofertas", html: "Carregando ofertas..." });
+
+  try {
+    const ofertas = await apiOfertasPorItem({ item_id: itemId, limit: 80 });
+    if (!Array.isArray(ofertas) || !ofertas.length) {
+      showModal({
+        titulo: nome || "Ofertas",
+        html: `<div style="padding:10px;border:1px solid #eee;border-radius:12px;">
+                Nenhuma oferta registrada ainda para este item.
+               </div>`,
+      });
+      return;
+    }
+
+    // ordena por menor preço (mais útil pro usuário)
+    const ordenadas = [...ofertas].sort((a, b) => Number(a.preco) - Number(b.preco));
+
+    const menor = Number(ordenadas[0].preco);
+
+    const rows = ordenadas
+      .map((o) => {
+        const preco = Number(o.preco);
+        const diff = Number.isFinite(preco) && Number.isFinite(menor) ? (preco - menor) : null;
+        const local = `${escapeHtml(o.loja || "—")}${
+          o.cidade || o.uf ? ` • <small style="opacity:.8">${escapeHtml(o.cidade || "")}${o.uf ? "/" + escapeHtml(o.uf) : ""}</small>` : ""
+        }`;
+
+        const coords =
+          Number.isFinite(Number(o.latitude)) && Number.isFinite(Number(o.longitude))
+            ? `<button class="qc-btn-mapa" data-lat="${o.latitude}" data-lng="${o.longitude}" style="margin-left:10px;border:1px solid #ddd;background:#fff;border-radius:999px;padding:6px 10px;cursor:pointer;">Ver no mapa</button>`
+            : "";
+
+        return `
+          <div style="display:flex;justify-content:space-between;gap:12px;align-items:center;padding:10px;border:1px solid #eee;border-radius:12px;margin-bottom:10px;">
+            <div>
+              <div style="font-weight:800;">${local}${coords}</div>
+              <div style="margin-top:4px;opacity:.8;font-size:13px;">${escapeHtml(String(o.data_compra || ""))} ${o.origem ? " • " + escapeHtml(o.origem) : ""}</div>
+            </div>
+            <div style="font-weight:900;font-size:16px;">R$ ${Number.isFinite(preco) ? preco.toFixed(2) : "—"}
+              ${
+                diff != null && diff > 0
+                  ? `<div style="font-size:12px;opacity:.8;text-align:right;">+${diff.toFixed(2)}</div>`
+                  : diff === 0
+                  ? `<div style="font-size:12px;opacity:.8;text-align:right;">melhor</div>`
+                  : ""
+              }
+            </div>
+          </div>
+        `;
+      })
+      .join("");
+
+    showModal({
+      titulo: nome || "Ofertas",
+      html: rows,
+    });
+
+    // bind botão "Ver no mapa"
+    const body = qcModal?.querySelector("#qcModalBody");
+    body?.querySelectorAll(".qc-btn-mapa")?.forEach((btn) => {
+      btn.addEventListener("click", () => {
+        const lat = Number(btn.getAttribute("data-lat"));
+        const lng = Number(btn.getAttribute("data-lng"));
+        if (!map || !Number.isFinite(lat) || !Number.isFinite(lng)) return;
+        hideModal();
+        map.setView([lat, lng], 16);
+        L.marker([lat, lng]).addTo(map).bindPopup("<b>Local da compra</b>").openPopup();
+      });
+    });
+  } catch (e) {
+    console.warn(e);
+    showModal({
+      titulo: nome || "Ofertas",
+      html: `<div style="padding:10px;border:1px solid #eee;border-radius:12px;color:crimson;">
+              Falha ao carregar ofertas.
+            </div>`,
+    });
+  }
+}
+
+// ===============================
+// BUSCA
 // ===============================
 async function buscar() {
   if (!nichoAtual) return alert("Selecione um nicho.");
@@ -191,13 +353,14 @@ async function buscar() {
 
   const termo = (elBusca?.value || "").toLowerCase();
 
+  // ====== MODO ATUAL (data.json + overrides + NFC-e legado) ======
   const res = await fetch("./data.json?v=" + Date.now(), { cache: "no-store" });
   if (!res.ok) throw new Error("HTTP " + res.status);
   const data = await res.json();
 
   const lista = Array.isArray(data[nichoAtual]) ? data[nichoAtual] : [];
 
-  // 1) carrega overrides aprovados (se backend existir)
+  // 1) carrega overrides aprovados (legado)
   let overridesPorId = {};
   try {
     const idsLista = (lista || []).map((p) => String(p.id)).filter(Boolean);
@@ -221,42 +384,70 @@ async function buscar() {
   if (nichoAtual === "farmacia") {
     itens = itens.filter((p) => (p.tipo || "") === categoriaFarmaciaAtual);
   }
-// 3) integra itens NFC-e aprovados (misturados na busca normal)
-try {
-  const cidade = "Rio Grande"; // depois a gente pode ligar num input
-  const nfce = await apiGetNfceItensAprovados({
-    cidade,
-    q: termo || "",
-    nicho: nichoAtual || "",
-    limit: termo && termo.length >= 2 ? 120 : 60,
-  });
 
-  // normaliza formato para ficar igual ao data.json
-  const nfceItens = (nfce || []).map((x) => ({
-  id: x.id,
-  nome: extrairNomeLimpoNfce(x.nome),
-  loja: x.loja,
-  preco: Number(x.preco), // normaliza para número
-  origem: "nfce",
-  dataEmissao: x.dataEmissao,
-  sourceUrl: x.sourceUrl,
-}));
+  // 3) integra itens NFC-e aprovados (legado)
+  try {
+    const cidade = "Rio Grande";
+    const nfce = await apiGetNfceItensAprovados({
+      cidade,
+      q: termo || "",
+      nicho: nichoAtual || "",
+      limit: termo && termo.length >= 2 ? 120 : 60,
+    });
 
-  // evita duplicar: se já existir item com mesmo (nome+loja), não adiciona
-  const seen = new Set(
-    (itens || []).map((p) => `${normTxt(p.nome)}|${normTxt(p.loja || p.posto)}`)
-  );
+    const nfceItens = (nfce || []).map((x) => ({
+      id: x.id,
+      nome: extrairNomeLimpoNfce(x.nome),
+      loja: x.loja,
+      cidade: x.cidade,
+      preco: Number(x.preco),
+      origem: "nfce",
+      dataEmissao: x.dataEmissao,
+      sourceUrl: x.sourceUrl,
+      cnpj: x.cnpj,
+    }));
 
-  for (const p of nfceItens) {
-    const key = `${normTxt(p.nome)}|${normTxt(p.loja)}`;
-    if (!seen.has(key)) {
-      seen.add(key);
-      itens.push(p);
+    const seen = new Set((itens || []).map((p) => `${normTxt(p.nome)}|${normTxt(p.loja || p.posto)}`));
+
+    for (const p of nfceItens) {
+      const key = `${normTxt(p.nome)}|${normTxt(p.loja)}`;
+      if (!seen.has(key)) {
+        seen.add(key);
+        itens.push(p);
+      }
     }
+  } catch (e) {
+    console.warn("⚠️ NFC-e não integrou:", e);
   }
-} catch (e) {
-  console.warn("⚠️ NFC-e não integrou:", e);
-}
+
+  // ====== NOVO: Também puxa do catálogo colaborativo (opcional) ======
+  // Se tiver termo, puxa do catálogo e mistura como "catalogo"
+  try {
+    if (termo && termo.trim().length >= 2) {
+      const cat = await apiCatalogoBusca({ q: termo.trim(), limit: 40 });
+      const catItens = (cat || [])
+        .filter((x) => !nichoAtual || !x.nicho || x.nicho === nichoAtual) // se você preencher nicho na tabela, ajuda
+        .map((x) => ({
+          id: x.id,
+          nome: x.nome,
+          loja: "", // catálogo não é por loja; ofertas vêm depois
+          cidade: "",
+          preco: null, // preço vem das ofertas; vamos mostrar "ver ofertas"
+          origem: "catalogo",
+        }));
+
+      const seenId = new Set((itens || []).map((p) => String(p.id)));
+      for (const c of catItens) {
+        if (!seenId.has(String(c.id))) {
+          seenId.add(String(c.id));
+          itens.push(c);
+        }
+      }
+    }
+  } catch (e) {
+    console.warn("⚠️ Catálogo novo não integrou:", e);
+  }
+
   if (!elResultado) return;
   elResultado.innerHTML = "";
   cesta = [];
@@ -266,19 +457,35 @@ try {
     li.dataset.id = p.id;
 
     const precoNum = Number(p.preco);
-    const precoTxt = Number.isFinite(precoNum) ? precoNum.toFixed(2) : "0.00";
-    const isNfce = p.origem === "nfce";
-    const seloNfce = isNfce
-    ? " <span style='display:inline-block;margin-left:6px;font-size:12px;font-weight:900;padding:2px 8px;border:1px solid #333;border-radius:999px;background:#fffdf2;'>🧾 NFC-e</span>"
-    : "";
-   
-     li.innerHTML =
+    const precoTxt = Number.isFinite(precoNum) ? precoNum.toFixed(2) : "—";
+
+    const origem = p.origem || "";
+    const isNfce = origem === "nfce";
+    const isCatalogo = origem === "catalogo";
+
+    const selo =
+      isNfce
+        ? " <span style='display:inline-block;margin-left:6px;font-size:12px;font-weight:900;padding:2px 8px;border:1px solid #333;border-radius:999px;background:#fffdf2;'>🧾 NFC-e</span>"
+        : isCatalogo
+        ? " <span style='display:inline-block;margin-left:6px;font-size:12px;font-weight:900;padding:2px 8px;border:1px solid #333;border-radius:999px;background:#f2f7ff;'>📚 Catálogo</span>"
+        : "";
+
+    const subtitulo = (() => {
+      const loja = (p.loja || p.posto || "").trim();
+      const cidade = (p.cidade || "").trim();
+      if (loja && cidade) return `${loja} • ${cidade}`;
+      if (loja) return loja;
+      if (cidade) return cidade;
+      return isCatalogo ? "Clique em Ver ofertas" : "";
+    })();
+
+    li.innerHTML =
       "<span><input type='checkbox' id='ck-" +
       index +
       "'> " +
-      (p.nome || "") + seloNfce +
+      (escapeHtml(p.nome || "") + selo) +
       "<br><small>" +
-      (p.loja || p.posto || "") +
+      escapeHtml(subtitulo) +
       "</small></span>" +
       "<span class='preco'>R$ " +
       precoTxt +
@@ -290,18 +497,33 @@ try {
       index +
       "'></span></button>" +
       "<button class='btn-inserir-preco' type='button'>Atualizar preço</button>" +
+      (p.id
+        ? "<button class='btn-ver-ofertas' type='button' style='margin-left:6px;'>Ver ofertas</button>"
+        : "") +
       "<div id='feedback-" +
       index +
       "'></div></div>";
 
     elResultado.appendChild(li);
 
+    // checkbox para cesta (se preço for válido; catálogo sem preço não entra)
     const ck = li.querySelector("#ck-" + index);
     if (ck) {
       ck.addEventListener("change", (e) => {
+        if (!Number.isFinite(Number(p.preco))) {
+          // catálogo sem preço não entra na cesta
+          e.target.checked = false;
+          return alert("Esse item é do catálogo. Clique em “Ver ofertas” para ver preços por loja.");
+        }
         if (e.target.checked) cesta.push(p);
         else cesta = cesta.filter((x) => x.id !== p.id);
       });
+    }
+
+    // botão ver ofertas
+    const btnOfertas = li.querySelector(".btn-ver-ofertas");
+    if (btnOfertas) {
+      btnOfertas.addEventListener("click", () => abrirOfertasDoItem({ itemId: p.id, nome: p.nome }));
     }
   });
 
@@ -355,7 +577,7 @@ function compararCesta() {
   Object.keys(porLoja).forEach((loja) => {
     const total = porLoja[loja];
     const cls = total === menor ? "menor" : "";
-    html += `<div class="${cls}">${loja}: R$ ${total.toFixed(2)}</div>`;
+    html += `<div class="${cls}">${escapeHtml(loja)}: R$ ${total.toFixed(2)}</div>`;
   });
 
   elCestaResultado.innerHTML = html;
@@ -367,11 +589,10 @@ function compararCesta() {
 const centroRG = [-32.035, -52.098];
 const mapEl = document.getElementById("map");
 
-// variáveis do mapa
 let map = null;
 let layerPostos = null;
 let usuarioPosicao = null;
-let postosIndex = []; // [{nome, latitude, longitude}]
+let postosIndex = [];
 
 if (mapEl) {
   map = L.map("map").setView(centroRG, 13);
@@ -469,6 +690,7 @@ function escapeHtml(str) {
     .replaceAll('"', "&quot;")
     .replaceAll("'", "&#039;");
 }
+
 function normTxt(s) {
   return String(s || "")
     .toLowerCase()
@@ -479,7 +701,6 @@ function normTxt(s) {
 }
 
 function extrairNomeLimpoNfce(nomeBruto) {
-  // tenta pegar só o começo antes de "(Código:" pra ficar bonito
   const s = String(nomeBruto || "").trim();
   const i = s.toLowerCase().indexOf("(código:");
   if (i > 0) return s.slice(0, i).trim();
@@ -568,7 +789,6 @@ document.addEventListener("click", async (e) => {
 
   if (!Number.isFinite(novoPreco) || novoPreco <= 0) return alert("Preço inválido.");
 
-  // pega dados do item (nome/loja) do DOM
   const nome = (itemEl.querySelector("span")?.innerText || "").split("\n")[0].trim() || "Produto";
   const loja = (itemEl.querySelector("small")?.innerText || "").trim() || "Sem loja";
 
@@ -600,7 +820,6 @@ document.addEventListener("click", async (e) => {
 
     msg.textContent = "✅ Enviado para aprovação. Após aprovado, aparece em todos os dispositivos.";
 
-    // opcional: preview local
     const precoEl = itemEl.querySelector(".preco");
     if (precoEl) {
       const badgePos = precoEl.querySelector(".badge-confere");
@@ -640,13 +859,10 @@ console.log("QC_TESTE carregou:", window.__QC_TESTE);
 
 // ===============================
 // NFC-e (QR + Ler URL + Prévia + Importar)
-// Compatível com o HTML novo: btnAbrirQr, btnNfceLer, btnNfceImportar,
-// nfceUrl, nfceCidade, nfceStatus, nfcePreview, nfceResultado
 // ===============================
 let html5Qr = null;
 let qrLendo = false;
 
-// guarda a última NFC-e parseada pra poder importar
 let ultimoNfce = null;
 
 // elementos do HTML novo
@@ -666,7 +882,6 @@ const elNfceCidade = document.getElementById("nfceCidade");
 const elNfceStatus = document.getElementById("nfceStatus");
 const elNfcePreview = document.getElementById("nfcePreview");
 
-// debug mínimo (celular)
 window.addEventListener("error", (e) => console.warn("ERRO JS:", e.message || e.error));
 window.addEventListener("unhandledrejection", (e) => console.warn("PROMISE ERRO:", e.reason));
 
@@ -687,9 +902,7 @@ function nfceRenderPreview(nfce) {
   const itens = Array.isArray(nfce?.itens) ? nfce.itens : [];
 
   const warningsHtml = warnings.length
-    ? `<ul style="margin:10px 0;color:#8a6d3b;">${warnings
-        .map((w) => `<li>${escapeHtml(w)}</li>`)
-        .join("")}</ul>`
+    ? `<ul style="margin:10px 0;color:#8a6d3b;">${warnings.map((w) => `<li>${escapeHtml(w)}</li>`).join("")}</ul>`
     : "";
 
   const itensHtml = itens
@@ -715,9 +928,7 @@ function nfceRenderPreview(nfce) {
       <div><b>Data:</b> ${escapeHtml(nfce?.dataEmissao || "—")}</div>
       <div><b>Total:</b> ${escapeHtml(String(nfce?.total ?? "—"))}</div>
       <div style="margin-top:6px;"><b>Fonte:</b> ${
-        nfce?.sourceUrl
-          ? `<a href="${escapeHtml(nfce.sourceUrl)}" target="_blank">abrir consulta</a>`
-          : "—"
+        nfce?.sourceUrl ? `<a href="${escapeHtml(nfce.sourceUrl)}" target="_blank">abrir consulta</a>` : "—"
       }</div>
       ${warningsHtml}
     </div>
@@ -792,14 +1003,15 @@ async function nfceImportar() {
   }
 
   const cidade = (elNfceCidade?.value || "").trim() || "Rio Grande";
-
   const itens = Array.isArray(ultimoNfce.itens) ? ultimoNfce.itens : [];
+
   if (!ultimoNfce.cnpj || !itens.length) {
     nfceSetStatus("NFC-e inválida (sem CNPJ ou itens).", true);
     return;
   }
 
-  const payload = {
+  // ===== Importação LEGADO (precos_sugestoes) - mantém =====
+  const payloadLegado = {
     cidade,
     sourceUrl: ultimoNfce.sourceUrl || null,
     emitente: ultimoNfce.emitente || null,
@@ -814,35 +1026,66 @@ async function nfceImportar() {
     })),
   };
 
+  // ===== Importação NOVA (catalogo/locais/ofertas) =====
+  const payloadNovo = {
+    loja: ultimoNfce.emitente || null,
+    cidade,
+    uf: "RS",
+    cnpj: ultimoNfce.cnpj || null,
+    chave_nfce: null,
+    data_compra: null,
+    itens: itens.map((it) => ({
+      nome: it.descricao || "",
+      preco: parseMoneyFlexible(it.vUnit) ?? calcFromTotal(it),
+      nicho: "supermercado",
+      categoria: categoriaAtual || null,
+    })),
+  };
+
   nfceSetStatus("Importando preços…");
   nfceEnableImport(false);
 
   try {
-    const resp = await fetch(`${API_BASE}/nfce/import-precos`, {
+    // 1) legado (mantém o que você já usa)
+    const resp1 = await fetch(`${API_BASE}/nfce/import-precos`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(payload),
+      body: JSON.stringify(payloadLegado),
     });
-
-    const data = await resp.json().catch(() => ({}));
-
-    if (!resp.ok) {
-      const msg = data?.erro ? `${data.erro}${data.detalhe ? " - " + data.detalhe : ""}` : `HTTP ${resp.status}`;
+    const data1 = await resp1.json().catch(() => ({}));
+    if (!resp1.ok) {
+      const msg = data1?.erro ? `${data1.erro}${data1.detalhe ? " - " + data1.detalhe : ""}` : `HTTP ${resp1.status}`;
       throw new Error(msg);
     }
 
-    nfceSetStatus(`✅ Importação OK. Enviados: ${data?.enviados ?? 0} | Ignorados: ${data?.ignorados ?? 0}`);
+    // 2) novo modelo (para catálogo/ofertas)
+    const resp2 = await fetch(`${API_BASE}/nfce/importar`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payloadNovo),
+    });
+    const data2 = await resp2.json().catch(() => ({}));
+    if (!resp2.ok) {
+      console.warn("⚠️ Importação nova falhou:", data2);
+      // não derruba tudo, mas avisa
+    }
+
+    nfceSetStatus(
+      `✅ Importação OK. Legado enviados: ${data1?.enviados ?? 0} | Ignorados: ${data1?.ignorados ?? 0}` +
+        (data2?.ok ? ` • Novo modelo ofertas: ${data2?.ofertas_inseridas ?? 0}` : ` • (Novo modelo não confirmado)`)
+    );
+
     if (elNfceResultado) {
       elNfceResultado.innerHTML = `
         <div style="padding:10px;border:1px solid #e6e6e6;border-radius:12px;">
           <div><b>Importação concluída</b></div>
-          <div>Enviados: <b>${data?.enviados ?? 0}</b> | Ignorados: <b>${data?.ignorados ?? 0}</b></div>
+          <div>Legado: Enviados <b>${data1?.enviados ?? 0}</b> | Ignorados <b>${data1?.ignorados ?? 0}</b></div>
+          <div>Novo modelo: ${data2?.ok ? `Ofertas inseridas <b>${data2?.ofertas_inseridas ?? 0}</b>` : `<span style="color:#b26a00;">não confirmado</span>`}</div>
           <div style="margin-top:6px; color:#666;">${escapeHtml(ultimoNfce.emitente || "")}</div>
         </div>
       `;
     }
 
-    // mantém preview, mas desabilita reimport direto
     nfceEnableImport(false);
   } catch (err) {
     console.error(err);
@@ -850,6 +1093,17 @@ async function nfceImportar() {
     nfceEnableImport(true);
     alert("Falha ao importar preços: " + (err?.message || err));
   }
+}
+
+function parseMoneyFlexible(v) {
+  const n = Number(String(v ?? "").trim().replace(/\./g, "").replace(",", ".").replace(/[^\d.-]/g, ""));
+  return Number.isFinite(n) ? n : null;
+}
+function calcFromTotal(it) {
+  const qtd = Number(String(it?.qtd ?? "").replace(",", "."));
+  const total = parseMoneyFlexible(it?.vTotal);
+  if (Number.isFinite(total) && Number.isFinite(qtd) && qtd > 0) return total / qtd;
+  return null;
 }
 
 // -------------------
@@ -877,7 +1131,6 @@ async function abrirScannerQr() {
         if (qrLendo) return;
         qrLendo = true;
 
-        // para o scanner (evita múltiplas leituras)
         try {
           await html5Qr.stop();
           await html5Qr.clear();
@@ -917,7 +1170,6 @@ async function fecharScannerQr() {
 // Bind de botões (HTML novo)
 // -------------------
 (function initNfceUI() {
-  // se os elementos não existirem (página diferente), não quebra
   if (btnAbrirQr) btnAbrirQr.addEventListener("click", abrirScannerQr);
   if (btnFecharQr) btnFecharQr.addEventListener("click", fecharScannerQr);
 
@@ -935,7 +1187,5 @@ async function fecharScannerQr() {
     btnNfceImportar.addEventListener("click", nfceImportar);
   }
 
-  // estado inicial
   nfceEnableImport(false);
 })();
-
