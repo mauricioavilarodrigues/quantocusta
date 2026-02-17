@@ -11,7 +11,8 @@ const mensagem = document.getElementById("mensagem");
 form.addEventListener("submit", async (e) => {
   e.preventDefault();
 
-  const nome = document.getElementById("nome").value.trim();
+  const nome = document.getElementById("nome").value;
+  const sobrenome = document.getElementById("sobrenome").value;
   const email = document.getElementById("email").value.trim();
   const senha = document.getElementById("senha").value;
   const confirmarSenha = document.getElementById("confirmarSenha").value;
