@@ -389,7 +389,7 @@ async function buscar() {
   try {
     const cidade = "Rio Grande";
     const nfce = await apiGetNfceItensAprovados({
-      cidade,
+     console.log("NFCe primeiro item:", nfce?.[0]); cidade,
       q: termo || "",
       nicho: nichoAtual || "",
       limit: termo && termo.length >= 2 ? 120 : 60,
