@@ -395,17 +395,23 @@ async function buscar() {
       limit: termo && termo.length >= 2 ? 120 : 60,
     });
 
-    const nfceItens = (nfce || []).map((x) => ({
-      id: x.id,
-      nome: extrairNomeLimpoNfce(x.nome),
-      loja: x.loja,
-      cidade: x.cidade,
-      preco: Number(x.preco),
-      origem: "nfce",
-      dataEmissao: x.dataEmissao,
-      sourceUrl: x.sourceUrl,
-      cnpj: x.cnpj,
-    }));
+   const nfceItens = (nfce || []).map((x) => {
+  const lojaOk =
+    String(x.loja || "").trim() ||
+    (x.cnpj ? `CNPJ ${String(x.cnpj).trim()}` : "Supermercado não identificado");
+
+  return {
+    id: x.id,
+    nome: extrairNomeLimpoNfce(x.nome),
+    loja: lojaOk,
+    preco: Number(x.preco),
+    origem: "nfce",
+    dataEmissao: x.dataEmissao,
+    sourceUrl: x.sourceUrl,
+    cidade: x.cidade || "",
+    cnpj: x.cnpj || "",
+  };
+});
 
     const seen = new Set((itens || []).map((p) => `${normTxt(p.nome)}|${normTxt(p.loja || p.posto)}`));
 
