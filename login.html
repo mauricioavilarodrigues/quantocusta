@@ -90,29 +90,37 @@
 </header>
 
 <!-- ÁREA DE LOGIN -->
-<div class="login-container">
-  <div class="login-box">
+<main class="container-login">
 
-    <h2>Entrar</h2>
+  <h1>Entrar</h1>
+  <p>Acesse sua conta.</p>
 
-    <button id="googleLoginBtn">Entrar com Google</button>
+  <form id="formLogin">
 
-    <hr>
+    <label>
+      Email:
+      <input type="email" id="email" required />
+    </label>
 
-    <input type="email" placeholder="Digite seu e-mail">
-    <input type="password" placeholder="Digite sua senha">
+    <label>
+      Senha:
+      <input type="password" id="senha" required />
+    </label>
 
-    <button>Entrar</button>
+    <button type="submit">Entrar</button>
 
-  </div>
-</div>
+  </form>
 
-<script type="module">
-  import { loginWithGoogle } from "./auth.js";
+  <p id="mensagem"></p>
 
-  document.getElementById("googleLoginBtn")
-    .addEventListener("click", loginWithGoogle);
-</script>
+  <p>
+    Não tem conta?
+    <a href="cadastro.html">Cadastre-se</a>
+  </p>
+
+</main>
+
+<script type="module" src="js/login.js"></script>
 
 </body>
 </html>
