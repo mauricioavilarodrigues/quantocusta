@@ -1,7 +1,14 @@
+import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm";
+
+const supabaseUrl = "https://SEU_PROJECT_ID.supabase.co";
+const supabaseKey = "SUA_ANON_PUBLIC_KEY";
+
+const supabase = createClient(supabaseUrl, supabaseKey);
+
 const form = document.getElementById("formCadastro");
 const mensagem = document.getElementById("mensagem");
 
-form.addEventListener("submit", (e) => {
+form.addEventListener("submit", async (e) => {
   e.preventDefault();
 
   const nome = document.getElementById("nome").value.trim();
@@ -27,12 +34,24 @@ form.addEventListener("submit", (e) => {
     return;
   }
 
-  // Simulação de cadastro (por enquanto)
-  console.log("Usuário cadastrado:");
-  console.log({ nome, email });
+  // Cadastro real no Supabase
+  const { data, error } = await supabase.auth.signUp({
+    email: email,
+    password: senha,
+    options: {
+      data: {
+        nome: nome
+      }
+    }
+  });
 
-  mensagem.textContent = "Conta criada com sucesso! (simulação)";
+  if (error) {
+    mensagem.textContent = "Erro: " + error.message;
+    mensagem.style.color = "red";
+    return;
+  }
+
+  mensagem.textContent = "Conta criada com sucesso!";
   mensagem.style.color = "green";
-
   form.reset();
 });
