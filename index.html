@@ -12,28 +12,32 @@
 <body>
   <!-- TOPO / BARRA INICIAL -->
   <header>
-    <nav>
-      <a href="index.html">Início</a>
-      <a href="quem-somos.html">Quem somos</a>
-      <a href="parceiro.html">Seja parceiro</a>
-      <a href="contato.html">Fale conosco</a>
-    </nav>
+  <nav>
+    <a href="index.html">Início</a>
+    <a href="quem-somos.html">Quem somos</a>
+    <a href="parceiro.html">Seja parceiro</a>
+    <a href="contato.html">Fale conosco</a>
+  </nav>
 
-    <h1 class="titulo">
-      <a class="slogan-botao" href="index.html">Masquantocusta 💰</a>
-    </h1>
+  <h1 class="titulo">
+    <a class="slogan-botao" href="index.html">Masquantocusta 💰</a>
+  </h1>
 
-    <div class="auth-buttons">
-      <a href="login.html"><button id="btnAbrirLogin" type="button">Entrar</button></a>
-      <a id="btnCadastrar" href="cadastro.html" class="register-btn">Cadastre-se gratuitamente</a>
-    </div>
+  <div class="auth-buttons" id="authButtons">
+    <a href="login.html">
+      <button id="btnLogin" type="button">Entrar</button>
+    </a>
+    <a id="btnRegister" href="cadastro.html" class="register-btn">
+      Cadastre-se gratuitamente
+    </a>
+  </div>
 
-    <!-- Área do usuário logado -->
-    <div id="areaUsuario" style="display:none;">
-      <span id="nomeUsuario"></span>
-      <button id="btnLogout" type="button">Sair</button>
-    </div>
-  </header>
+  <!-- Área do usuário logado -->
+  <div id="areaUsuario" style="display:none;">
+    <span id="userGreeting"></span>
+    <button id="btnLogout" type="button">Sair</button>
+  </div>
+</header>
 
   <!-- NICHOS -->
   <div class="topo">
