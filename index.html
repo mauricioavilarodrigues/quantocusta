@@ -11,32 +11,39 @@
 
 <body>
   <!-- TOPO / BARRA INICIAL -->
-  <header>
-  <nav>
-    <a href="index.html">Início</a>
-    <a href="quem-somos.html">Quem somos</a>
-    <a href="parceiro.html">Seja parceiro</a>
-    <a href="contato.html">Fale conosco</a>
-  </nav>
+  <header class="site-header">
 
-  <h1 class="titulo">
-    <a class="slogan-botao" href="index.html">Masquantocusta 💰</a>
-  </h1>
-
-  <div class="auth-buttons" id="authButtons">
-    <a href="login.html">
-      <button id="btnLogin" type="button">Entrar</button>
-    </a>
-    <a id="btnRegister" href="cadastro.html" class="register-btn">
-      Cadastre-se gratuitamente
-    </a>
+  <div class="header-left">
+    <nav class="nav-menu">
+      <a href="index.html">Início</a>
+      <a href="quem-somos.html">Quem somos</a>
+      <a href="parceiro.html">Seja parceiro</a>
+      <a href="contato.html">Fale conosco</a>
+    </nav>
   </div>
 
-  <!-- Área do usuário logado -->
-  <div id="areaUsuario" style="display:none;">
-    <span id="userGreeting"></span>
-    <button id="btnLogout" type="button">Sair</button>
+  <div class="header-center">
+    <h1 class="titulo">
+      <a class="slogan-botao" href="index.html">Masquantocusta 💰</a>
+    </h1>
   </div>
+
+  <div class="header-right">
+
+    <!-- Botões quando NÃO logado -->
+    <div class="auth-buttons" id="authButtons">
+      <a href="login.html"><button id="btnLogin">Entrar</button></a>
+      <a id="btnRegister" href="cadastro.html" class="register-btn">Cadastre-se gratuitamente</a>
+    </div>
+
+    <!-- Área quando logado -->
+    <div class="user-area" id="areaUsuario" style="display:none;">
+      <span id="userGreeting"></span>
+      <button id="btnLogout">Sair</button>
+    </div>
+
+  </div>
+
 </header>
 
   <!-- NICHOS -->
