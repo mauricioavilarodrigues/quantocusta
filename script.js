@@ -2,6 +2,8 @@
 // VARIÁVEIS / ESTADO
 // ===============================
 
+import { getUser, logout } from "./auth.js";
+
 const API_ROOT = "https://backend-wg1b.onrender.com";
 const API_BASE = `${API_ROOT}/api`;
 
@@ -14,6 +16,37 @@ let cesta = [];
 
 // DOM
 const elBusca = document.getElementById("busca");
+const authButtons = document.querySelector(".auth-buttons");
+const areaUsuario = document.getElementById("areaUsuario");
+const nomeUsuarioSpan = document.getElementById("nomeUsuario");
+const btnLogout = document.getElementById("btnLogout");
+
+async function atualizarHeaderUsuario() {
+  const user = await getUser();
+
+  if (user) {
+    if (authButtons) authButtons.style.display = "none";
+    if (areaUsuario) areaUsuario.style.display = "flex";
+
+    const nome =
+      user.user_metadata?.full_name ||
+      user.user_metadata?.name ||
+      user.email.split("@")[0];
+
+    if (nomeUsuarioSpan) nomeUsuarioSpan.textContent = `Olá, ${nome}`;
+  } else {
+    if (authButtons) authButtons.style.display = "flex";
+    if (areaUsuario) areaUsuario.style.display = "none";
+  }
+}
+
+btnLogout?.addEventListener("click", async () => {
+  await logout();
+  location.reload();
+});
+
+document.addEventListener("DOMContentLoaded", atualizarHeaderUsuario);
+
 const elResultado = document.getElementById("resultado");
 const elCestaResultado = document.getElementById("cestaResultado");
 
