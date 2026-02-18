@@ -342,3 +342,22 @@ input[type="checkbox"]{
   font-size: 22px;
   cursor: pointer;
 }
+#areaUsuario {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-weight: bold;
+}
+
+#userGreeting {
+  color: #333;
+}
+
+#btnLogout {
+  padding: 6px 10px;
+  border-radius: 6px;
+  border: none;
+  background: #333;
+  color: white;
+  cursor: pointer;
+}
