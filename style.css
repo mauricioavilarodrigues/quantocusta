@@ -428,3 +428,30 @@ input[type="checkbox"]{
   margin-right: 10px;
 }
 
+.site-header {
+  display: flex;
+  flex-direction: column;
+}
+
+/* barra superior */
+.topbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: var(--card);
+  border-bottom: 1px solid var(--linha);
+  padding: 12px 16px;
+}
+
+/* título abaixo */
+.page-title {
+  text-align: center;
+  margin-top: 15px;
+}
+
+.titulo a {
+  text-decoration: none;
+  font-size: 28px;
+  font-weight: bold;
+  color: var(--texto);
+}
