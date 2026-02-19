@@ -11,7 +11,8 @@
 
 <body>
   <!-- TOPO / BARRA INICIAL -->
-  <header class="topbar">
+ <header class="topbar">
+
   <nav class="nav-menu">
     <a href="index.html">Início</a>
     <a href="quem-somos.html">Quem somos</a>
@@ -19,11 +20,20 @@
     <a href="contato.html">Fale conosco</a>
   </nav>
 
-  <div class="user-area">
+  <!-- quando NÃO logado -->
+  <div class="auth-buttons" id="authButtons">
+    <a href="login.html"><button id="btnLogin">Entrar</button></a>
+    <a href="cadastro.html" id="btnRegister" class="register-btn">Cadastre-se gratuitamente</a>
+  </div>
+
+  <!-- quando logado -->
+  <div class="user-area" id="areaUsuario" style="display:none;">
     <span id="userGreeting"></span>
     <button id="btnLogout">Sair</button>
   </div>
+
 </header>
+
 
 <main>
   <section class="page-title">
