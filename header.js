@@ -11,23 +11,17 @@ async function atualizarHeader() {
   const { data: { user } } = await supabase.auth.getUser();
 
   if (user) {
-
-    // pega o nome salvo no cadastro
     let nome = user.user_metadata?.nome;
+    if (!nome) nome = user.email?.split("@")[0] || "Usuário";
 
-    // fallback de segurança
-    if (!nome) {
-      nome = user.email?.split("@")[0] || "Usuário";
-    }
-
-    userGreeting.textContent = `Olá, ${nome}`;
-
-    areaUsuario.style.display = "flex";
-    authButtons.style.display = "none";
+    if (userGreeting) userGreeting.textContent = `Olá, ${nome}`;
+    if (areaUsuario) areaUsuario.style.display = "flex";
+    if (authButtons) authButtons.style.display = "none";
 
   } else {
-    areaUsuario.style.display = "none";
-    authButtons.style.display = "flex";
+    if (areaUsuario) areaUsuario.style.display = "none";
+    if (authButtons) authButtons.style.display = "flex";
+    if (userGreeting) userGreeting.textContent = "";
   }
 }
 
