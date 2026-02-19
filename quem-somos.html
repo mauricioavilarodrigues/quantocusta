@@ -7,26 +7,41 @@
 
 <link rel="stylesheet" href="style.css">
 
-</head>
+  <!-- TOPO / BARRA INICIAL -->
+ <header class="topbar">
 
-<body>
+  <nav class="nav-menu">
+    <a href="index.html">Início</a>
+    <a href="quem-somos.html">Quem somos</a>
+    <a href="parceiro.html">Seja parceiro</a>
+    <a href="contato.html">Fale conosco</a>
+  </nav>
 
-<nav>
-  <a href="index.html">Início</a>
-  <a href="quem-somos.html">Quem somos</a>
-  <a href="parceiro.html">Seja parceiro</a>
-  <a href="contato.html">Fale conosco</a>
-</nav>
+  <!-- quando NÃO logado -->
+  <div class="auth-buttons" id="authButtons">
+    <a href="login.html"><button id="btnLogin">Entrar</button></a>
+    <a href="cadastro.html" id="btnRegister" class="register-btn">Cadastre-se gratuitamente</a>
+  </div>
 
-<h1 class="titulo">
+  <!-- quando logado -->
+  <div class="user-area" id="areaUsuario" style="display:none;">
+    <span id="userGreeting"></span>
+    <button id="btnLogout">Sair</button>
+  </div>
+
+</header>
+
+
+<main>
+  <section class="page-title">
+    <h1 class="titulo">
   
   <a class="slogan-botao" href="index.html" title="Voltar ao início" aria-label="Voltar ao início">Masquantocusta 💰</a>
 </h1>
-  
- <div class="auth-buttons">
-    <a href="login.html" class="login-btn">Entrar</a>
-    <a href="cadastro.html" class="register-btn">Cadastre-se gratuitamente</a>
- </div>
+  </section>
+
+  <!-- resto do conteúdo -->
+</main>
 
 <!-- Seletor de nichos -->
 <div class="container">
