@@ -11,10 +11,14 @@ async function atualizarHeader() {
   const { data: { user } } = await supabase.auth.getUser();
 
   if (user) {
-    let nome = user.user_metadata?.full_name
-            || user.user_metadata?.name
-            || user.email?.split("@")[0]
-            || "Usuário";
+
+    // pega o nome salvo no cadastro
+    let nome = user.user_metadata?.nome;
+
+    // fallback de segurança
+    if (!nome) {
+      nome = user.email?.split("@")[0] || "Usuário";
+    }
 
     userGreeting.textContent = `Olá, ${nome}`;
 
