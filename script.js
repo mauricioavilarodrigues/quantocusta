@@ -149,6 +149,34 @@ function aplicarBadgeConfere(li, confere) {
 }
 
 // ===============================
+// LIMITAR CONFIRMAÇÃO POR USUÁRIO (front-only)
+// - trava 1 voto (confere) por item por usuário
+// - sem backend não dá pra garantir 100% contra fraude, mas para o uso normal resolve.
+// ===============================
+function voteKey(userId, itemId, acao) {
+  return `qc_vote:${String(userId)}:${String(itemId)}:${String(acao)}`;
+}
+function userMustBeLoggedIn(user) {
+  if (!user) {
+    alert("Você precisa estar logado para confirmar preços.");
+    return false;
+  }
+  return true;
+}
+function userAlreadyVoted(userId, itemId, acao) {
+  try {
+    return localStorage.getItem(voteKey(userId, itemId, acao)) === "1";
+  } catch {
+    return false;
+  }
+}
+function markUserVoted(userId, itemId, acao) {
+  try {
+    localStorage.setItem(voteKey(userId, itemId, acao), "1");
+  } catch {}
+}
+
+// ===============================
 // API - AVALIAÇÕES
 // ===============================
 async function apiGetContadores(ids) {
@@ -159,11 +187,15 @@ async function apiGetContadores(ids) {
   return await res.json();
 }
 
-async function apiEnviarAvaliacao(id, acao) {
+// (melhoria pequena) agora aceita opcionalmente user_id, pra vocês evoluírem backend depois
+async function apiEnviarAvaliacao(id, acao, user_id = null) {
+  const body = { id: String(id), acao };
+  if (user_id) body.user_id = String(user_id);
+
   const res = await fetch(`${API_BASE}/avaliacao`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ id: String(id), acao }), // acao: "confere"
+    body: JSON.stringify(body), // acao: "confere"
   });
   if (!res.ok) throw new Error("Falha ao enviar avaliação: HTTP " + res.status);
   return await res.json();
@@ -417,65 +449,63 @@ async function buscar() {
   if (nichoAtual === "farmacia") {
     itens = itens.filter((p) => (p.tipo || "") === categoriaFarmaciaAtual);
   }
-// 3) integra itens NFC-e aprovados (legado)
-// 3) integra itens NFC-e aprovados (legado)
-try {
-  const cidade = "Rio Grande"; // depois a gente liga num input
 
-  const nfce = await apiGetNfceItensAprovados({
-    cidade,
-    q: termo || "",
-    nicho: nichoAtual || "",
-    limit: termo && termo.length >= 2 ? 120 : 60,
-  });
+  // 3) integra itens NFC-e aprovados (legado)
+  try {
+    const cidade = "Rio Grande"; // depois a gente liga num input
 
-  console.log("NFCe primeiro item:", nfce?.[0]);
+    const nfce = await apiGetNfceItensAprovados({
+      cidade,
+      q: termo || "",
+      nicho: nichoAtual || "",
+      limit: termo && termo.length >= 2 ? 120 : 60,
+    });
 
-  const nfceItens = (nfce || []).map((x) => {
-    const lojaOk =
-      String(x.loja || "").trim() ||
-      (x.cnpj ? `CNPJ ${String(x.cnpj).trim()}` : "Supermercado não identificado");
+    console.log("NFCe primeiro item:", nfce?.[0]);
 
-    return {
-      id: x.id,
-      nome: extrairNomeLimpoNfce(x.nome),
-      loja: lojaOk,
-      preco: Number(x.preco),
-      cidade: x.cidade || "",
-      origem: "nfce",
-      dataEmissao: x.dataEmissao,
-      sourceUrl: x.sourceUrl,
-      cnpj: x.cnpj || "",
-    };
-  });
+    const nfceItens = (nfce || []).map((x) => {
+      const lojaOk =
+        String(x.loja || "").trim() ||
+        (x.cnpj ? `CNPJ ${String(x.cnpj).trim()}` : "Supermercado não identificado");
 
-  const seen = new Set((itens || []).map((p) => `${normTxt(p.nome)}|${normTxt(p.loja || p.posto)}`));
+      return {
+        id: x.id,
+        nome: extrairNomeLimpoNfce(x.nome),
+        loja: lojaOk,
+        preco: Number(x.preco),
+        cidade: x.cidade || "",
+        origem: "nfce",
+        dataEmissao: x.dataEmissao,
+        sourceUrl: x.sourceUrl,
+        cnpj: x.cnpj || "",
+      };
+    });
 
-  for (const p of nfceItens) {
-    const key = `${normTxt(p.nome)}|${normTxt(p.loja)}`;
-    if (!seen.has(key)) {
-      seen.add(key);
-      itens.push(p);
+    const seen = new Set((itens || []).map((p) => `${normTxt(p.nome)}|${normTxt(p.loja || p.posto)}`));
+
+    for (const p of nfceItens) {
+      const key = `${normTxt(p.nome)}|${normTxt(p.loja)}`;
+      if (!seen.has(key)) {
+        seen.add(key);
+        itens.push(p);
+      }
     }
+  } catch (e) {
+    console.warn("⚠️ NFC-e não integrou:", e);
   }
-} catch (e) {
-  console.warn("⚠️ NFC-e não integrou:", e);
-}
-
 
   // ====== NOVO: Também puxa do catálogo colaborativo (opcional) ======
-  // Se tiver termo, puxa do catálogo e mistura como "catalogo"
   try {
     if (termo && termo.trim().length >= 2) {
       const cat = await apiCatalogoBusca({ q: termo.trim(), limit: 40 });
       const catItens = (cat || [])
-        .filter((x) => !nichoAtual || !x.nicho || x.nicho === nichoAtual) // se você preencher nicho na tabela, ajuda
+        .filter((x) => !nichoAtual || !x.nicho || x.nicho === nichoAtual)
         .map((x) => ({
           id: x.id,
           nome: x.nome,
-          loja: "", // catálogo não é por loja; ofertas vêm depois
+          loja: "",
           cidade: "",
-          preco: null, // preço vem das ofertas; vamos mostrar "ver ofertas"
+          preco: null,
           origem: "catalogo",
         }));
 
@@ -513,12 +543,23 @@ try {
         ? " <span style='display:inline-block;margin-left:6px;font-size:12px;font-weight:900;padding:2px 8px;border:1px solid #333;border-radius:999px;background:#f2f7ff;'>📚 Catálogo</span>"
         : "";
 
-    const subtitulo = (() => {
-      const loja = (p.loja || p.posto || "").trim();
-      const cidade = (p.cidade || "").trim();
-      if (loja && cidade) return `${loja} • ${cidade}`;
-      if (loja) return loja;
-      if (cidade) return cidade;
+    // subtítulo agora pode ter "loja clicável"
+    const lojaRaw = (p.loja || p.posto || "").trim();
+    const cidadeRaw = (p.cidade || "").trim();
+
+    const lojaHtml = lojaRaw
+      ? `<button class="btn-loja-mapa"
+          type="button"
+          data-loja="${escapeHtmlAttr(lojaRaw)}"
+          style="background:none;border:0;padding:0;margin:0;color:#0b57d0;text-decoration:underline;cursor:pointer;font:inherit;">
+          ${escapeHtml(lojaRaw)}
+        </button>`
+      : "";
+
+    const subtituloHtml = (() => {
+      if (lojaRaw && cidadeRaw) return `${lojaHtml} • ${escapeHtml(cidadeRaw)}`;
+      if (lojaRaw) return `${lojaHtml}`;
+      if (cidadeRaw) return escapeHtml(cidadeRaw);
       return isCatalogo ? "Clique em Ver ofertas" : "";
     })();
 
@@ -528,7 +569,7 @@ try {
       "'> " +
       (escapeHtml(p.nome || "") + selo) +
       "<br><small>" +
-      escapeHtml(subtitulo) +
+      subtituloHtml +
       "</small></span>" +
       "<span class='preco'>R$ " +
       precoTxt +
@@ -549,12 +590,20 @@ try {
 
     elResultado.appendChild(li);
 
+    // bind "loja no mapa"
+    const btnLoja = li.querySelector(".btn-loja-mapa");
+    if (btnLoja) {
+      btnLoja.addEventListener("click", () => {
+        const nomeLoja = btnLoja.getAttribute("data-loja") || lojaRaw;
+        indicarNoMapaPorNomeMercado(nomeLoja);
+      });
+    }
+
     // checkbox para cesta (se preço for válido; catálogo sem preço não entra)
     const ck = li.querySelector("#ck-" + index);
     if (ck) {
       ck.addEventListener("change", (e) => {
         if (!Number.isFinite(Number(p.preco))) {
-          // catálogo sem preço não entra na cesta
           e.target.checked = false;
           return alert("Esse item é do catálogo. Clique em “Ver ofertas” para ver preços por loja.");
         }
@@ -693,14 +742,20 @@ async function carregarPostosNoMapa() {
 
     const toNum = (v) => Number(String(v).trim().replace(",", "."));
 
+    // agora guarda marker + nome_norm
     postosIndex = linhas
       .slice(1)
       .map((linha) => {
         const cols = linha.split(sep).map((c) => c.trim());
+        const nome = (idxNome >= 0 ? cols[idxNome] : "Posto") || "Posto";
+        const latitude = toNum(cols[idxLat]);
+        const longitude = toNum(cols[idxLng]);
         return {
-          nome: (idxNome >= 0 ? cols[idxNome] : "Posto") || "Posto",
-          latitude: toNum(cols[idxLat]),
-          longitude: toNum(cols[idxLng]),
+          nome,
+          nome_norm: normTxt(nome),
+          latitude,
+          longitude,
+          marker: null,
         };
       })
       .filter((p) => Number.isFinite(p.latitude) && Number.isFinite(p.longitude));
@@ -710,7 +765,7 @@ async function carregarPostosNoMapa() {
     let bounds = null;
 
     postosIndex.forEach((p) => {
-      L.marker([p.latitude, p.longitude])
+      p.marker = L.marker([p.latitude, p.longitude])
         .addTo(layerPostos)
         .bindPopup(`<b>${escapeHtml(p.nome)}</b><br><small>Rio Grande/RS</small>`);
 
@@ -725,6 +780,40 @@ async function carregarPostosNoMapa() {
   }
 }
 
+// ===============================
+// FUNÇÕES DO MAPA: focar por nome (para mercado/loja)
+// ===============================
+function focarPorNome(nomeAlvo, lista) {
+  if (!map) return false;
+  if (!Array.isArray(lista) || !lista.length) return false;
+
+  const alvo = normTxt(extrairNomeLimpoNfce(nomeAlvo));
+  if (!alvo) return false;
+
+  // match forte
+  let achado = lista.find((x) => x.nome_norm === alvo);
+
+  // fallback: contém
+  if (!achado) achado = lista.find((x) => x.nome_norm.includes(alvo) || alvo.includes(x.nome_norm));
+
+  if (!achado) return false;
+
+  map.setView([achado.latitude, achado.longitude], 16);
+  if (achado.marker?.openPopup) achado.marker.openPopup();
+  return true;
+}
+
+function indicarNoMapaPorNomeMercado(nomeMercado) {
+  // hoje seu mapa está carregando só postosIndex
+  const ok = focarPorNome(nomeMercado, postosIndex);
+  if (!ok) {
+    alert("Não encontrei esse local no mapa ainda. (Hoje o mapa está carregando só postos.)");
+  }
+}
+
+// ===============================
+// HELPERS
+// ===============================
 function escapeHtml(str) {
   return String(str)
     .replaceAll("&", "&amp;")
@@ -732,6 +821,10 @@ function escapeHtml(str) {
     .replaceAll(">", "&gt;")
     .replaceAll('"', "&quot;")
     .replaceAll("'", "&#039;");
+}
+function escapeHtmlAttr(str) {
+  // para usar dentro de atributo HTML
+  return escapeHtml(str).replaceAll("`", "&#096;");
 }
 
 function normTxt(s) {
@@ -785,31 +878,49 @@ function acharMelhorOpcao() {
 // ===============================
 // FEEDBACK / AVALIAÇÃO
 // ===============================
-function confirmarPreco(index) {
+async function confirmarPreco(index) {
   const fb = document.getElementById("feedback-" + index);
   if (!fb) return;
 
   const li = fb.closest("li");
   const id = li?.dataset?.id;
 
+  const user = await getUser();
+  if (!userMustBeLoggedIn(user)) return;
+
+  if (!id) {
+    fb.innerText = "Item sem ID (não dá pra confirmar).";
+    return;
+  }
+
+  // trava 1 confere por usuário+item (front-only)
+  if (userAlreadyVoted(user.id, id, "confere")) {
+    fb.innerText = "Você já confirmou esse item. ✅";
+    return;
+  }
+
   fb.innerText = "Obrigado por confirmar.✨️";
 
-  if (id) {
-    apiEnviarAvaliacao(id, "confere")
-      .then((ret) => {
-        const totalConfere = ret?.confere;
+  apiEnviarAvaliacao(id, "confere", user.id)
+    .then((ret) => {
+      // marca voto local (se backend der ok)
+      markUserVoted(user.id, id, "confere");
 
-        const span = document.getElementById("confere-" + index);
-        if (span && typeof totalConfere === "number") {
-          span.textContent = totalConfere ? `(${totalConfere})` : "";
-        }
+      const totalConfere = ret?.confere;
 
-        if (typeof totalConfere === "number") {
-          aplicarBadgeConfere(li, totalConfere);
-        }
-      })
-      .catch((e) => console.warn("⚠️ Falha ao enviar confirmação:", e));
-  }
+      const span = document.getElementById("confere-" + index);
+      if (span && typeof totalConfere === "number") {
+        span.textContent = totalConfere ? `(${totalConfere})` : "";
+      }
+
+      if (typeof totalConfere === "number") {
+        aplicarBadgeConfere(li, totalConfere);
+      }
+    })
+    .catch((e) => {
+      console.warn("⚠️ Falha ao enviar confirmação:", e);
+      fb.innerText = "Falha ao confirmar (servidor).";
+    });
 }
 
 // ===============================
@@ -948,6 +1059,16 @@ function nfceRenderPreview(nfce) {
     ? `<ul style="margin:10px 0;color:#8a6d3b;">${warnings.map((w) => `<li>${escapeHtml(w)}</li>`).join("")}</ul>`
     : "";
 
+  const emitenteTxt = extrairNomeLimpoNfce(nfce?.emitente || "—");
+
+  // emitente clicável pro mapa
+  const emitenteHtml = emitenteTxt && emitenteTxt !== "—"
+    ? `<button type="button" id="btnEmitenteMapa"
+        style="background:none;border:0;padding:0;margin:0;color:#0b57d0;text-decoration:underline;cursor:pointer;font:inherit;">
+        ${escapeHtml(emitenteTxt)}
+      </button>`
+    : escapeHtml(emitenteTxt);
+
   const itensHtml = itens
     .slice(0, 30)
     .map(
@@ -966,7 +1087,7 @@ function nfceRenderPreview(nfce) {
 
   elNfcePreview.innerHTML = `
     <div style="display:flex;flex-direction:column;gap:6px;">
-      <div><b>Emitente:</b> ${escapeHtml(nfce?.emitente || "—")}</div>
+      <div><b>Emitente:</b> ${emitenteHtml}</div>
       <div><b>CNPJ:</b> ${escapeHtml(nfce?.cnpj || "—")}</div>
       <div><b>Data:</b> ${escapeHtml(nfce?.dataEmissao || "—")}</div>
       <div><b>Total:</b> ${escapeHtml(String(nfce?.total ?? "—"))}</div>
@@ -993,6 +1114,12 @@ function nfceRenderPreview(nfce) {
       ${itens.length > 30 ? `<div style="margin-top:6px; opacity:.8">Mostrando 30 primeiros itens</div>` : ""}
     </div>
   `;
+
+  // bind do botão do emitente
+  const btnEmitenteMapa = document.getElementById("btnEmitenteMapa");
+  if (btnEmitenteMapa) {
+    btnEmitenteMapa.addEventListener("click", () => indicarNoMapaPorNomeMercado(emitenteTxt));
+  }
 }
 
 async function nfceLerUrl(url) {
