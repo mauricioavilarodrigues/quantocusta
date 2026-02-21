@@ -814,33 +814,31 @@ function indicarNoMapaPorNomeMercado(nomeMercado) {
 // ===============================
 // HELPERS
 // ===============================
-function escapeHtml(str) {
-  return String(str)
-    .replaceAll("&", "&amp;")
-    .replaceAll("<", "&lt;")
-    .replaceAll(">", "&gt;")
-    .replaceAll('"', "&quot;")
-    .replaceAll("'", "&#039;");
-}
-function escapeHtmlAttr(str) {
-  // para usar dentro de atributo HTML
-  return escapeHtml(str).replaceAll("`", "&#096;");
+function hojeISO() {
+  // yyyy-mm-dd (local)
+  const d = new Date();
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, "0");
+  const day = String(d.getDate()).padStart(2, "0");
+  return `${y}-${m}-${day}`;
 }
 
-function normTxt(s) {
-  return String(s || "")
-    .toLowerCase()
-    .normalize("NFD")
-    .replace(/[\u0300-\u036f]/g, "")
-    .replace(/\s+/g, " ")
-    .trim();
+function voteKey(userId, itemId, acao, dia = hojeISO()) {
+  return `qc_vote:${String(userId)}:${String(itemId)}:${String(acao)}:${dia}`;
 }
 
-function extrairNomeLimpoNfce(nomeBruto) {
-  const s = String(nomeBruto || "").trim();
-  const i = s.toLowerCase().indexOf("(código:");
-  if (i > 0) return s.slice(0, i).trim();
-  return s;
+function userAlreadyVotedToday(userId, itemId, acao) {
+  try {
+    return localStorage.getItem(voteKey(userId, itemId, acao)) === "1";
+  } catch {
+    return false;
+  }
+}
+
+function markUserVotedToday(userId, itemId, acao) {
+  try {
+    localStorage.setItem(voteKey(userId, itemId, acao), "1");
+  } catch {}
 }
 
 // ===============================
@@ -894,10 +892,13 @@ async function confirmarPreco(index) {
   }
 
   // trava 1 confere por usuário+item (front-only)
-  if (userAlreadyVoted(user.id, id, "confere")) {
-    fb.innerText = "Você já confirmou esse item. ✅";
-    return;
-  }
+  if (userAlreadyVotedToday(user.id, id, "confere")) {
+  fb.innerText = "Você já confirmou esse item hoje. ✅";
+  return;
+}
+
+...
+markUserVotedToday(user.id, id, "confere");
 
   fb.innerText = "Obrigado por confirmar.✨️";
 
