@@ -7,6 +7,15 @@ import { getUser, logout } from "./auth.js";
 const API_ROOT = "https://backend-wg1b.onrender.com";
 const API_BASE = `${API_ROOT}/api`;
 
+let dadosBase = null;
+
+async function carregarDadosBase() {
+  if (dadosBase) return dadosBase;
+  const res = await fetch("data.json?v=" + Date.now(), { cache: "no-store" });
+  if (!res.ok) throw new Error("Falha ao carregar data.json (HTTP " + res.status + ")");
+  dadosBase = await res.json();
+  return dadosBase;
+}
 let nichoAtual = "";
 let tipoAtual = "";
 let categoriaAtual = "";
@@ -46,10 +55,18 @@ async function refreshAuthUI() {
     if (user) {
       authButtons.style.display = "none";
       areaUsuario.style.display = "flex";
-      areaUsuario.innerHTML = `
-        <span style="font-weight:700;">Olá, ${escapeHtml(user.email || "usuário")}</span>
-        <button id="btnLogout" style="margin-left:10px;">Sair</button>
-      `;
+      const nome =
+  user?.user_metadata?.name ||
+  user?.user_metadata?.full_name ||
+  user?.user_metadata?.nome ||
+  user?.user_metadata?.display_name ||
+  user?.email ||
+  "usuário";
+
+areaUsuario.innerHTML = `
+  <span style="font-weight:700;">Olá, ${escapeHtml(nome)}</span>
+  <button id="btnLogout" style="margin-left:10px;">Sair</button>
+`;
       areaUsuario.querySelector("#btnLogout")?.addEventListener("click", async () => {
         try {
           await logout();
@@ -66,7 +83,34 @@ async function refreshAuthUI() {
     areaUsuario.style.display = "none";
   }
 }
-refreshAuthUI();
+refreshAuthUI();if (user) {
+  authButtons.style.display = "none";
+  areaUsuario.style.display = "flex";
+
+  const nome =
+    user?.user_metadata?.name ||
+    user?.user_metadata?.full_name ||
+    user?.user_metadata?.nome ||
+    user?.user_metadata?.display_name ||
+    user?.email ||
+    "usuário";
+
+  areaUsuario.innerHTML = `
+    <span style="font-weight:700;">Olá, ${escapeHtml(nome)}</span>
+    <button id="btnLogout" style="margin-left:10px;">Sair</button>
+  `;
+
+  areaUsuario.querySelector("#btnLogout")?.addEventListener("click", async () => {
+    try {
+      await logout();
+    } catch {}
+    refreshAuthUI();
+  });
+} else {
+  authButtons.style.display = "flex";
+  areaUsuario.style.display = "none";
+  areaUsuario.innerHTML = "";
+}
 
 // ===============================
 // UI: Contribuir (accordion)
@@ -470,70 +514,99 @@ async function abrirOfertasDoItem(itemId, nome) {
 }
 
 // ===============================
-// BUSCA (mistura catálogo + nfce)
+// BUSCA (catálogo base + nfce aprovados)
+// Produto = nome + preço + loja + última atualização
 // ===============================
 async function buscar() {
-  if (!nichoAtual) return alert("Selecione um nicho.");
+  if (!nichoAtual) {
+    elResultado.innerHTML = "<li>Selecione um nicho acima para começar.</li>";
+    return;
+  }
 
-  if (nichoAtual === "combustivel" && !tipoAtual) return alert("Selecione o tipo (Comum/Aditivada).");
-  if (nichoAtual === "supermercado" && !categoriaAtual) return alert("Selecione a categoria.");
-  if (nichoAtual === "farmacia" && !categoriaFarmaciaAtual) return alert("Selecione a categoria.");
+  if (nichoAtual === "combustivel" && !tipoAtual) {
+    elResultado.innerHTML = "<li>Selecione o tipo (Comum/Aditivada).</li>";
+    return;
+  }
+  if (nichoAtual === "supermercado" && !categoriaAtual) {
+    elResultado.innerHTML = "<li>Selecione a categoria.</li>";
+    return;
+  }
+  if (nichoAtual === "farmacia" && !categoriaFarmaciaAtual) {
+    elResultado.innerHTML = "<li>Selecione a categoria.</li>";
+    return;
+  }
 
   const q = (elBusca?.value || "").trim();
-
   elResultado.innerHTML = "<li>🔎 Buscando…</li>";
 
   try {
-    // 1) CATÁLOGO
-    const catalogo = await apiCatalogoBusca({ q, limit: 60 });
-    const catFiltrado = Array.isArray(catalogo)
-      ? catalogo.filter((x) => {
-          if (nichoAtual === "supermercado") return (x.nicho || "") === "supermercado";
-          if (nichoAtual === "combustivel") return (x.nicho || "") === "combustivel";
-          if (nichoAtual === "farmacia") return (x.nicho || "") === "farmacia";
-          return true;
-        })
-      : [];
+    // 1) BASE LOCAL (data.json)
+    const base = await carregarDadosBase();
 
-    // 2) NFC-e aprovados (supermercado)
-    let nfce = [];
-    if (nichoAtual === "supermercado") {
-      nfce = await apiGetNfceItensAprovados({ cidade: "Rio Grande", q, nicho: "supermercado", limit: 60 });
-    }
+    // ajuste conforme seu formato real:
+    let itensBase = Array.isArray(base) ? base : base?.itens || base?.produtos || [];
+    const qNorm = (q || "").toLowerCase();
 
-    // junta tudo
-    let itens = [];
+    itensBase = itensBase.filter((p) => {
+      if (!p) return false;
 
-    // catálogo -> padroniza campos usados no render
-    catFiltrado.forEach((c) => {
-      itens.push({
-        id: c.id,
-        nome: c.nome,
-        preco: null,
-        loja: null,
-        cidade: null,
-        origem: "catalogo",
-        createdAt: c.createdAt || c.created_at || null,
-        updatedAt: c.updatedAt || c.updated_at || null,
-      });
+      const pNicho = String(p.nicho || "").toLowerCase();
+      if (nichoAtual && pNicho !== nichoAtual) return false;
+
+      if (nichoAtual === "combustivel" && tipoAtual) {
+        if (String(p.tipo || "").toLowerCase() !== tipoAtual.toLowerCase()) return false;
+      }
+
+      if (nichoAtual === "supermercado" && categoriaAtual) {
+        if (String(p.categoria || "").toLowerCase() !== categoriaAtual.toLowerCase()) return false;
+      }
+
+      if (nichoAtual === "farmacia" && categoriaFarmaciaAtual) {
+        if (String(p.categoria || "").toLowerCase() !== categoriaFarmaciaAtual.toLowerCase()) return false;
+      }
+
+      if (qNorm) {
+        const nome = String(p.nome || p.produto || "").toLowerCase();
+        if (!nome.includes(qNorm)) return false;
+      }
+
+      return true;
     });
 
-    // nfce -> já vem com preço, loja, cidade, etc
-    if (Array.isArray(nfce)) itens = itens.concat(nfce);
+    // padroniza para o render
+    let itens = itensBase.map((p) => ({
+      id: p.id || p.item_id || normTxt(p.nome || p.produto || "").slice(0, 80),
+      nome: p.nome || p.produto || "",
+      preco: p.preco ?? null,
+      loja: p.loja ?? null,
+      cidade: p.cidade ?? null,
+      origem: "base",
+      createdAt: p.createdAt || p.created_at || null,
+      updatedAt: p.updatedAt || p.updated_at || null,
+    }));
 
-    // contadores
-    const ids = itens.map((x) => String(x.id));
-    const contadores = await apiGetContadores(ids).catch(() => ({}));
-
-    // overrides aprovados
-    const overrides = await apiGetOverridesAprovados(ids).catch(() => ({}));
-    itens = aplicarOverridesDePreco(itens, overrides);
+    // 2) NFC-e aprovados (somente supermercado)
+    if (nichoAtual === "supermercado") {
+      const nfce = await apiGetNfceItensAprovados({ cidade: "Rio Grande", q, nicho: "supermercado", limit: 80 });
+      if (Array.isArray(nfce) && nfce.length) {
+        itens = itens.concat(nfce.map((x) => ({ ...x, origem: x.origem || "nfce" })));
+      }
+    }
 
     if (!itens.length) {
       elResultado.innerHTML = "<li>Nenhum resultado.</li>";
       return;
     }
 
+    // contadores
+    const ids = itens.map((x) => String(x.id));
+    const contadores = await apiGetContadores(ids).catch(() => ({}));
+
+    // overrides aprovados (se tiver, aplica)
+    const overrides = await apiGetOverridesAprovados(ids).catch(() => ({}));
+    itens = aplicarOverridesDePreco(itens, overrides);
+
+    // render
     elResultado.innerHTML = "";
     cesta = [];
 
@@ -547,35 +620,28 @@ async function buscar() {
 
       const precoNum = Number(p.preco);
       const precoTxt = Number.isFinite(precoNum) ? precoNum.toFixed(2).replace(".", ",") : "—";
-      const isCatalogo = p.origem === "catalogo";
 
       const lojaRaw = p.loja || "";
       const cidadeRaw = p.cidade || "";
 
-      // loja clicável pra focar no mapa (por nome)
       const lojaHtml = lojaRaw
         ? `<a href="#" onclick="indicarNoMapaPorNomeMercado('${escapeHtmlAttr(lojaRaw)}'); return false;">${escapeHtml(
             lojaRaw
           )}</a>`
         : "";
 
-      const selo = isCatalogo
-        ? ` <button style="margin-left:8px;border:0;background:#111;color:#fff;border-radius:999px;padding:4px 10px;cursor:pointer;"
-              onclick="abrirOfertasDoItem('${escapeHtmlAttr(p.id)}','${escapeHtmlAttr(p.nome || "")}')">Ver ofertas</button>`
-        : ` <span class="preco" style="font-weight:900;">R$ ${precoTxt}</span>`;
-
       const subtituloHtml = (() => {
         if (lojaRaw && cidadeRaw) return `${lojaHtml} • ${escapeHtml(cidadeRaw)}`;
         if (lojaRaw) return `${lojaHtml}`;
         if (cidadeRaw) return escapeHtml(cidadeRaw);
-        return isCatalogo ? "Clique em Ver ofertas" : "";
+        return "";
       })();
 
       li.innerHTML =
         "<span><input type='checkbox' id='ck-" +
         index +
         "'> " +
-        (escapeHtml(p.nome || "") + selo) +
+        `${escapeHtml(p.nome || "")} <span class="preco" style="font-weight:900;">R$ ${precoTxt}</span>` +
         "<br><small>" +
         subtituloHtml +
         (subtituloHtml ? " • " : "") +
@@ -587,7 +653,6 @@ async function buscar() {
           <span id="feedback-${index}" style="opacity:.8;"></span>
         </div>`;
 
-      // badge de confere
       const cont = contadores?.[String(p.id)] || { confere: 0, contesta: 0 };
       aplicarBadgeConfere(li, cont.confere);
 
@@ -603,7 +668,6 @@ async function buscar() {
     elResultado.innerHTML = `<li style="color:#b3261e;">Erro: ${escapeHtml(e?.message || String(e))}</li>`;
   }
 }
-
 // ===============================
 // FEEDBACK / AVALIAÇÃO
 // ===============================
