@@ -429,4 +429,8 @@ input[type="checkbox"]{
   margin-top: 6px;
   color: #999;
 }
+  #listaExplorar li {
+  border-bottom: 1px solid #ddd;
+  padding: 10px 0;
+}
 }
