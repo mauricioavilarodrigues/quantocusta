@@ -27,25 +27,15 @@
   </div>
 </header>
 
-<section class="page-title">
-  <h1>Explorar preços</h1>
-  <p>Veja todos os itens disponíveis e organize como preferir</p>
-</section>
+<h1>Explorar preços</h1>
 
-<section class="controles">
-  <select id="ordenacao">
-    <option value="preco">Ordenar por preço</option>
-    <option value="nome">Ordenar por nome</option>
-    <option value="data">Ordenar por atualização</option>
-  </select>
-</section>
+<select id="ordenacao">
+  <option value="preco">Menor preço</option>
+  <option value="nome">Ordem alfabética</option>
+</select>
 
-<main class="container">
-  <ul id="listaExplorar"></ul>
-</main>
+<ul id="listaExplorar"></ul>
 
 <script type="module" src="explorar.js"></script>
-<script type="module" src="header.js"></script>
-
 </body>
 </html>
