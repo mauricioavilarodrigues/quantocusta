@@ -1,53 +1,64 @@
-<header class="topbar">
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <title>Explorar preços - Masquantocusta</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
 
-  <nav class="nav-menu">
-    <a href="index.html">Início</a>
-    <a href="quem-somos.html">Quem somos</a>
-    <a href="parceiro.html">Seja parceiro</a>
-    <a href="contato.html">Fale conosco</a>
-  </nav>
+  <!-- HEADER (reuse o mesmo do site) -->
+  <header class="topbar">
+    <nav class="nav-menu">
+      <a href="index.html">Início</a>
+      <a href="quem-somos.html">Quem somos</a>
+      <a href="parceiro.html">Seja parceiro</a>
+      <a href="contato.html">Fale conosco</a>
+      <a href="explorar.html" class="ativo">Explorar preços</a>
+    </nav>
 
-  <!-- quando NÃO logado -->
-  <div class="auth-buttons" id="authButtons">
-    <a href="login.html"><button id="btnLogin">Entrar</button></a>
-    <a href="cadastro.html" id="btnRegister" class="register-btn">Cadastre-se gratuitamente</a>
-  </div>
+    <div class="auth-buttons" id="authButtons">
+      <a href="login.html"><button>Entrar</button></a>
+      <a href="cadastro.html" class="register-btn">Cadastre-se gratuitamente</a>
+    </div>
 
-  <!-- quando logado -->
-  <div class="user-area" id="areaUsuario" style="display:none;">
-    <span id="userGreeting"></span>
-    <button id="btnLogout">Sair</button>
-  </div>
+    <div class="user-area" id="areaUsuario" style="display:none;">
+      <span id="userGreeting"></span>
+      <button id="btnLogout">Sair</button>
+    </div>
+  </header>
 
-</header>
-
-
-<main>
+  <!-- TÍTULO DA PÁGINA -->
   <section class="page-title">
-    <h1 class="titulo">
-  
-  <a class="slogan-botao" href="index.html" title="Voltar ao início" aria-label="Voltar ao início">Masquantocusta 💰</a>
-</h1>
+    <h1>Explorar preços</h1>
+    <p>Veja todos os itens disponíveis e organize como preferir</p>
   </section>
 
-  <!-- resto do conteúdo -->
-</main>
+  <!-- CONTROLES -->
+  <section class="controles">
+    <select id="ordenacao">
+      <option value="preco">Ordenar por preço</option>
+      <option value="nome">Ordenar por nome</option>
+      <option value="data">Ordenar por atualização</option>
+    </select>
 
-<section class="controles">
-  <select id="ordenacao">
-    <option value="preco">Preço</option>
-    <option value="nome">Nome</option>
-    <option value="data">Atualização</option>
-  </select>
+    <select id="categoria">
+      <option value="todos">Todas as categorias</option>
+      <option value="supermercado">Supermercado</option>
+      <option value="farmacia">Farmácia</option>
+      <option value="combustivel">Combustível</option>
+    </select>
+  </section>
 
-  <select id="categoria">
-    <option value="todos">Todas</option>
-    <option value="supermercado">Supermercado</option>
-    <option value="farmacia">Farmácia</option>
-    <option value="combustivel">Combustível</option>
-  </select>
-</section>
+  <!-- LISTA DE ITENS -->
+  <main>
+    <div id="listaItens" class="grid-itens">
+      <!-- cards serão inseridos aqui depois -->
+    </div>
+  </main>
 
-<section id="listaItens"></section>
+  <script src="explorar.js"></script>
+  <script type="module" src="header.js"></script>
 
-<script src="explorar.js"></script>
+</body>
+</html>
