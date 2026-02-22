@@ -7,71 +7,45 @@
 </head>
 <body>
 
-  <!-- HEADER (reuse o mesmo do site) -->
-  <header class="topbar">
-    <nav class="nav-menu">
-      <a href="index.html">Início</a>
-      <a href="quem-somos.html">Quem somos</a>
-      <a href="parceiro.html">Seja parceiro</a>
-      <a href="contato.html">Fale conosco</a>
-      <a href="explorar.html" class="ativo">Explorar preços</a>
-    </nav>
+<header class="topbar">
+  <nav class="nav-menu">
+    <a href="index.html">Início</a>
+    <a href="quem-somos.html">Quem somos</a>
+    <a href="parceiro.html">Seja parceiro</a>
+    <a href="contato.html">Fale conosco</a>
+    <a href="explorar.html" class="ativo">Explorar preços</a>
+  </nav>
 
-    <div class="auth-buttons" id="authButtons">
-      <a href="login.html"><button>Entrar</button></a>
-      <a href="cadastro.html" class="register-btn">Cadastre-se gratuitamente</a>
-    </div>
-
-    <div class="user-area" id="areaUsuario" style="display:none;">
-      <span id="userGreeting"></span>
-      <button id="btnLogout">Sair</button>
-    </div>
-  </header>
-
-  <!-- TÍTULO DA PÁGINA -->
-  <section class="page-title">
-    <h1>Explorar preços</h1>
-    <p>Veja todos os itens disponíveis e organize como preferir</p>
-  </section>
-
-  <!-- CONTROLES -->
-  <section class="controles">
-    <select id="ordenacao">
-      <option value="preco">Ordenar por preço</option>
-      <option value="nome">Ordenar por nome</option>
-      <option value="data">Ordenar por atualização</option>
-    </select>
-
-    <select id="categoria">
-      <option value="todos">Todas as categorias</option>
-      <option value="supermercado">Supermercado</option>
-      <option value="farmacia">Farmácia</option>
-      <option value="combustivel">Combustível</option>
-    </select>
-  </section>
-
-  <!-- LISTA DE ITENS -->
-    <main class="container">
-  <h1>Explorar preços</h1>
-
-  <div class="filtros-explorar">
-    <select id="ordenacao">
-      <option value="preco">Menor preço</option>
-      <option value="nome">Ordem alfabética</option>
-      <option value="data">Mais recente</option>
-    </select>
+  <div class="auth-buttons" id="authButtons">
+    <a href="login.html"><button>Entrar</button></a>
+    <a href="cadastro.html" class="register-btn">Cadastre-se gratuitamente</a>
   </div>
 
+  <div class="user-area" id="areaUsuario" style="display:none;">
+    <span id="userGreeting"></span>
+    <button id="btnLogout">Sair</button>
+  </div>
+</header>
+
+<section class="page-title">
+  <h1>Explorar preços</h1>
+  <p>Veja todos os itens disponíveis e organize como preferir</p>
+</section>
+
+<section class="controles">
+  <select id="ordenacao">
+    <option value="preco">Ordenar por preço</option>
+    <option value="nome">Ordenar por nome</option>
+    <option value="data">Ordenar por atualização</option>
+  </select>
+</section>
+
+<main class="container">
   <ul id="listaExplorar"></ul>
+</main>
 
 <script type="module" src="explorar.js"></script>
-    <div id="listaItens" class="grid-itens">
-      <!-- cards serão inseridos aqui depois -->
-    </div>
-  </main>
-
-  <script src="explorar.js"></script>
-  <script type="module" src="header.js"></script>
+<script type="module" src="header.js"></script>
 
 </body>
 </html>
