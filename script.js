@@ -10,10 +10,12 @@ const API_BASE = `${API_ROOT}/api`;
 
 let dadosBase = null;
 
-async function carregarDadosBase() {
+export async function carregarDadosBase() {
   if (dadosBase) return dadosBase;
+
   const res = await fetch("data.json?v=" + Date.now(), { cache: "no-store" });
   if (!res.ok) throw new Error("Falha ao carregar data.json (HTTP " + res.status + ")");
+
   dadosBase = await res.json();
   return dadosBase;
 }
