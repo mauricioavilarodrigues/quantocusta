@@ -11,24 +11,21 @@ document.addEventListener("DOMContentLoaded", async () => {
   });
 });
 
-async function carregarTodosOsItens() {
-  const base = await carregarDadosBase();
-  let itens = [];
+const ul = document.getElementById("listaExplorar");
 
-  Object.keys(base).forEach(nicho => {
-    if (Array.isArray(base[nicho])) {
-      base[nicho].forEach(p => {
-        itens.push({
-          nome: p.nome,
-          preco: p.preco,
-          loja: p.loja || p.posto || "",
-          nicho
-        });
-      });
-    }
+async function mostrarItens() {
+  const itens = await carregarTodosItens();
+
+  ul.innerHTML = "";
+
+  itens.forEach(item => {
+    const li = document.createElement("li");
+    li.textContent = `${item.nome} - R$ ${item.preco} (${item.nicho})`;
+    ul.appendChild(li);
   });
+}
 
-  return itens;
+mostrarItens();
 }
 
 function ordenar(tipo) {
