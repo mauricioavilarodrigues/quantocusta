@@ -354,4 +354,79 @@ input[type="checkbox"]{
   .user-area {
     justify-content: center;
   }
+  /* ===== Página Explorar ===== */
+
+.page-title {
+  text-align: center;
+  margin: 20px 0;
+}
+
+.page-title h1 {
+  font-size: 28px;
+  margin-bottom: 5px;
+}
+
+.page-title p {
+  color: #666;
+}
+
+/* controles */
+.controles {
+  display: flex;
+  justify-content: center;
+  gap: 15px;
+  margin: 20px;
+  flex-wrap: wrap;
+}
+
+.controles select {
+  padding: 8px 12px;
+  border-radius: 6px;
+  border: 1px solid #ccc;
+  font-size: 14px;
+}
+
+/* grid */
+.grid-itens {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 15px;
+  padding: 20px;
+}
+
+/* card */
+.card-item {
+  border: 1px solid #ddd;
+  border-radius: 10px;
+  padding: 12px;
+  background: #fff;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+  transition: transform 0.15s ease;
+}
+
+.card-item:hover {
+  transform: translateY(-2px);
+}
+
+.card-item h3 {
+  font-size: 16px;
+  margin-bottom: 5px;
+}
+
+.card-item .preco {
+  font-size: 18px;
+  font-weight: bold;
+  color: #0a7cff;
+}
+
+.card-item .loja {
+  font-size: 13px;
+  color: #666;
+}
+
+.card-item .categoria {
+  font-size: 12px;
+  margin-top: 6px;
+  color: #999;
+}
 }
