@@ -51,7 +51,20 @@
   </section>
 
   <!-- LISTA DE ITENS -->
-  <main>
+    <main class="container">
+  <h1>Explorar preços</h1>
+
+  <div class="filtros-explorar">
+    <select id="ordenacao">
+      <option value="preco">Menor preço</option>
+      <option value="nome">Ordem alfabética</option>
+      <option value="data">Mais recente</option>
+    </select>
+  </div>
+
+  <ul id="listaExplorar"></ul>
+
+<script type="module" src="explorar.js"></script>
     <div id="listaItens" class="grid-itens">
       <!-- cards serão inseridos aqui depois -->
     </div>
