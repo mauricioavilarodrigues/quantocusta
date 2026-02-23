@@ -752,7 +752,100 @@ async function nfceImportar() {
     alert("Falha ao importar: " + (err?.message || err));
   }
 }
+// ===============================
+// QR SCANNER (html5-qrcode)
+// ===============================
+let html5Qr = null;
+let qrLendo = false;
 
+// IDs esperados no HTML (ajuste se seus ids forem outros)
+const btnAbrirQr = document.getElementById("btnAbrirQr");
+const btnFecharQr = document.getElementById("btnFecharQr");
+const elQrModal = document.getElementById("qrModal");
+const elQrStatus = document.getElementById("qrStatus");
+
+function qrStatus(msg) {
+  if (elQrStatus) elQrStatus.textContent = msg || "";
+}
+
+async function abrirScannerQr() {
+  try {
+    if (typeof Html5Qrcode === "undefined") {
+      alert("QR Code: biblioteca não carregou. Coloque no HTML: <script src='https://unpkg.com/html5-qrcode'></script>");
+      return;
+    }
+
+    if (!elQrModal) {
+      alert("QR Code: não achei o modal (id='qrModal') no HTML.");
+      return;
+    }
+
+    elQrModal.style.display = "flex";
+    qrStatus("Abrindo câmera…");
+
+    if (!html5Qr) html5Qr = new Html5Qrcode("qrReader");
+    qrLendo = false;
+
+    const config = { fps: 10, qrbox: { width: 240, height: 240 } };
+
+    await html5Qr.start(
+      { facingMode: "environment" },
+      config,
+      async (decodedText) => {
+        if (qrLendo) return;
+        qrLendo = true;
+
+        // Para o scanner assim que ler
+        try {
+          await html5Qr.stop();
+          await html5Qr.clear();
+        } catch {}
+
+        elQrModal.style.display = "none";
+        qrStatus("");
+
+        const url = String(decodedText || "").trim();
+        if (!url.startsWith("http")) {
+          alert("Li um QR, mas não parece URL. Conteúdo: " + url);
+          return;
+        }
+
+        // Joga no fluxo existente (URL)
+        if (elNfceUrl) elNfceUrl.value = url;
+        await nfceLerUrl(url);
+      },
+      () => {}
+    );
+
+    qrStatus("Aponte a câmera para o QR da NFC-e…");
+  } catch (err) {
+    console.error(err);
+    qrStatus("❌ Não consegui abrir a câmera.");
+    alert("Falha ao abrir QR: " + (err?.message || err));
+  }
+}
+
+async function fecharScannerQr() {
+  try {
+    if (html5Qr && html5Qr.isScanning) {
+      await html5Qr.stop();
+      await html5Qr.clear();
+    }
+  } catch {}
+  if (elQrModal) elQrModal.style.display = "none";
+  qrStatus("");
+}
+
+// binds (independe de onclick no HTML)
+btnAbrirQr?.addEventListener("click", abrirScannerQr);
+btnFecharQr?.addEventListener("click", fecharScannerQr);
+elQrModal?.addEventListener("click", (e) => {
+  if (e.target === elQrModal) fecharScannerQr();
+});
+
+// expõe para onclick caso seu HTML esteja usando onclick
+window.abrirScannerQr = abrirScannerQr;
+window.fecharScannerQr = fecharScannerQr;
 // ===============================
 // MAPA + POSTOS (postos_rio_grande_rs.csv)
 // ===============================
