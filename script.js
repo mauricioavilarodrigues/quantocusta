@@ -955,3 +955,5 @@ window.acharMelhorOpcao = acharMelhorOpcao;
 
 window.confirmarPreco = confirmarPreco;
 window.indicarNoMapaPorNomeMercado = indicarNoMapaPorNomeMercado;
+window.nfceLerUrl = nfceLerUrl;
+window.nfceImportar = nfceImportar;
