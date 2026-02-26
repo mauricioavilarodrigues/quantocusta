@@ -163,12 +163,13 @@ function hideAllSecundarios() {
 }
 
 function setNicho(n, b) {
+  function setNicho(n, b) {
   nichoAtual = n;
   tipoAtual = "";
   categoriaAtual = "";
   categoriaFarmaciaAtual = "";
 
-  // não limpa resultado à toa; só mostra as opções secundárias e espera usuário escolher
+  // UI: ativa botão e mostra filtros
   limparAtivos(".topo");
   b?.classList.add("ativo");
 
@@ -177,6 +178,11 @@ function setNicho(n, b) {
   if (n === "supermercado" && elFiltroSupermercado) elFiltroSupermercado.style.display = "flex";
   if (n === "combustivel" && elFiltroCombustivel) elFiltroCombustivel.style.display = "flex";
   if (n === "farmacia" && elFiltroFarmacia) elFiltroFarmacia.style.display = "flex";
+
+  // MAPA: mostra só a categoria escolhida (nada aparece antes do clique)
+  if (n === "supermercado") mostrarCategoria("mercado");
+  if (n === "combustivel") mostrarCategoria("posto");
+  if (n === "farmacia") mostrarCategoria("farmacia");
 
   // aqui NÃO dispara buscar ainda, pra não ficar aparecendo aviso ao clicar no nicho primário
 }
@@ -575,7 +581,7 @@ async function confirmarPreco(index) {
       aplicarBadgeConfere(li, totalConfere);
     }
 
-    fb.innerText = "Obrigado por confirmar.✨️";
+    fb.innerText = "Obrigado por confirmar seu safado.✨️";
   } catch (err) {
     console.error(err);
     fb.innerText = "Falha ao confirmar (servidor).";
@@ -847,15 +853,65 @@ elQrModal?.addEventListener("click", (e) => {
 window.abrirScannerQr = abrirScannerQr;
 window.fecharScannerQr = fecharScannerQr;
 // ===============================
-// MAPA + POSTOS (postos_rio_grande_rs.csv)
+// MAPA + CAMADAS (NÃO mostrar tudo de cara)
 // ===============================
 const centroRG = [-32.035, -52.098];
 const mapEl = document.getElementById("map");
 
 let map = null;
-let layerPostos = null;
 let usuarioPosicao = null;
+
+// índices (um por categoria)
 let postosIndex = [];
+let mercadosIndex = [];
+let farmaciasIndex = [];
+
+// camadas (NÃO adicionar no map automaticamente)
+let layerPostos = L.layerGroup();
+let layerMercados = L.layerGroup();
+let layerFarmacias = L.layerGroup();
+
+function limparCamadasMapa() {
+  if (!map) return;
+  map.removeLayer(layerPostos);
+  map.removeLayer(layerMercados);
+  map.removeLayer(layerFarmacias);
+}
+
+// tipo: "posto" | "mercado" | "farmacia"
+function mostrarCategoria(tipo) {
+  if (!map) return;
+
+  limparCamadasMapa();
+
+  if (tipo === "posto") layerPostos.addTo(map);
+  if (tipo === "mercado") layerMercados.addTo(map);
+  if (tipo === "farmacia") layerFarmacias.addTo(map);
+
+  // opcional: ajustar bounds só da camada visível
+  ajustarBoundsDaCamadaVisivel(tipo);
+}
+
+function ajustarBoundsDaCamadaVisivel(tipo) {
+  if (!map) return;
+
+  let lista =
+    tipo === "posto" ? postosIndex :
+    tipo === "mercado" ? mercadosIndex :
+    tipo === "farmacia" ? farmaciasIndex :
+    [];
+
+  if (!Array.isArray(lista) || !lista.length) return;
+
+  let bounds = null;
+  lista.forEach((p) => {
+    if (!Number.isFinite(p.latitude) || !Number.isFinite(p.longitude)) return;
+    if (!bounds) bounds = L.latLngBounds([p.latitude, p.longitude], [p.latitude, p.longitude]);
+    else bounds.extend([p.latitude, p.longitude]);
+  });
+
+  if (bounds) map.fitBounds(bounds.pad(0.12));
+}
 
 if (mapEl) {
   map = L.map("map").setView(centroRG, 13);
@@ -865,7 +921,8 @@ if (mapEl) {
     attribution: "© OpenStreetMap",
   }).addTo(map);
 
-  layerPostos = L.layerGroup().addTo(map);
+  // IMPORTANTE: não adiciona layerPostos ao map aqui
+  // layerPostos = L.layerGroup().addTo(map);  <-- REMOVIDO
 
   map.locate({ setView: false, maxZoom: 15 });
 
@@ -878,14 +935,18 @@ if (mapEl) {
 
   map.on("locationerror", () => {});
 
+  // Carrega dados, mas não mostra nada automaticamente
   carregarPostosNoMapa();
+  // futuramente:
+  // carregarMercadosNoMapa();
+  // carregarFarmaciasNoMapa();
 } else {
   console.error("❌ Não achei a div #map no HTML.");
 }
 
 async function carregarPostosNoMapa() {
   try {
-    if (!map || !layerPostos) return;
+    if (!map) return;
 
     const res = await fetch("postos_rio_grande_rs.csv?v=" + Date.now(), { cache: "no-store" });
     if (!res.ok) throw new Error("HTTP " + res.status);
@@ -929,19 +990,15 @@ async function carregarPostosNoMapa() {
 
     layerPostos.clearLayers();
 
-    let bounds = null;
-
     postosIndex.forEach((p) => {
       p.marker = L.marker([p.latitude, p.longitude])
         .addTo(layerPostos)
         .bindPopup(`<b>${escapeHtml(p.nome)}</b><br><small>Rio Grande/RS</small>`);
-
-      if (!bounds) bounds = L.latLngBounds([p.latitude, p.longitude], [p.latitude, p.longitude]);
-      else bounds.extend([p.latitude, p.longitude]);
     });
 
-    if (bounds) map.fitBounds(bounds.pad(0.12));
-    console.log("✅ Postos marcados no mapa:", postosIndex.length);
+    // IMPORTANTE: não dá fitBounds aqui automaticamente,
+    // porque a camada ainda não está visível (mapa deve começar vazio)
+    console.log("✅ Postos carregados (ainda ocultos):", postosIndex.length);
   } catch (e) {
     console.error("❌ Erro ao carregar postos_rio_grande_rs.csv:", e);
   }
@@ -954,7 +1011,7 @@ function extrairNomeLimpoNfce(nomeBruto) {
   return s;
 }
 
-// focar por nome (por enquanto só nos postosIndex)
+// focar por nome (genérico)
 function focarPorNome(nomeAlvo, lista) {
   if (!map) return false;
   if (!Array.isArray(lista) || !lista.length) return false;
@@ -971,13 +1028,25 @@ function focarPorNome(nomeAlvo, lista) {
   return true;
 }
 
-function indicarNoMapaPorNomeMercado(nomeMercado) {
-  const ok = focarPorNome(nomeMercado, postosIndex);
-  if (!ok) {
-    alert("Não encontrei esse local no mapa ainda. (Hoje o mapa está carregando só postos.)");
-  }
+// ✅ agora esta função é "POSTO", não "MERCADO"
+function indicarNoMapaPorNomePosto(nomePosto) {
+  mostrarCategoria("posto"); // garante que a camada correta aparece
+  const ok = focarPorNome(nomePosto, postosIndex);
+  if (!ok) alert("Não encontrei esse posto no mapa.");
 }
 
+// (deixa pronto para quando você tiver mercadosIndex / farmaciasIndex)
+function indicarNoMapaPorNomeMercado(nomeMercado) {
+  mostrarCategoria("mercado");
+  const ok = focarPorNome(nomeMercado, mercadosIndex);
+  if (!ok) alert("Não encontrei esse mercado no mapa (ainda não carreguei mercados).");
+}
+
+function indicarNoMapaPorNomeFarmacia(nomeFarmacia) {
+  mostrarCategoria("farmacia");
+  const ok = focarPorNome(nomeFarmacia, farmaciasIndex);
+  if (!ok) alert("Não encontrei essa farmácia no mapa (ainda não carreguei farmácias).");
+}
 // ===============================
 // MELHOR OPÇÃO PERTO DE VOCÊ
 // ===============================
