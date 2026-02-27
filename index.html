@@ -11,169 +11,167 @@
 
 <body>
   <!-- TOPO / BARRA INICIAL -->
- <header class="topbar">
+  <header class="topbar">
 
-  <nav class="nav-menu">
-    <a href="index.html">Início</a>
-    <a href="quem-somos.html">Quem somos</a>
-    <a href="parceiro.html">Seja parceiro</a>
-    <a href="contato.html">Fale conosco</a>
-  </nav>
+    <nav class="nav-menu">
+      <a href="index.html">Início</a>
+      <a href="quem-somos.html">Quem somos</a>
+      <a href="parceiro.html">Seja parceiro</a>
+      <a href="contato.html">Fale conosco</a>
+    </nav>
 
-  <!-- quando NÃO logado -->
-  <div class="auth-buttons" id="authButtons">
-    <a href="login.html"><button id="btnLogin">Entrar</button></a>
-    <a href="cadastro.html" id="btnRegister" class="register-btn">Cadastre-se gratuitamente</a>
-  </div>
-
-  <!-- quando logado -->
-  <div class="user-area" id="areaUsuario" style="display:none;">
-    <span id="userGreeting"></span>
-    <button id="btnLogout">Sair</button>
-  </div>
-
-</header>
-
-
-<main>
-  <section class="page-title">
-    <h1 class="titulo">
-  
-  <a class="slogan-botao" href="index.html" title="Voltar ao início" aria-label="Voltar ao início">Masquantocusta 💰</a>
-</h1>
-  </section>
-
-  <!-- resto do conteúdo -->
-</main>
-
-  <!-- NICHOS -->
-  <div class="topo">
-    <button type="button" onclick="setNicho('supermercado',this)">🛒 Supermercado</button>
-    <button type="button" onclick="setNicho('combustivel',this)">⛽ Combustível</button>
-    <button type="button" onclick="setNicho('farmacia',this)">💊 Farmácia</button>
-  </div>
-
-  <div id="filtroSupermercado" class="filtros" style="display:none;">
-    <button type="button" onclick="setCategoria('alimento',this)">🥦 Alimentos</button>
-    <button type="button" onclick="setCategoria('limpeza',this)">🧼 Limpeza</button>
-  </div>
-
-  <div id="filtroCombustivel" class="filtros" style="display:none;">
-    <button type="button" onclick="setTipo('Comum',this)">Comum</button>
-    <button type="button" onclick="setTipo('Aditivada',this)">Aditivada</button>
-  </div>
-
-  <div id="filtroFarmacia" class="filtros" style="display:none;">
-    <button type="button" onclick="setCategoriaFarmacia('remedio',this)">💊 Remédios</button>
-    <button type="button" onclick="setCategoriaFarmacia('higiene',this)">🧴 Higiene</button>
-  </div>
-
-  <!-- BUSCA -->
-  <form onsubmit="buscar(); return false;">
-    <div style="max-width:900px;margin:12px auto;display:flex;justify-content:center;gap:10px;flex-wrap:wrap;">
-      <input id="busca" placeholder="Buscar..." />
-      <button type="submit">Buscar</button>
+    <!-- quando NÃO logado -->
+    <div class="auth-buttons" id="authButtons">
+      <a href="login.html"><button id="btnLogin">Entrar</button></a>
+      <a href="cadastro.html" id="btnRegister" class="register-btn">Cadastre-se gratuitamente</a>
     </div>
-  </form>
 
-  <div class="busca">
-    <ul id="resultado"></ul>
-  </div>
+    <!-- quando logado -->
+    <div class="user-area" id="areaUsuario" style="display:none;">
+      <span id="userGreeting"></span>
+      <button id="btnLogout">Sair</button>
+    </div>
 
-  <div class="caixa">
-    <button type="button" onclick="compararCesta()">🧺 Comparar cesta</button>
-    <div id="cestaResultado"></div>
-  </div>
+  </header>
 
-  <div class="caixa">
-    <button type="button" onclick="acharMelhorOpcao()">📍 Melhor opção perto de você</button>
-  </div>
+  <main>
+    <section class="page-title">
+      <h1 class="titulo">
+        <a class="slogan-botao" href="index.html" title="Voltar ao início" aria-label="Voltar ao início">
+          Masquantocusta 💰
+        </a>
+      </h1>
+    </section>
 
-  <div class="caixa">
-    <h3>Mapa de Localização</h3>
-    <div id="map" style="height: 420px; width: 100%; border-radius: 12px;"></div>
-  </div>
+    <!-- NICHOS -->
+    <div class="topo">
+      <button type="button" onclick="setNicho('supermercado',this)">🛒 Supermercado</button>
+      <button type="button" onclick="setNicho('combustivel',this)">⛽ Combustível</button>
+      <button type="button" onclick="setNicho('farmacia',this)">💊 Farmácia</button>
+    </div>
 
-  <!-- CONTRIBUIR -->
-  <div class="caixa contribuir-wrap">
-    <h3>💬 Viu um preço diferente?</h3>
-    <p style="margin-bottom:14px;">Clique no botão para abrir o formulário e contribuir.</p>
+    <div id="filtroSupermercado" class="filtros" style="display:none;">
+      <button type="button" onclick="setCategoria('alimento',this)">🥦 Alimentos</button>
+      <button type="button" onclick="setCategoria('limpeza',this)">🧼 Limpeza</button>
+    </div>
 
-    <a href="contribuir.html">
-      <button
-        type="button"
-        style="
-          background:#4f5dff;
-          color:#fff;
-          padding:14px 22px;
-          border-radius:999px;
-          font-weight:700;
-          border:none;
-          cursor:pointer;
-          box-shadow:0 8px 20px rgba(79,93,255,.35);
-        "
-      >
-        ➕ Contribuir com um preço
-      </button>
-    </a>
-  </div>
+    <div id="filtroCombustivel" class="filtros" style="display:none;">
+      <button type="button" onclick="setTipo('Comum',this)">Comum</button>
+      <button type="button" onclick="setTipo('Aditivada',this)">Aditivada</button>
+    </div>
 
-  <!-- NFC-e: Modal + Resultado -->
-  <div id="qrModal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,.6); z-index:9999;">
-    <div style="max-width:520px;margin:6vh auto;background:#fff;border-radius:12px;padding:14px;">
-      <div style="display:flex;justify-content:space-between;align-items:center;gap:12px;">
-        <h3 style="margin:0;">Ler QR da NFC-e</h3>
-        <button id="btnFecharQr" type="button">✖</button>
+    <div id="filtroFarmacia" class="filtros" style="display:none;">
+      <button type="button" onclick="setCategoriaFarmacia('remedio',this)">💊 Remédios</button>
+      <button type="button" onclick="setCategoriaFarmacia('higiene',this)">🧴 Higiene</button>
+    </div>
+
+    <!-- BUSCA -->
+    <form onsubmit="buscar(); return false;">
+      <div style="max-width:900px;margin:12px auto;display:flex;justify-content:center;gap:10px;flex-wrap:wrap;">
+        <input id="busca" placeholder="Buscar..." />
+        <button type="submit">Buscar</button>
+      </div>
+    </form>
+
+    <div class="busca">
+      <ul id="resultado"></ul>
+    </div>
+
+    <div class="caixa">
+      <button type="button" onclick="compararCesta()">🧺 Comparar cesta</button>
+      <div id="cestaResultado"></div>
+    </div>
+
+    <div class="caixa">
+      <button type="button" onclick="acharMelhorOpcao()">📍 Melhor opção perto de você</button>
+    </div>
+
+    <div class="caixa">
+      <h3>Mapa de Localização</h3>
+      <div id="map" style="height: 420px; width: 100%; border-radius: 12px;"></div>
+    </div>
+
+    <!-- CONTRIBUIR -->
+    <div class="caixa contribuir-wrap">
+      <h3>💬 Viu um preço diferente?</h3>
+      <p style="margin-bottom:14px;">Clique no botão para abrir o formulário e contribuir.</p>
+
+      <a href="contribuir.html">
+        <button
+          type="button"
+          style="
+            background:#4f5dff;
+            color:#fff;
+            padding:14px 22px;
+            border-radius:999px;
+            font-weight:700;
+            border:none;
+            cursor:pointer;
+            box-shadow:0 8px 20px rgba(79,93,255,.35);
+          "
+        >
+          ➕ Contribuir com um preço
+        </button>
+      </a>
+    </div>
+
+    <!-- NFC-e: Modal + Resultado -->
+    <div id="qrModal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,.6); z-index:9999;">
+      <div style="max-width:520px;margin:6vh auto;background:#fff;border-radius:12px;padding:14px;">
+        <div style="display:flex;justify-content:space-between;align-items:center;gap:12px;">
+          <h3 style="margin:0;">Ler QR da NFC-e</h3>
+          <button id="btnFecharQr" type="button">✖</button>
+        </div>
+
+        <p style="margin:10px 0 12px;color:#444;">Aponte a câmera para o QR da nota fiscal (NFC-e).</p>
+
+        <div id="qrReader" style="width:100%;"></div>
+        <div id="qrStatus" style="margin-top:10px;font-size:.95rem;color:#333;"></div>
+      </div>
+    </div>
+
+    <div class="caixa" style="max-width:900px;margin:16px auto;">
+      <h3>Importação da NFC-e</h3>
+
+      <div style="display:flex; gap:10px; flex-wrap:wrap; margin-bottom:10px;">
+        <button id="btnAbrirQr" type="button">📷 Ler QR (câmera)</button>
+        <button id="btnNfceLer" type="button">🔗 Ler URL</button>
+        <button id="btnNfceImportar" type="button" disabled>⬆️ Importar preços</button>
       </div>
 
-      <p style="margin:10px 0 12px;color:#444;">Aponte a câmera para o QR da nota fiscal (NFC-e).</p>
+      <input
+        id="nfceUrl"
+        type="text"
+        placeholder="Cole aqui a URL da NFC-e (do QR Code)"
+        style="width:100%; padding:10px; margin-bottom:8px;"
+      />
 
-      <div id="qrReader" style="width:100%;"></div>
-      <div id="qrStatus" style="margin-top:10px;font-size:.95rem;color:#333;"></div>
+      <input
+        id="nfceCidade"
+        type="text"
+        placeholder="Cidade (ex: Rio Grande/RS)"
+        style="width:100%; padding:10px; margin-bottom:10px;"
+      />
+
+      <div id="nfceStatus" style="margin:8px 0; font-size:.95rem;"></div>
+      <div id="nfcePreview" style="margin-top:10px;"></div>
+
+      <hr style="margin:14px 0; border:none; border-top:1px solid #eee;" />
+
+      <div id="nfceResultado">Nenhuma nota importada ainda.</div>
     </div>
-  </div>
+  </main>
 
-  <div class="caixa" style="max-width:900px;margin:16px auto;">
-    <h3>Importação da NFC-e</h3>
-
-    <div style="display:flex; gap:10px; flex-wrap:wrap; margin-bottom:10px;">
-      <button id="btnAbrirQr" type="button">📷 Ler QR (câmera)</button>
-      <button id="btnNfceLer" type="button">🔗 Ler URL</button>
-      <button id="btnNfceImportar" type="button" disabled>⬆️ Importar preços</button>
-    </div>
-
-    <input
-      id="nfceUrl"
-      type="text"
-      placeholder="Cole aqui a URL da NFC-e (do QR Code)"
-      style="width:100%; padding:10px; margin-bottom:8px;"
-    />
-
-    <input
-      id="nfceCidade"
-      type="text"
-      placeholder="Cidade (ex: Rio Grande/RS)"
-      style="width:100%; padding:10px; margin-bottom:10px;"
-    />
-
-    <div id="nfceStatus" style="margin:8px 0; font-size:.95rem;"></div>
-    <div id="nfcePreview" style="margin-top:10px;"></div>
-
-    <hr style="margin:14px 0; border:none; border-top:1px solid #eee;" />
-
-    <div id="nfceResultado">Nenhuma nota importada ainda.</div>
-  </div>
-
-  <!-- Lib do scanner (CDN) - precisa vir antes do script.js -->
+  <!-- Lib do scanner (biblioteca do leitor de QR) -->
   <script src="https://unpkg.com/html5-qrcode" crossorigin="anonymous"></script>
 
-  <!-- Leaflet (carrega antes do seu script) -->
+  <!-- Leaflet (biblioteca do mapa) -->
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin="anonymous"></script>
 
-  <!-- Seu JS -->
-<script type="module" src="script.js?v=999"></script>
-<script type="module" src="auth.js"></script>
-<script type="module" src="header.js"></script>
+  <!-- Seu JS principal (módulo: permite import/export) -->
+  <script type="module" src="script.js?v=999"></script>
 
+  <!-- Header (se você realmente usa esse arquivo para algo visual/menus) -->
+  <script type="module" src="header.js"></script>
 </body>
 </html>
