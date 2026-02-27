@@ -2,7 +2,7 @@
 // VARIÁVEIS / ESTADO
 // ===============================
 
-// AUTH (usa o auth.js do Maurício)
+// AUTH (módulo: arquivo JS com import/export)
 import { getUser, logout } from "./auth.js";
 
 const API_ROOT = "https://backend-wg1b.onrender.com";
@@ -26,6 +26,7 @@ let categoriaAtual = "";
 let categoriaFarmaciaAtual = "";
 
 let cesta = [];
+let ultimosItens = []; // guarda a última lista renderizada (para compararCesta)
 
 // DOM
 const elBusca = document.getElementById("busca");
@@ -38,10 +39,7 @@ const elFiltroSupermercado = document.getElementById("filtroSupermercado");
 const elFiltroCombustivel = document.getElementById("filtroCombustivel");
 const elFiltroFarmacia = document.getElementById("filtroFarmacia");
 
-// Contribuir (abre/fecha) + NFC-e
-const btnContribuir = document.getElementById("btnContribuir");
-const boxContribuir = document.getElementById("boxContribuir");
-
+// NFC-e
 const elNfceUrl = document.getElementById("nfceUrl");
 const elNfceCidade = document.getElementById("nfceCidade");
 const btnNfceLer = document.getElementById("btnNfceLer");
@@ -96,59 +94,6 @@ async function refreshAuthUI() {
 refreshAuthUI();
 
 // ===============================
-// UI: Contribuir (accordion)
-// ===============================
-btnContribuir?.addEventListener("click", () => {
-  if (!boxContribuir) return;
-  boxContribuir.classList.toggle("aberto");
-});
-
-// ===============================
-// NFC-e UI helpers
-// ===============================
-let ultimoNfce = null;
-
-function nfceSetStatus(msg, isError = false) {
-  if (!elNfceStatus) return;
-  elNfceStatus.textContent = msg || "";
-  elNfceStatus.style.color = isError ? "#b3261e" : "#1f7a39";
-}
-
-function nfceEnableImport(enabled) {
-  if (!btnNfceImportar) return;
-  btnNfceImportar.disabled = !enabled;
-  btnNfceImportar.style.opacity = enabled ? "1" : "0.6";
-}
-
-btnNfceLer?.addEventListener("click", async () => {
-  const url = elNfceUrl?.value || "";
-  await nfceLerUrl(url);
-});
-
-btnNfceImportar?.addEventListener("click", async () => {
-  await nfceImportar();
-});
-
-function parseMoneyFlexible(v) {
-  if (v == null) return null;
-  if (typeof v === "number") return v;
-  const s = String(v)
-    .replace(/\s/g, "")
-    .replace(/[R$\u00A0]/g, "")
-    .replace(/\./g, "")
-    .replace(",", ".");
-  const n = Number(s);
-  return Number.isFinite(n) ? n : null;
-}
-
-function calcFromTotal(it) {
-  const qtd = Number(String(it?.qtd ?? "").replace(",", "."));
-  const vTotal = parseMoneyFlexible(it?.vTotal);
-  if (Number.isFinite(vTotal) && Number.isFinite(qtd) && qtd > 0) return vTotal / qtd;
-  return null;
-}
-
-// ===============================
 // CONTROLES DE FILTRO
 // ===============================
 function limparAtivos(grupo) {
@@ -162,14 +107,12 @@ function hideAllSecundarios() {
   });
 }
 
-// ✅ CORRIGIDO: setNicho não pode estar duplicado aqui dentro
 function setNicho(n, b) {
   nichoAtual = n;
   tipoAtual = "";
   categoriaAtual = "";
   categoriaFarmaciaAtual = "";
 
-  // UI: ativa botão e mostra filtros
   limparAtivos(".topo");
   b?.classList.add("ativo");
 
@@ -179,12 +122,10 @@ function setNicho(n, b) {
   if (n === "combustivel" && elFiltroCombustivel) elFiltroCombustivel.style.display = "flex";
   if (n === "farmacia" && elFiltroFarmacia) elFiltroFarmacia.style.display = "flex";
 
-  // MAPA: mostra só a categoria escolhida (nada aparece antes do clique)
+  // MAPA (camadas: grupos que aparecem/ somem)
   if (n === "supermercado") mostrarCategoria("mercado");
   if (n === "combustivel") mostrarCategoria("posto");
   if (n === "farmacia") mostrarCategoria("farmacia");
-
-  // aqui NÃO dispara buscar ainda, pra não ficar aparecendo aviso ao clicar no nicho primário
 }
 
 function setTipo(t, b) {
@@ -209,7 +150,7 @@ function setCategoriaFarmacia(c, b) {
 }
 
 // ===============================
-// BADGE POSITIVO (CONFIRMAÇÃO)
+// BADGE (indicador visual)
 // ===============================
 function garantirBadgeConfere(li) {
   const precoEl = li.querySelector(".preco");
@@ -248,44 +189,7 @@ function aplicarBadgeConfere(li, confere) {
 }
 
 // ===============================
-// LIMITAR CONFIRMAÇÃO POR USUÁRIO (por dia)
-// ===============================
-function hojeISO() {
-  const d = new Date();
-  const y = d.getFullYear();
-  const m = String(d.getMonth() + 1).padStart(2, "0");
-  const day = String(d.getDate()).padStart(2, "0");
-  return `${y}-${m}-${day}`;
-}
-
-function voteKey(userId, itemId, acao, dia = hojeISO()) {
-  return `qc_vote:${String(userId)}:${String(itemId)}:${String(acao)}:${dia}`;
-}
-
-function userAlreadyVotedToday(userId, itemId, acao) {
-  try {
-    return localStorage.getItem(voteKey(userId, itemId, acao)) === "1";
-  } catch {
-    return false;
-  }
-}
-
-function markUserVotedToday(userId, itemId, acao) {
-  try {
-    localStorage.setItem(voteKey(userId, itemId, acao), "1");
-  } catch {}
-}
-
-function userMustBeLoggedIn(user) {
-  if (!user) {
-    alert("Você precisa estar logado para confirmar preços.");
-    return false;
-  }
-  return true;
-}
-
-// ===============================
-// DATA / RECÊNCIA
+// DATA / RECÊNCIA (idade do preço)
 // ===============================
 function parseDateSafe(v) {
   if (!v) return null;
@@ -301,7 +205,6 @@ function fmtDataBR(d) {
   return `${day}/${mon}/${y}`;
 }
 
-// <=7 dias: fresh (verde); senão old (vermelho)
 function classeRecencia(d) {
   if (!d) return "old";
   const diffDias = (Date.now() - d.getTime()) / (1000 * 60 * 60 * 24);
@@ -309,7 +212,6 @@ function classeRecencia(d) {
 }
 
 function aplicarEstiloRecencia(li, classe) {
-  // não depende do CSS existir
   if (classe === "fresh") {
     li.style.borderLeft = "6px solid #1f7a39";
     li.style.paddingLeft = "10px";
@@ -320,7 +222,7 @@ function aplicarEstiloRecencia(li, classe) {
 }
 
 // ===============================
-// API - AVALIAÇÕES
+// API - AVALIAÇÕES (contadores de confirmação)
 // ===============================
 async function apiGetContadores(ids) {
   if (!ids.length) return {};
@@ -345,7 +247,7 @@ async function apiEnviarAvaliacao(id, acao, user_id = null) {
 }
 
 // ===============================
-// API - PREÇOS (override aprovado) - mantém
+// API - PREÇOS (override aprovado)
 // ===============================
 async function apiGetOverridesAprovados(ids) {
   if (!ids?.length) return {};
@@ -365,7 +267,7 @@ function aplicarOverridesDePreco(produtos, overridesPorId = {}) {
 }
 
 // ===============================
-// API - NFC-e (aprovados para listar)
+// API - NFC-e (itens aprovados)
 // ===============================
 async function apiGetNfceItensAprovados({ cidade, q, nicho, limit = 60 } = {}) {
   const qs = new URLSearchParams();
@@ -382,12 +284,10 @@ async function apiGetNfceItensAprovados({ cidade, q, nicho, limit = 60 } = {}) {
 
 // ===============================
 // BUSCA (catálogo base + nfce aprovados)
-// Produto = nome + preço + loja + última atualização
 // ===============================
 async function buscar() {
   if (!elResultado) return;
 
-  // trava: só busca quando o secundário estiver escolhido (sem alert/sem mensagem chata)
   if (!nichoAtual) return;
 
   if (nichoAtual === "combustivel" && !tipoAtual) return;
@@ -398,9 +298,7 @@ async function buscar() {
   elResultado.innerHTML = "<li>🔎 Buscando…</li>";
 
   try {
-    // 1) BASE LOCAL (data.json)
     const base = await carregarDadosBase();
-
     let itensBase = Array.isArray(base) ? base : base?.itens || base?.produtos || [];
     const qNorm = (q || "").toLowerCase();
 
@@ -441,7 +339,6 @@ async function buscar() {
       updatedAt: p.updatedAt || p.updated_at || null,
     }));
 
-    // 2) NFC-e aprovados (somente supermercado)
     if (nichoAtual === "supermercado") {
       const nfce = await apiGetNfceItensAprovados({
         cidade: "Rio Grande",
@@ -468,6 +365,7 @@ async function buscar() {
 
     if (!itens.length) {
       elResultado.innerHTML = "<li>Nenhum resultado.</li>";
+      ultimosItens = [];
       return;
     }
 
@@ -478,6 +376,7 @@ async function buscar() {
 
     elResultado.innerHTML = "";
     cesta = [];
+    ultimosItens = itens; // <-- guarda para compararCesta()
 
     itens.forEach((p, index) => {
       const li = document.createElement("li");
@@ -496,7 +395,6 @@ async function buscar() {
       const lojaRaw = String(p.loja || "").trim();
       const cidadeRaw = String(p.cidade || "").trim();
 
-      // ✅ CORRIGIDO: clique da loja depende do nicho atual
       const lojaHtml = lojaRaw
         ? `<a href="#" onclick="indicarNoMapaPorNomeLoja('${escapeHtmlAttr(lojaRaw)}'); return false;">${escapeHtml(
             lojaRaw
@@ -512,7 +410,7 @@ async function buscar() {
 
       li.innerHTML = `
         <span>
-          <input type="checkbox" id="ck-${index}"> 
+          <input type="checkbox" id="ck-${index}">
           ${escapeHtml(p.nome || "")}
           <span class="preco" style="font-weight:900;"> R$ ${precoTxt}</span>
           <br>
@@ -529,16 +427,80 @@ async function buscar() {
       aplicarBadgeConfere(li, cont.confere);
 
       const span = li.querySelector(`#confere-${index}`);
-      if (span && typeof cont.confere === "number") {
-        span.textContent = cont.confere ? `(${cont.confere})` : "";
-      }
+      if (span && typeof cont.confere === "number") span.textContent = cont.confere ? `(${cont.confere})` : "";
 
       elResultado.appendChild(li);
     });
   } catch (e) {
     console.error(e);
     elResultado.innerHTML = `<li style="color:#b3261e;">Erro: ${escapeHtml(e?.message || String(e))}</li>`;
+    ultimosItens = [];
   }
+}
+
+// ===============================
+// COMPARAR CESTA (somar itens marcados por loja)
+// ===============================
+function compararCesta() {
+  if (!elCestaResultado) return;
+
+  // pega itens marcados (checkbox (caixa de seleção))
+  const selecionados = [];
+  for (let i = 0; i < ultimosItens.length; i++) {
+    const ck = document.getElementById(`ck-${i}`);
+    if (ck?.checked) selecionados.push(ultimosItens[i]);
+  }
+
+  if (!selecionados.length) {
+    elCestaResultado.innerHTML = "<div style='margin-top:10px;'>Marque itens da lista para comparar. 🧺</div>";
+    return;
+  }
+
+  // soma por loja
+  const somaPorLoja = new Map(); // Map (estrutura chave/valor)
+  selecionados.forEach((it) => {
+    const loja = String(it.loja || "").trim();
+    const preco = Number(it.preco);
+
+    if (!loja) return;
+    if (!Number.isFinite(preco)) return;
+
+    const atual = somaPorLoja.get(loja) || 0;
+    somaPorLoja.set(loja, atual + preco);
+  });
+
+  if (somaPorLoja.size === 0) {
+    elCestaResultado.innerHTML =
+      "<div style='margin-top:10px;'>Esses itens não têm loja/preço consistente para comparar.</div>";
+    return;
+  }
+
+  // ordena (mais barato primeiro)
+  const ranking = Array.from(somaPorLoja.entries())
+    .map(([loja, total]) => ({ loja, total }))
+    .sort((a, b) => a.total - b.total);
+
+  const linhas = ranking
+    .slice(0, 10)
+    .map(
+      (r, idx) => `
+      <div style="display:flex;justify-content:space-between;gap:12px;padding:6px 0;border-bottom:1px solid #eee;">
+        <div><b>${idx + 1}.</b> ${escapeHtml(r.loja)}</div>
+        <div><b>R$ ${r.total.toFixed(2).replace(".", ",")}</b></div>
+      </div>
+    `
+    )
+    .join("");
+
+  elCestaResultado.innerHTML = `
+    <div style="margin-top:10px;">
+      <div style="margin-bottom:8px;"><b>Comparação da cesta</b> (soma dos itens marcados por loja)</div>
+      ${linhas}
+      <div style="margin-top:8px;opacity:.8;font-size:.95rem;">
+        Dica: clique no nome da loja nos itens para destacar no mapa.
+      </div>
+    </div>
+  `;
 }
 
 // ===============================
@@ -552,16 +514,13 @@ async function confirmarPreco(index) {
   const id = li?.dataset?.id;
 
   const user = await getUser();
-  if (!userMustBeLoggedIn(user)) return;
-
-  if (!id) {
-    fb.innerText = "Item sem ID (não dá pra confirmar).";
+  if (!user) {
+    alert("Você precisa estar logado para confirmar preços.");
     return;
   }
 
-  // 1 voto por dia por item por usuário
-  if (userAlreadyVotedToday(user.id, id, "confere")) {
-    fb.innerText = "Você já confirmou esse item hoje. ✅";
+  if (!id) {
+    fb.innerText = "Item sem ID (não dá pra confirmar).";
     return;
   }
 
@@ -570,19 +529,13 @@ async function confirmarPreco(index) {
   try {
     const ret = await apiEnviarAvaliacao(id, "confere", user.id);
 
-    markUserVotedToday(user.id, id, "confere");
-
     const totalConfere = ret?.confere;
     const span = document.getElementById("confere-" + index);
-    if (span && typeof totalConfere === "number") {
-      span.textContent = totalConfere ? `(${totalConfere})` : "";
-    }
+    if (span && typeof totalConfere === "number") span.textContent = totalConfere ? `(${totalConfere})` : "";
 
-    if (typeof totalConfere === "number" && li) {
-      aplicarBadgeConfere(li, totalConfere);
-    }
+    if (typeof totalConfere === "number" && li) aplicarBadgeConfere(li, totalConfere);
 
-    fb.innerText = "Obrigado por confirmar seu safado.✨️";
+    fb.innerText = "Confirmado. ✅";
   } catch (err) {
     console.error(err);
     fb.innerText = "Falha ao confirmar (servidor).";
@@ -590,22 +543,36 @@ async function confirmarPreco(index) {
 }
 
 // ===============================
-// NFC-e: preview / leitura / importação
-// (sem exibir CNPJ na tela — mas continua indo no payload porque teu backend legado exige)
+// NFC-e: leitura / importação (mantida)
 // ===============================
+let ultimoNfce = null;
+
+function nfceSetStatus(msg, isError = false) {
+  if (!elNfceStatus) return;
+  elNfceStatus.textContent = msg || "";
+  elNfceStatus.style.color = isError ? "#b3261e" : "#1f7a39";
+}
+
+function nfceEnableImport(enabled) {
+  if (!btnNfceImportar) return;
+  btnNfceImportar.disabled = !enabled;
+  btnNfceImportar.style.opacity = enabled ? "1" : "0.6";
+}
+
+btnNfceLer?.addEventListener("click", async () => {
+  const url = elNfceUrl?.value || "";
+  await nfceLerUrl(url);
+});
+
+btnNfceImportar?.addEventListener("click", async () => {
+  await nfceImportar();
+});
+
 function nfceRenderPreview(nfce) {
   if (!elNfcePreview) return;
 
   const emitenteHtml = escapeHtml(nfce?.emitente || "—");
   const itens = Array.isArray(nfce?.itens) ? nfce.itens.slice(0, 30) : [];
-
-  const warnings = Array.isArray(nfce?.warnings) ? nfce.warnings : [];
-  const warningsHtml = warnings.length
-    ? `<div style="margin-top:10px;padding:10px;border-radius:12px;background:#fff7ed;border:1px solid #f59e0b;">
-        <b>Atenção:</b>
-        <ul style="margin:6px 0 0 18px;">${warnings.map((w) => `<li>${escapeHtml(w)}</li>`).join("")}</ul>
-      </div>`
-    : "";
 
   const itensHtml = itens
     .map(
@@ -627,12 +594,7 @@ function nfceRenderPreview(nfce) {
       <div><b>Mercado:</b> ${emitenteHtml}</div>
       <div><b>Data:</b> ${escapeHtml(nfce?.dataEmissao || "—")}</div>
       <div><b>Total:</b> ${escapeHtml(String(nfce?.total ?? "—"))}</div>
-      <div style="margin-top:6px;"><b>Fonte:</b> ${
-        nfce?.sourceUrl ? `<a href="${escapeHtml(nfce.sourceUrl)}" target="_blank">abrir consulta</a>` : "—"
-      }</div>
-      ${warningsHtml}
     </div>
-
     <div style="overflow:auto;margin-top:12px;">
       <table style="border-collapse:collapse;width:100%;min-width:720px;">
         <thead>
@@ -647,21 +609,14 @@ function nfceRenderPreview(nfce) {
         </thead>
         <tbody>${itensHtml || ""}</tbody>
       </table>
-      ${itens.length > 30 ? `<div style="margin-top:6px; opacity:.8">Mostrando 30 primeiros itens</div>` : ""}
     </div>
   `;
 }
 
 async function nfceLerUrl(url) {
   const u = String(url || "").trim();
-  if (!u) {
-    nfceSetStatus("Cole a URL da NFC-e.", true);
-    return;
-  }
-  if (!u.startsWith("http")) {
-    nfceSetStatus("A URL precisa começar com http/https.", true);
-    return;
-  }
+  if (!u) return nfceSetStatus("Cole a URL da NFC-e.", true);
+  if (!u.startsWith("http")) return nfceSetStatus("A URL precisa começar com http/https.", true);
 
   ultimoNfce = null;
   nfceEnableImport(false);
@@ -677,41 +632,28 @@ async function nfceLerUrl(url) {
 
     const data = await resp.json().catch(() => ({}));
 
-    if (!resp.ok) {
-      nfceSetStatus(data?.erro || `Falha ao ler NFC-e (HTTP ${resp.status}).`, true);
-      return;
-    }
+    if (!resp.ok) return nfceSetStatus(data?.erro || `Falha ao ler NFC-e (HTTP ${resp.status}).`, true);
 
     ultimoNfce = data;
     nfceRenderPreview(data);
 
     const okToImport = Array.isArray(data?.itens) && data.itens.length > 0;
     nfceEnableImport(okToImport);
-
     nfceSetStatus(okToImport ? "NFC-e lida. Pronto para importar." : "Li a NFC-e, mas não encontrei itens.", !okToImport);
   } catch (err) {
     console.error(err);
-    nfceSetStatus("Erro ao ler NFC-e. Veja console/logs.", true);
-    alert("Falha ao ler NFC-e: " + (err?.message || err));
+    nfceSetStatus("Erro ao ler NFC-e. Veja console.", true);
   }
 }
 
 async function nfceImportar() {
-  if (!ultimoNfce) {
-    nfceSetStatus("Primeiro leia a NFC-e (QR ou URL).", true);
-    return;
-  }
+  if (!ultimoNfce) return nfceSetStatus("Primeiro leia a NFC-e (QR ou URL).", true);
 
   const cidade = (elNfceCidade?.value || "").trim() || "Rio Grande";
   const itens = Array.isArray(ultimoNfce.itens) ? ultimoNfce.itens : [];
+  if (!itens.length) return nfceSetStatus("NFC-e inválida (sem itens).", true);
 
-  if (!itens.length) {
-    nfceSetStatus("NFC-e inválida (sem itens).", true);
-    return;
-  }
-
-  // mantém CNPJ no payload porque seu backend legado exige (não mostramos na tela)
-  const payloadLegado = {
+  const payload = {
     cidade,
     sourceUrl: ultimoNfce.sourceUrl || null,
     emitente: ultimoNfce.emitente || null,
@@ -730,43 +672,38 @@ async function nfceImportar() {
   nfceEnableImport(false);
 
   try {
-    const rLeg = await fetch(`${API_BASE}/nfce/import-precos`, {
+    const r = await fetch(`${API_BASE}/nfce/import-precos`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(payloadLegado),
+      body: JSON.stringify(payload),
     });
 
-    const dataLeg = await rLeg.json().catch(() => ({}));
-    if (!rLeg.ok) {
-      nfceSetStatus(dataLeg?.erro || "Falha ao importar (legado).", true);
+    const data = await r.json().catch(() => ({}));
+    if (!r.ok) {
+      nfceSetStatus(data?.erro || "Falha ao importar.", true);
       nfceEnableImport(true);
       return;
     }
 
     nfceSetStatus("Importado com sucesso. ✅");
-    alert("Importação concluída! ✅");
-
     ultimoNfce = null;
     nfceEnableImport(false);
     if (elNfcePreview) elNfcePreview.innerHTML = "";
     if (elNfceUrl) elNfceUrl.value = "";
-
     if (nichoAtual === "supermercado" && categoriaAtual) buscar();
   } catch (err) {
     console.error(err);
     nfceSetStatus("Erro ao importar. Veja console.", true);
     nfceEnableImport(true);
-    alert("Falha ao importar: " + (err?.message || err));
   }
 }
 
 // ===============================
-// QR SCANNER (html5-qrcode)
+// QR SCANNER (html5-qrcode: leitor via câmera)
 // ===============================
 let html5Qr = null;
 let qrLendo = false;
 
-// IDs esperados no HTML (ajuste se seus ids forem outros)
 const btnAbrirQr = document.getElementById("btnAbrirQr");
 const btnFecharQr = document.getElementById("btnFecharQr");
 const elQrModal = document.getElementById("qrModal");
@@ -779,12 +716,11 @@ function qrStatus(msg) {
 async function abrirScannerQr() {
   try {
     if (typeof Html5Qrcode === "undefined") {
-      alert("QR Code: biblioteca não carregou. Coloque no HTML: <script src='https://unpkg.com/html5-qrcode'></script>");
+      alert("Biblioteca do QR não carregou (html5-qrcode).");
       return;
     }
-
     if (!elQrModal) {
-      alert("QR Code: não achei o modal (id='qrModal') no HTML.");
+      alert("Não achei o modal do QR (id='qrModal').");
       return;
     }
 
@@ -803,7 +739,6 @@ async function abrirScannerQr() {
         if (qrLendo) return;
         qrLendo = true;
 
-        // Para o scanner assim que ler
         try {
           await html5Qr.stop();
           await html5Qr.clear();
@@ -814,11 +749,10 @@ async function abrirScannerQr() {
 
         const url = String(decodedText || "").trim();
         if (!url.startsWith("http")) {
-          alert("Li um QR, mas não parece URL. Conteúdo: " + url);
+          alert("Li um QR, mas não parece URL.");
           return;
         }
 
-        // Joga no fluxo existente (URL)
         if (elNfceUrl) elNfceUrl.value = url;
         await nfceLerUrl(url);
       },
@@ -844,19 +778,17 @@ async function fecharScannerQr() {
   qrStatus("");
 }
 
-// binds (independe de onclick no HTML)
 btnAbrirQr?.addEventListener("click", abrirScannerQr);
 btnFecharQr?.addEventListener("click", fecharScannerQr);
 elQrModal?.addEventListener("click", (e) => {
   if (e.target === elQrModal) fecharScannerQr();
 });
 
-// expõe para onclick caso seu HTML esteja usando onclick
 window.abrirScannerQr = abrirScannerQr;
 window.fecharScannerQr = fecharScannerQr;
 
 // ===============================
-// MAPA + CAMADAS (NÃO mostrar tudo de cara)
+// MAPA + CAMADAS (Leaflet: biblioteca do mapa)
 // ===============================
 const centroRG = [-32.035, -52.098];
 const mapEl = document.getElementById("map");
@@ -864,12 +796,10 @@ const mapEl = document.getElementById("map");
 let map = null;
 let usuarioPosicao = null;
 
-// índices (um por categoria)
 let postosIndex = [];
 let mercadosIndex = [];
 let farmaciasIndex = [];
 
-// camadas (cria só se Leaflet existir, pra não quebrar QR/filtros)
 let layerPostos = null;
 let layerMercados = null;
 let layerFarmacias = null;
@@ -881,7 +811,6 @@ function limparCamadasMapa() {
   if (layerFarmacias && map.hasLayer(layerFarmacias)) map.removeLayer(layerFarmacias);
 }
 
-// tipo: "posto" | "mercado" | "farmacia"
 function mostrarCategoria(tipo) {
   if (!map) return;
   if (!layerPostos || !layerMercados || !layerFarmacias) return;
@@ -891,34 +820,11 @@ function mostrarCategoria(tipo) {
   if (tipo === "posto") layerPostos.addTo(map);
   if (tipo === "mercado") layerMercados.addTo(map);
   if (tipo === "farmacia") layerFarmacias.addTo(map);
-
-  ajustarBoundsDaCamadaVisivel(tipo);
-}
-
-function ajustarBoundsDaCamadaVisivel(tipo) {
-  if (!map) return;
-
-  const lista =
-    tipo === "posto" ? postosIndex :
-    tipo === "mercado" ? mercadosIndex :
-    tipo === "farmacia" ? farmaciasIndex :
-    [];
-
-  if (!Array.isArray(lista) || !lista.length) return;
-
-  let bounds = null;
-  lista.forEach((p) => {
-    if (!Number.isFinite(p.latitude) || !Number.isFinite(p.longitude)) return;
-    if (!bounds) bounds = L.latLngBounds([p.latitude, p.longitude], [p.latitude, p.longitude]);
-    else bounds.extend([p.latitude, p.longitude]);
-  });
-
-  if (bounds) map.fitBounds(bounds.pad(0.12));
 }
 
 if (mapEl) {
   if (typeof L === "undefined") {
-    console.error("❌ Leaflet (L) não carregou. O mapa foi desativado para não quebrar o site.");
+    console.error("❌ Leaflet (L) não carregou. Mapa desativado.");
   } else {
     layerPostos = L.layerGroup();
     layerMercados = L.layerGroup();
@@ -942,14 +848,8 @@ if (mapEl) {
 
     map.on("locationerror", () => {});
 
-    // Carrega dados, mas não mostra nada automaticamente
     carregarPostosNoMapa();
-    // futuramente:
-    // carregarMercadosNoMapa();
-    // carregarFarmaciasNoMapa();
   }
-} else {
-  console.error("❌ Não achei a div #map no HTML.");
 }
 
 async function carregarPostosNoMapa() {
@@ -960,7 +860,6 @@ async function carregarPostosNoMapa() {
     if (!res.ok) throw new Error("HTTP " + res.status);
 
     const csvText = await res.text();
-
     const linhas = csvText
       .split(/\r?\n/)
       .map((l) => l.trim())
@@ -974,10 +873,7 @@ async function carregarPostosNoMapa() {
     const idxNome = header.indexOf("nome");
     const idxLat = header.indexOf("latitude");
     const idxLng = header.indexOf("longitude");
-
-    if (idxLat === -1 || idxLng === -1) {
-      throw new Error("Não achei colunas latitude/longitude no arquivo.");
-    }
+    if (idxLat === -1 || idxLng === -1) throw new Error("Não achei colunas latitude/longitude no arquivo.");
 
     const toNum = (v) => Number(String(v).trim().replace(",", "."));
 
@@ -1004,25 +900,17 @@ async function carregarPostosNoMapa() {
         .bindPopup(`<b>${escapeHtml(p.nome)}</b><br><small>Rio Grande/RS</small>`);
     });
 
-    console.log("✅ Postos carregados (ainda ocultos):", postosIndex.length);
+    console.log("✅ Postos carregados (ocultos até clicar em Combustível):", postosIndex.length);
   } catch (e) {
-    console.error("❌ Erro ao carregar postos_rio_grande_rs.csv:", e);
+    console.error("❌ Erro ao carregar postos:", e);
   }
 }
 
-function extrairNomeLimpoNfce(nomeBruto) {
-  const s = String(nomeBruto || "").trim();
-  const i = s.toLowerCase().indexOf("(código:");
-  if (i > 0) return s.slice(0, i).trim();
-  return s;
-}
-
-// focar por nome (genérico)
 function focarPorNome(nomeAlvo, lista) {
   if (!map) return false;
   if (!Array.isArray(lista) || !lista.length) return false;
 
-  const alvo = normTxt(extrairNomeLimpoNfce(nomeAlvo));
+  const alvo = normTxt(String(nomeAlvo || ""));
   if (!alvo) return false;
 
   let achado = lista.find((x) => x.nome_norm === alvo);
@@ -1034,7 +922,6 @@ function focarPorNome(nomeAlvo, lista) {
   return true;
 }
 
-// ✅ focos por tipo
 function indicarNoMapaPorNomePosto(nomePosto) {
   mostrarCategoria("posto");
   const ok = focarPorNome(nomePosto, postosIndex);
@@ -1044,16 +931,15 @@ function indicarNoMapaPorNomePosto(nomePosto) {
 function indicarNoMapaPorNomeMercado(nomeMercado) {
   mostrarCategoria("mercado");
   const ok = focarPorNome(nomeMercado, mercadosIndex);
-  if (!ok) alert("Não encontrei esse mercado no mapa (ainda não carreguei mercados).");
+  if (!ok) alert("Não encontrei esse mercado no mapa (mercados ainda não carregados).");
 }
 
 function indicarNoMapaPorNomeFarmacia(nomeFarmacia) {
   mostrarCategoria("farmacia");
   const ok = focarPorNome(nomeFarmacia, farmaciasIndex);
-  if (!ok) alert("Não encontrei essa farmácia no mapa (ainda não carreguei farmácias).");
+  if (!ok) alert("Não encontrei essa farmácia no mapa (farmácias ainda não carregadas).");
 }
 
-// ✅ dispatcher (escolhe qual focar baseado no nicho atual)
 function indicarNoMapaPorNomeLoja(nome) {
   if (nichoAtual === "combustivel") return indicarNoMapaPorNomePosto(nome);
   if (nichoAtual === "farmacia") return indicarNoMapaPorNomeFarmacia(nome);
@@ -1061,10 +947,10 @@ function indicarNoMapaPorNomeLoja(nome) {
 }
 
 // ===============================
-// MELHOR OPÇÃO PERTO DE VOCÊ
+// MELHOR OPÇÃO PERTO DE VOCÊ (geodésica: distância no globo)
 // ===============================
 function distanciaKm(lat1, lon1, lat2, lon2) {
-  const R = 6371; // raio da Terra em quilômetros
+  const R = 6371;
   const dLat = ((lat2 - lat1) * Math.PI) / 180;
   const dLon = ((lon2 - lon1) * Math.PI) / 180;
 
@@ -1095,7 +981,7 @@ function acharMelhorOpcao() {
 }
 
 // ===============================
-// HELPERS
+// HELPERS (utilitários: funções pequenas de apoio)
 // ===============================
 function escapeHtml(str) {
   return String(str)
@@ -1120,7 +1006,7 @@ function normTxt(s) {
 }
 
 // ===============================
-// EXPORTA FUNÇÕES PARA ONCLICK DO HTML
+// EXPORTA FUNÇÕES PARA ONCLICK DO HTML (escopo global)
 // ===============================
 window.setNicho = setNicho;
 window.setTipo = setTipo;
@@ -1128,14 +1014,12 @@ window.setCategoria = setCategoria;
 window.setCategoriaFarmacia = setCategoriaFarmacia;
 
 window.buscar = buscar;
+window.compararCesta = compararCesta;
 window.acharMelhorOpcao = acharMelhorOpcao;
 
 window.confirmarPreco = confirmarPreco;
 
 window.indicarNoMapaPorNomeLoja = indicarNoMapaPorNomeLoja;
-window.indicarNoMapaPorNomeMercado = indicarNoMapaPorNomeMercado;
-window.indicarNoMapaPorNomePosto = indicarNoMapaPorNomePosto;
-window.indicarNoMapaPorNomeFarmacia = indicarNoMapaPorNomeFarmacia;
 
 window.nfceLerUrl = nfceLerUrl;
 window.nfceImportar = nfceImportar;
