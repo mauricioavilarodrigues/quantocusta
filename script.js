@@ -113,55 +113,23 @@ function setNicho(n, b) {
   categoriaAtual = "";
   categoriaFarmaciaAtual = "";
 
-  limparAtivos(".topo");
-  b?.classList.add("ativo");
-
-  hideAllSecundarios();
-function setNicho(n, b) {
-  nichoAtual = n;
-  tipoAtual = "";
-  categoriaAtual = "";
-  categoriaFarmaciaAtual = "";
-
+  // UI (interface: parte visual): ativa botão e mostra filtros
   limparAtivos(".topo");
   b?.classList.add("ativo");
 
   hideAllSecundarios();
 
-  // mostra os filtros secundários
   if (n === "supermercado" && elFiltroSupermercado) elFiltroSupermercado.style.display = "flex";
   if (n === "combustivel" && elFiltroCombustivel) elFiltroCombustivel.style.display = "flex";
   if (n === "farmacia" && elFiltroFarmacia) elFiltroFarmacia.style.display = "flex";
 
-  // ✅ MAPA (camadas: grupos que aparecem/somem)
+  // MAPA (camadas: grupos de marcadores)
   if (n === "supermercado") mostrarCategoria("mercado");
   if (n === "combustivel") mostrarCategoria("posto");
   if (n === "farmacia") mostrarCategoria("farmacia");
 
-  // aqui NÃO chama buscar ainda (do jeito que você queria)
+  // aqui NÃO dispara buscar ainda
 }
-
-function setTipo(t, b) {
-  tipoAtual = t;
-  limparAtivos("#filtroCombustivel");
-  b?.classList.add("ativo");
-  buscar();
-}
-
-function setCategoria(c, b) {
-  categoriaAtual = c;
-  limparAtivos("#filtroSupermercado");
-  b?.classList.add("ativo");
-  buscar();
-}
-
-function setCategoriaFarmacia(c, b) {
-  categoriaFarmaciaAtual = c;
-  limparAtivos("#filtroFarmacia");
-  b?.classList.add("ativo");
-  buscar();
-}
-
 // ===============================
 // BADGE (indicador visual)
 // ===============================
