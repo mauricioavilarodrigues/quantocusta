@@ -1114,8 +1114,9 @@ function normTxt(s) {
 // EXPORTA FUNÇÕES PARA ONCLICK DO HTML (escopo global)
 // ===============================
 window.setNicho = setNicho;
-window.setCategoria = setCategoria;
-window.setCategoriaFarmacia = setCategoriaFarmacia;
+// window.setTipo = setTipo; // (setTipo não existe agora)
+// window.setCategoria = setCategoria; // (setCategoria não existe agora)
+// window.setCategoriaFarmacia = setCategoriaFarmacia; // (se também não existir)
 
 window.buscar = buscar;
 window.compararCesta = compararCesta;
