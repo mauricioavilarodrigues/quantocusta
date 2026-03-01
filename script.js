@@ -118,6 +118,12 @@ function setNicho(n, b) {
 
   hideAllSecundarios();
 
+  // ✅ MAPA: mostra a camada do nicho (camada = grupo de marcadores)
+  if (n === "supermercado") mostrarCategoria("mercado");
+  if (n === "combustivel") mostrarCategoria("posto");
+  if (n === "farmacia") mostrarCategoria("farmacia");
+}
+
   if (n === "supermercado" && elFiltroSupermercado) elFiltroSupermercado.style.display = "flex";
   if (n === "combustivel" && elFiltroCombustivel) elFiltroCombustivel.style.display = "flex";
   if (n === "farmacia" && elFiltroFarmacia) elFiltroFarmacia.style.display = "flex";
