@@ -811,15 +811,37 @@ function limparCamadasMapa() {
   if (layerFarmacias && map.hasLayer(layerFarmacias)) map.removeLayer(layerFarmacias);
 }
 
+function fitIndexBounds(lista) {
+  if (!map || !Array.isArray(lista) || !lista.length) return;
+
+  let bounds = null;
+  lista.forEach((p) => {
+    const ll = [p.latitude, p.longitude];
+    if (!bounds) bounds = L.latLngBounds(ll, ll);
+    else bounds.extend(ll);
+  });
+
+  if (bounds) map.fitBounds(bounds.pad(0.12));
+}
+
 function mostrarCategoria(tipo) {
   if (!map) return;
   if (!layerPostos || !layerMercados || !layerFarmacias) return;
 
   limparCamadasMapa();
 
-  if (tipo === "posto") layerPostos.addTo(map);
-  if (tipo === "mercado") layerMercados.addTo(map);
-  if (tipo === "farmacia") layerFarmacias.addTo(map);
+  if (tipo === "posto") {
+    layerPostos.addTo(map);
+    fitIndexBounds(postosIndex);
+  }
+  if (tipo === "mercado") {
+    layerMercados.addTo(map);
+    fitIndexBounds(mercadosIndex);
+  }
+  if (tipo === "farmacia") {
+    layerFarmacias.addTo(map);
+    fitIndexBounds(farmaciasIndex);
+  }
 }
 
 if (mapEl) {
@@ -848,9 +870,14 @@ if (mapEl) {
 
     map.on("locationerror", () => {});
 
+    // ✅ carrega tudo (mas deixa oculto até clicar no nicho)
     carregarPostosNoMapa();
+    carregarMercadosNoMapa();
+    carregarFarmaciasNoMapa();
   }
 }
+
+// ---------- loaders (carregar CSV -> criar markers na layer) ----------
 
 async function carregarPostosNoMapa() {
   try {
@@ -860,11 +887,7 @@ async function carregarPostosNoMapa() {
     if (!res.ok) throw new Error("HTTP " + res.status);
 
     const csvText = await res.text();
-    const linhas = csvText
-      .split(/\r?\n/)
-      .map((l) => l.trim())
-      .filter(Boolean);
-
+    const linhas = csvText.split(/\r?\n/).map((l) => l.trim()).filter(Boolean);
     if (linhas.length < 2) throw new Error("Arquivo vazio ou sem dados.");
 
     const sep = linhas[0].includes("\t") ? "\t" : ",";
@@ -873,7 +896,7 @@ async function carregarPostosNoMapa() {
     const idxNome = header.indexOf("nome");
     const idxLat = header.indexOf("latitude");
     const idxLng = header.indexOf("longitude");
-    if (idxLat === -1 || idxLng === -1) throw new Error("Não achei colunas latitude/longitude no arquivo.");
+    if (idxLat === -1 || idxLng === -1) throw new Error("Não achei colunas latitude/longitude.");
 
     const toNum = (v) => Number(String(v).trim().replace(",", "."));
 
@@ -906,6 +929,108 @@ async function carregarPostosNoMapa() {
   }
 }
 
+async function carregarMercadosNoMapa() {
+  try {
+    if (!map || !layerMercados) return;
+
+    const res = await fetch("mercados_rio_grande_rs.csv?v=" + Date.now(), { cache: "no-store" });
+    if (!res.ok) throw new Error("HTTP " + res.status);
+
+    const csvText = await res.text();
+    const linhas = csvText.split(/\r?\n/).map((l) => l.trim()).filter(Boolean);
+    if (linhas.length < 2) throw new Error("Arquivo vazio ou sem dados.");
+
+    const sep = linhas[0].includes("\t") ? "\t" : ",";
+    const header = linhas[0].split(sep).map((h) => h.trim().toLowerCase());
+
+    const idxNome = header.indexOf("nome");
+    const idxLat = header.indexOf("latitude");
+    const idxLng = header.indexOf("longitude");
+    if (idxLat === -1 || idxLng === -1) throw new Error("Não achei colunas latitude/longitude.");
+
+    const toNum = (v) => Number(String(v).trim().replace(",", "."));
+
+    mercadosIndex = linhas
+      .slice(1)
+      .map((linha) => {
+        const cols = linha.split(sep).map((c) => c.trim());
+        const nome = (idxNome >= 0 ? cols[idxNome] : "Mercado") || "Mercado";
+        return {
+          nome,
+          nome_norm: normTxt(nome),
+          latitude: toNum(cols[idxLat]),
+          longitude: toNum(cols[idxLng]),
+          marker: null,
+        };
+      })
+      .filter((p) => Number.isFinite(p.latitude) && Number.isFinite(p.longitude));
+
+    layerMercados.clearLayers();
+
+    mercadosIndex.forEach((p) => {
+      p.marker = L.marker([p.latitude, p.longitude])
+        .addTo(layerMercados)
+        .bindPopup(`<b>${escapeHtml(p.nome)}</b><br><small>Rio Grande/RS</small>`);
+    });
+
+    console.log("✅ Mercados carregados (ocultos até clicar em Supermercado):", mercadosIndex.length);
+  } catch (e) {
+    console.error("❌ Erro ao carregar mercados:", e);
+  }
+}
+
+async function carregarFarmaciasNoMapa() {
+  try {
+    if (!map || !layerFarmacias) return;
+
+    const res = await fetch("farmacias_rio_grande_rs.csv?v=" + Date.now(), { cache: "no-store" });
+    if (!res.ok) throw new Error("HTTP " + res.status);
+
+    const csvText = await res.text();
+    const linhas = csvText.split(/\r?\n/).map((l) => l.trim()).filter(Boolean);
+    if (linhas.length < 2) throw new Error("Arquivo vazio ou sem dados.");
+
+    const sep = linhas[0].includes("\t") ? "\t" : ",";
+    const header = linhas[0].split(sep).map((h) => h.trim().toLowerCase());
+
+    const idxNome = header.indexOf("nome");
+    const idxLat = header.indexOf("latitude");
+    const idxLng = header.indexOf("longitude");
+    if (idxLat === -1 || idxLng === -1) throw new Error("Não achei colunas latitude/longitude.");
+
+    const toNum = (v) => Number(String(v).trim().replace(",", "."));
+
+    farmaciasIndex = linhas
+      .slice(1)
+      .map((linha) => {
+        const cols = linha.split(sep).map((c) => c.trim());
+        const nome = (idxNome >= 0 ? cols[idxNome] : "Farmácia") || "Farmácia";
+        return {
+          nome,
+          nome_norm: normTxt(nome),
+          latitude: toNum(cols[idxLat]),
+          longitude: toNum(cols[idxLng]),
+          marker: null,
+        };
+      })
+      .filter((p) => Number.isFinite(p.latitude) && Number.isFinite(p.longitude));
+
+    layerFarmacias.clearLayers();
+
+    farmaciasIndex.forEach((p) => {
+      p.marker = L.marker([p.latitude, p.longitude])
+        .addTo(layerFarmacias)
+        .bindPopup(`<b>${escapeHtml(p.nome)}</b><br><small>Rio Grande/RS</small>`);
+    });
+
+    console.log("✅ Farmácias carregadas (ocultas até clicar em Farmácia):", farmaciasIndex.length);
+  } catch (e) {
+    console.error("❌ Erro ao carregar farmácias:", e);
+  }
+}
+
+// ---------- foco por nome ----------
+
 function focarPorNome(nomeAlvo, lista) {
   if (!map) return false;
   if (!Array.isArray(lista) || !lista.length) return false;
@@ -931,13 +1056,13 @@ function indicarNoMapaPorNomePosto(nomePosto) {
 function indicarNoMapaPorNomeMercado(nomeMercado) {
   mostrarCategoria("mercado");
   const ok = focarPorNome(nomeMercado, mercadosIndex);
-  if (!ok) alert("Não encontrei esse mercado no mapa (mercados ainda não carregados).");
+  if (!ok) alert("Não encontrei esse mercado no mapa.");
 }
 
 function indicarNoMapaPorNomeFarmacia(nomeFarmacia) {
   mostrarCategoria("farmacia");
   const ok = focarPorNome(nomeFarmacia, farmaciasIndex);
-  if (!ok) alert("Não encontrei essa farmácia no mapa (farmácias ainda não carregadas).");
+  if (!ok) alert("Não encontrei essa farmácia no mapa.");
 }
 
 function indicarNoMapaPorNomeLoja(nome) {
@@ -945,7 +1070,6 @@ function indicarNoMapaPorNomeLoja(nome) {
   if (nichoAtual === "farmacia") return indicarNoMapaPorNomeFarmacia(nome);
   return indicarNoMapaPorNomeMercado(nome);
 }
-
 // ===============================
 // MELHOR OPÇÃO PERTO DE VOCÊ (geodésica: distância no globo)
 // ===============================
