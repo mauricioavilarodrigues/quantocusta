@@ -117,21 +117,28 @@ function setNicho(n, b) {
   b?.classList.add("ativo");
 
   hideAllSecundarios();
+function setNicho(n, b) {
+  nichoAtual = n;
+  tipoAtual = "";
+  categoriaAtual = "";
+  categoriaFarmaciaAtual = "";
 
-  // ✅ MAPA: mostra a camada do nicho (camada = grupo de marcadores)
-  if (n === "supermercado") mostrarCategoria("mercado");
-  if (n === "combustivel") mostrarCategoria("posto");
-  if (n === "farmacia") mostrarCategoria("farmacia");
-}
+  limparAtivos(".topo");
+  b?.classList.add("ativo");
 
+  hideAllSecundarios();
+
+  // mostra os filtros secundários
   if (n === "supermercado" && elFiltroSupermercado) elFiltroSupermercado.style.display = "flex";
   if (n === "combustivel" && elFiltroCombustivel) elFiltroCombustivel.style.display = "flex";
   if (n === "farmacia" && elFiltroFarmacia) elFiltroFarmacia.style.display = "flex";
 
-  // MAPA (camadas: grupos que aparecem/ somem)
+  // ✅ MAPA (camadas: grupos que aparecem/somem)
   if (n === "supermercado") mostrarCategoria("mercado");
   if (n === "combustivel") mostrarCategoria("posto");
   if (n === "farmacia") mostrarCategoria("farmacia");
+
+  // aqui NÃO chama buscar ainda (do jeito que você queria)
 }
 
 function setTipo(t, b) {
