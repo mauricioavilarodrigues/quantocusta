@@ -769,95 +769,6 @@ window.abrirScannerQr = abrirScannerQr;
 window.fecharScannerQr = fecharScannerQr;
 
 // ===============================
-// MAPA + CAMADAS (Leaflet: biblioteca do mapa)
-// ===============================
-const centroRG = [-32.035, -52.098];
-const mapEl = document.getElementById("map");
-
-let map = null;
-let usuarioPosicao = null;
-
-let postosIndex = [];
-let mercadosIndex = [];
-let farmaciasIndex = [];
-
-let layerPostos = null;
-let layerMercados = null;
-let layerFarmacias = null;
-
-function limparCamadasMapa() {
-  if (!map) return;
-  if (layerPostos && map.hasLayer(layerPostos)) map.removeLayer(layerPostos);
-  if (layerMercados && map.hasLayer(layerMercados)) map.removeLayer(layerMercados);
-  if (layerFarmacias && map.hasLayer(layerFarmacias)) map.removeLayer(layerFarmacias);
-}
-
-function fitIndexBounds(lista) {
-  if (!map || !Array.isArray(lista) || !lista.length) return;
-
-  let bounds = null;
-  lista.forEach((p) => {
-    const ll = [p.latitude, p.longitude];
-    if (!bounds) bounds = L.latLngBounds(ll, ll);
-    else bounds.extend(ll);
-  });
-
-  if (bounds) map.fitBounds(bounds.pad(0.12));
-}
-
-function mostrarCategoria(tipo) {
-  if (!map) return;
-  if (!layerPostos || !layerMercados || !layerFarmacias) return;
-
-  limparCamadasMapa();
-
-  if (tipo === "posto") {
-    layerPostos.addTo(map);
-    fitIndexBounds(postosIndex);
-  }
-  if (tipo === "mercado") {
-    layerMercados.addTo(map);
-    fitIndexBounds(mercadosIndex);
-  }
-  if (tipo === "farmacia") {
-    layerFarmacias.addTo(map);
-    fitIndexBounds(farmaciasIndex);
-  }
-}
-
-if (mapEl) {
-  if (typeof L === "undefined") {
-    console.error("❌ Leaflet (L) não carregou. Mapa desativado.");
-  } else {
-    layerPostos = L.layerGroup();
-    layerMercados = L.layerGroup();
-    layerFarmacias = L.layerGroup();
-
-    map = L.map("map").setView(centroRG, 13);
-    window.map = map;
-
-    L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
-      attribution: "© OpenStreetMap",
-    }).addTo(map);
-
-    map.locate({ setView: false, maxZoom: 15 });
-
-    map.on("locationfound", (e) => {
-      usuarioPosicao = e.latlng;
-      L.circleMarker(usuarioPosicao, { radius: 8, fillOpacity: 0.85 })
-        .addTo(map)
-        .bindPopup("<b>Você está aqui</b>");
-    });
-
-    map.on("locationerror", () => {});
-
-    // ✅ carrega tudo (mas deixa oculto até clicar no nicho)
-    carregarPostosNoMapa();
-    carregarMercadosNoMapa();
-    carregarFarmaciasNoMapa();
-  }
-}
-// ===============================
 // MAPA + CAMADAS (Leaflet = biblioteca do mapa)
 // Fonte de dados: Backend /api/locais (Supabase)
 // ===============================
@@ -1054,6 +965,26 @@ async function indicarNoMapaPorNomeLoja(nome) {
 window.mostrarCategoria = mostrarCategoria;
 window.indicarNoMapaPorNomeLoja = indicarNoMapaPorNomeLoja;
 
+// ===============================
+// HELPERS (helpers = funções auxiliares)
+// ===============================
+function escapeHtml(str) {
+  return String(str)
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;")
+    .replaceAll("'", "&#039;");
+}
+
+function normTxt(s) {
+  return String(s || "")
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/\s+/g, " ")
+    .trim();
+}
 // ===============================
 // HELPERS (helpers = funções auxiliares)
 // ===============================
