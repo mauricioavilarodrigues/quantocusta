@@ -857,161 +857,157 @@ if (mapEl) {
     carregarFarmaciasNoMapa();
   }
 }
+// ===============================
+// MAPA + CAMADAS (Leaflet = biblioteca do mapa)
+// Fonte de dados: Backend /api/locais (Supabase)
+// ===============================
+const centroRG = [-32.035, -52.098];
+const mapEl = document.getElementById("map");
 
-// ---------- loaders (carregar CSV -> criar markers na layer) ----------
+let map = null;
+let usuarioPosicao = null;
 
-async function carregarPostosNoMapa() {
-  try {
-    if (!map || !layerPostos) return;
+let postosIndex = [];
+let mercadosIndex = [];
+let farmaciasIndex = [];
 
-    const res = await fetch("postos_rio_grande_rs.csv?v=" + Date.now(), { cache: "no-store" });
-    if (!res.ok) throw new Error("HTTP " + res.status);
+let layerPostos = null;
+let layerMercados = null;
+let layerFarmacias = null;
 
-    const csvText = await res.text();
-    const linhas = csvText.split(/\r?\n/).map((l) => l.trim()).filter(Boolean);
-    if (linhas.length < 2) throw new Error("Arquivo vazio ou sem dados.");
+// controle de carregamento (cache = guarda dados pra não baixar de novo)
+let locaisCarregados = { posto: false, mercado: false, farmacia: false };
 
-    const sep = linhas[0].includes("\t") ? "\t" : ",";
-    const header = linhas[0].split(sep).map((h) => h.trim().toLowerCase());
-
-    const idxNome = header.indexOf("nome");
-    const idxLat = header.indexOf("latitude");
-    const idxLng = header.indexOf("longitude");
-    if (idxLat === -1 || idxLng === -1) throw new Error("Não achei colunas latitude/longitude.");
-
-    const toNum = (v) => Number(String(v).trim().replace(",", "."));
-
-    postosIndex = linhas
-      .slice(1)
-      .map((linha) => {
-        const cols = linha.split(sep).map((c) => c.trim());
-        const nome = (idxNome >= 0 ? cols[idxNome] : "Posto") || "Posto";
-        return {
-          nome,
-          nome_norm: normTxt(nome),
-          latitude: toNum(cols[idxLat]),
-          longitude: toNum(cols[idxLng]),
-          marker: null,
-        };
-      })
-      .filter((p) => Number.isFinite(p.latitude) && Number.isFinite(p.longitude));
-
-    layerPostos.clearLayers();
-
-    postosIndex.forEach((p) => {
-      p.marker = L.marker([p.latitude, p.longitude])
-        .addTo(layerPostos)
-        .bindPopup(`<b>${escapeHtml(p.nome)}</b><br><small>Rio Grande/RS</small>`);
-    });
-
-    console.log("✅ Postos carregados (ocultos até clicar em Combustível):", postosIndex.length);
-  } catch (e) {
-    console.error("❌ Erro ao carregar postos:", e);
-  }
+function limparCamadasMapa() {
+  if (!map) return;
+  if (layerPostos && map.hasLayer(layerPostos)) map.removeLayer(layerPostos);
+  if (layerMercados && map.hasLayer(layerMercados)) map.removeLayer(layerMercados);
+  if (layerFarmacias && map.hasLayer(layerFarmacias)) map.removeLayer(layerFarmacias);
 }
 
-async function carregarMercadosNoMapa() {
-  try {
-    if (!map || !layerMercados) return;
+// mostra somente a categoria escolhida (camada = grupo de marcadores)
+async function mostrarCategoria(tipo) {
+  if (!map) return;
+  if (!layerPostos || !layerMercados || !layerFarmacias) return;
 
-    const res = await fetch("mercados_rio_grande_rs.csv?v=" + Date.now(), { cache: "no-store" });
-    if (!res.ok) throw new Error("HTTP " + res.status);
+  // garante que os dados do tipo já foram carregados do backend
+  if (tipo === "posto") await garantirLocaisCarregados("posto");
+  if (tipo === "mercado") await garantirLocaisCarregados("mercado");
+  if (tipo === "farmacia") await garantirLocaisCarregados("farmacia");
 
-    const csvText = await res.text();
-    const linhas = csvText.split(/\r?\n/).map((l) => l.trim()).filter(Boolean);
-    if (linhas.length < 2) throw new Error("Arquivo vazio ou sem dados.");
+  limparCamadasMapa();
 
-    const sep = linhas[0].includes("\t") ? "\t" : ",";
-    const header = linhas[0].split(sep).map((h) => h.trim().toLowerCase());
-
-    const idxNome = header.indexOf("nome");
-    const idxLat = header.indexOf("latitude");
-    const idxLng = header.indexOf("longitude");
-    if (idxLat === -1 || idxLng === -1) throw new Error("Não achei colunas latitude/longitude.");
-
-    const toNum = (v) => Number(String(v).trim().replace(",", "."));
-
-    mercadosIndex = linhas
-      .slice(1)
-      .map((linha) => {
-        const cols = linha.split(sep).map((c) => c.trim());
-        const nome = (idxNome >= 0 ? cols[idxNome] : "Mercado") || "Mercado";
-        return {
-          nome,
-          nome_norm: normTxt(nome),
-          latitude: toNum(cols[idxLat]),
-          longitude: toNum(cols[idxLng]),
-          marker: null,
-        };
-      })
-      .filter((p) => Number.isFinite(p.latitude) && Number.isFinite(p.longitude));
-
-    layerMercados.clearLayers();
-
-    mercadosIndex.forEach((p) => {
-      p.marker = L.marker([p.latitude, p.longitude])
-        .addTo(layerMercados)
-        .bindPopup(`<b>${escapeHtml(p.nome)}</b><br><small>Rio Grande/RS</small>`);
-    });
-
-    console.log("✅ Mercados carregados (ocultos até clicar em Supermercado):", mercadosIndex.length);
-  } catch (e) {
-    console.error("❌ Erro ao carregar mercados:", e);
-  }
+  if (tipo === "posto") layerPostos.addTo(map);
+  if (tipo === "mercado") layerMercados.addTo(map);
+  if (tipo === "farmacia") layerFarmacias.addTo(map);
 }
 
-async function carregarFarmaciasNoMapa() {
-  try {
-    if (!map || !layerFarmacias) return;
+// busca locais no backend (endpoint = rota da API)
+async function buscarLocaisNoBackend(tipo, cidade = "") {
+  // ajuste se seu backend filtra por cidade (opcional)
+  const qs = new URLSearchParams();
+  if (tipo) qs.set("tipo", tipo);
+  if (cidade) qs.set("cidade", cidade);
 
-    const res = await fetch("farmacias_rio_grande_rs.csv?v=" + Date.now(), { cache: "no-store" });
-    if (!res.ok) throw new Error("HTTP " + res.status);
-
-    const csvText = await res.text();
-    const linhas = csvText.split(/\r?\n/).map((l) => l.trim()).filter(Boolean);
-    if (linhas.length < 2) throw new Error("Arquivo vazio ou sem dados.");
-
-    const sep = linhas[0].includes("\t") ? "\t" : ",";
-    const header = linhas[0].split(sep).map((h) => h.trim().toLowerCase());
-
-    const idxNome = header.indexOf("nome");
-    const idxLat = header.indexOf("latitude");
-    const idxLng = header.indexOf("longitude");
-    if (idxLat === -1 || idxLng === -1) throw new Error("Não achei colunas latitude/longitude.");
-
-    const toNum = (v) => Number(String(v).trim().replace(",", "."));
-
-    farmaciasIndex = linhas
-      .slice(1)
-      .map((linha) => {
-        const cols = linha.split(sep).map((c) => c.trim());
-        const nome = (idxNome >= 0 ? cols[idxNome] : "Farmácia") || "Farmácia";
-        return {
-          nome,
-          nome_norm: normTxt(nome),
-          latitude: toNum(cols[idxLat]),
-          longitude: toNum(cols[idxLng]),
-          marker: null,
-        };
-      })
-      .filter((p) => Number.isFinite(p.latitude) && Number.isFinite(p.longitude));
-
-    layerFarmacias.clearLayers();
-
-    farmaciasIndex.forEach((p) => {
-      p.marker = L.marker([p.latitude, p.longitude])
-        .addTo(layerFarmacias)
-        .bindPopup(`<b>${escapeHtml(p.nome)}</b><br><small>Rio Grande/RS</small>`);
-    });
-
-    console.log("✅ Farmácias carregadas (ocultas até clicar em Farmácia):", farmaciasIndex.length);
-  } catch (e) {
-    console.error("❌ Erro ao carregar farmácias:", e);
-  }
+  const url = `${API_BASE}/locais?${qs.toString()}`;
+  const res = await fetch(url, { cache: "no-store" });
+  if (!res.ok) throw new Error("HTTP " + res.status);
+  return await res.json();
 }
 
-// ---------- foco por nome ----------
+async function garantirLocaisCarregados(tipo) {
+  if (locaisCarregados[tipo]) return;
 
+  // Se você quiser filtrar cidade aqui, use: "Rio Grande/RS" ou "Cassino/RS"
+  // const cidade = "Rio Grande/RS";
+  const cidade = "";
+
+  const rows = await buscarLocaisNoBackend(tipo, cidade);
+
+  // aceita tanto "loja" quanto "nome" (compatibilidade = funciona com dois formatos)
+  const normalizar = (x) => {
+    const nome = (x.loja || x.nome || "").toString().trim();
+    return {
+      nome,
+      nome_norm: normTxt(nome),
+      latitude: Number(x.latitude),
+      longitude: Number(x.longitude),
+      marker: null,
+    };
+  };
+
+  const lista = (rows || [])
+    .map(normalizar)
+    .filter((p) => p.nome && Number.isFinite(p.latitude) && Number.isFinite(p.longitude));
+
+  if (tipo === "posto") {
+    postosIndex = lista;
+    renderizarMarkers(layerPostos, postosIndex);
+    console.log("✅ Postos carregados (Supabase):", postosIndex.length);
+  }
+
+  if (tipo === "mercado") {
+    mercadosIndex = lista;
+    renderizarMarkers(layerMercados, mercadosIndex);
+    console.log("✅ Mercados carregados (Supabase):", mercadosIndex.length);
+  }
+
+  if (tipo === "farmacia") {
+    farmaciasIndex = lista;
+    renderizarMarkers(layerFarmacias, farmaciasIndex);
+    console.log("✅ Farmácias carregadas (Supabase):", farmaciasIndex.length);
+  }
+
+  locaisCarregados[tipo] = true;
+}
+
+function renderizarMarkers(layer, lista) {
+  if (!layer) return;
+  layer.clearLayers();
+
+  lista.forEach((p) => {
+    p.marker = L.marker([p.latitude, p.longitude])
+      .addTo(layer)
+      .bindPopup(`<b>${escapeHtml(p.nome)}</b><br><small>${escapeHtml("Rio Grande/RS")}</small>`);
+  });
+}
+
+// inicializa mapa
+if (mapEl) {
+  if (typeof L === "undefined") {
+    console.error("❌ Leaflet (L) não carregou. Mapa desativado.");
+  } else {
+    layerPostos = L.layerGroup();
+    layerMercados = L.layerGroup();
+    layerFarmacias = L.layerGroup();
+
+    map = L.map("map").setView(centroRG, 13);
+    window.map = map;
+
+    L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+      attribution: "© OpenStreetMap",
+    }).addTo(map);
+
+    // localização do usuário (geolocalização = pegar posição do dispositivo)
+    map.locate({ setView: false, maxZoom: 15 });
+
+    map.on("locationfound", (e) => {
+      usuarioPosicao = e.latlng;
+      L.circleMarker(usuarioPosicao, { radius: 8, fillOpacity: 0.85 })
+        .addTo(map)
+        .bindPopup("<b>Você está aqui</b>");
+    });
+
+    map.on("locationerror", () => {});
+
+    // NÃO mostra nada no início (só cidade + você)
+    // Os marcadores só aparecem quando clicar no nicho e chamar mostrarCategoria(...)
+  }
+} else {
+  console.error("❌ Não achei a div #map no HTML.");
+}
+
+// focar (focar = centralizar o mapa em um local pelo nome)
 function focarPorNome(nomeAlvo, lista) {
   if (!map) return false;
   if (!Array.isArray(lista) || !lista.length) return false;
@@ -1028,61 +1024,55 @@ function focarPorNome(nomeAlvo, lista) {
   return true;
 }
 
-function indicarNoMapaPorNomePosto(nomePosto) {
-  mostrarCategoria("posto");
+// funções públicas pra destacar no mapa (usadas quando clicar num produto)
+async function indicarNoMapaPorNomePosto(nomePosto) {
+  await mostrarCategoria("posto");
   const ok = focarPorNome(nomePosto, postosIndex);
   if (!ok) alert("Não encontrei esse posto no mapa.");
 }
 
-function indicarNoMapaPorNomeMercado(nomeMercado) {
-  mostrarCategoria("mercado");
+async function indicarNoMapaPorNomeMercado(nomeMercado) {
+  await mostrarCategoria("mercado");
   const ok = focarPorNome(nomeMercado, mercadosIndex);
   if (!ok) alert("Não encontrei esse mercado no mapa.");
 }
 
-function indicarNoMapaPorNomeFarmacia(nomeFarmacia) {
-  mostrarCategoria("farmacia");
+async function indicarNoMapaPorNomeFarmacia(nomeFarmacia) {
+  await mostrarCategoria("farmacia");
   const ok = focarPorNome(nomeFarmacia, farmaciasIndex);
   if (!ok) alert("Não encontrei essa farmácia no mapa.");
 }
 
-function indicarNoMapaPorNomeLoja(nome) {
+// roteia pelo nicho atual (nicho = categoria principal)
+async function indicarNoMapaPorNomeLoja(nome) {
   if (nichoAtual === "combustivel") return indicarNoMapaPorNomePosto(nome);
   if (nichoAtual === "farmacia") return indicarNoMapaPorNomeFarmacia(nome);
   return indicarNoMapaPorNomeMercado(nome);
 }
-// ===============================
-// MELHOR OPÇÃO PERTO DE VOCÊ (geodésica: distância no globo)
-// ===============================
-function distanciaKm(lat1, lon1, lat2, lon2) {
-  const R = 6371;
-  const dLat = ((lat2 - lat1) * Math.PI) / 180;
-  const dLon = ((lon2 - lon1) * Math.PI) / 180;
 
-  const a =
-    Math.sin(dLat / 2) ** 2 +
-    Math.cos((lat1 * Math.PI) / 180) *
-      Math.cos((lat2 * Math.PI) / 180) *
-      Math.sin(dLon / 2) ** 2;
+// exporta para HTML (onclick = clique chamando função do JS)
+window.mostrarCategoria = mostrarCategoria;
+window.indicarNoMapaPorNomeLoja = indicarNoMapaPorNomeLoja;
 
-  return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+// ===============================
+// HELPERS (helpers = funções auxiliares)
+// ===============================
+function escapeHtml(str) {
+  return String(str)
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;")
+    .replaceAll("'", "&#039;");
 }
 
-function acharMelhorOpcao() {
-  if (!map) return;
-  if (!usuarioPosicao) return alert("Localização não encontrada (permita a localização no navegador).");
-  if (!postosIndex.length) return alert("Não há postos carregados no mapa.");
-
-  let melhor = null;
-  postosIndex.forEach((p) => {
-    const d = distanciaKm(usuarioPosicao.lat, usuarioPosicao.lng, p.latitude, p.longitude);
-    if (!melhor || d < melhor.dist) melhor = { ...p, dist: d };
-  });
-
-  if (!melhor) return;
-
-  map.setView([melhor.latitude, melhor.longitude], 16);
-  alert(`📍 Posto mais perto:\n\n${melhor.nome}\nDistância: ${melhor.dist.toFixed(2)} km`);
+function normTxt(s) {
+  return String(s || "")
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/\s+/g, " ")
+    .trim();
 }
 
 // ===============================
