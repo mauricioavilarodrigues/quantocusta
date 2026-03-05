@@ -995,17 +995,6 @@ function acharMelhorOpcao() {
 // ===============================
 // EXPORTA FUNÇÕES PARA ONCLICK DO HTML (escopo global)
 // ===============================
-window.setNicho = setNicho;
-// window.setTipo = setTipo; // (setTipo não existe agora)
-// window.setCategoria = setCategoria; // (setCategoria não existe agora)
-// window.setCategoriaFarmacia = setCategoriaFarmacia; // (se também não existir)
-
-window.confirmarPreco = confirmarPreco;
-
-window.indicarNoMapaPorNomeLoja = indicarNoMapaPorNomeLoja;
-
-window.nfceLerUrl = nfceLerUrl;
-window.nfceImportar = nfceImportar;
 // Liga o botão “Melhor opção” ao clique
 document.addEventListener("DOMContentLoaded", () => {
   const btn = document.getElementById("btnMelhorOpcao");
