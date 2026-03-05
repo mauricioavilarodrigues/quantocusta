@@ -1007,8 +1007,9 @@ function normTxt(s) {
 }
 
 // ===============================
-// HELPERS (utilitários: funções pequenas de apoio)
+// HELPERS (utilitários)
 // ===============================
+
 function escapeHtml(str) {
   return String(str)
     .replaceAll("&", "&amp;")
@@ -1030,7 +1031,6 @@ function normTxt(s) {
     .replace(/\s+/g, " ")
     .trim();
 }
-
 // ===============================
 // EXPORTA FUNÇÕES PARA ONCLICK DO HTML (escopo global)
 // ===============================
