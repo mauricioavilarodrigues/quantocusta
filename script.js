@@ -1010,3 +1010,12 @@ window.indicarNoMapaPorNomeLoja = indicarNoMapaPorNomeLoja;
 
 window.nfceLerUrl = nfceLerUrl;
 window.nfceImportar = nfceImportar;
+// Liga o botão “Melhor opção” ao clique
+document.addEventListener("DOMContentLoaded", () => {
+  const btn = document.getElementById("btnMelhorOpcao");
+  if (btn) {
+    btn.addEventListener("click", () => {
+      acharMelhorOpcao();
+    });
+  }
+});
