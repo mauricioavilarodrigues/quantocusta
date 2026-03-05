@@ -837,7 +837,7 @@ async function garantirLocaisCarregados(tipo) {
 
   // aceita tanto "loja" quanto "nome" (compatibilidade = funciona com dois formatos)
   const normalizar = (x) => {
-    const nome = (x.loja || x.nome || "").toString().trim();
+    const nome = (x.nome || "").toString().trim();
     return {
       nome,
       nome_norm: normTxt(nome),
