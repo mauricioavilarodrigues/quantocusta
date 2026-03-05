@@ -1000,10 +1000,6 @@ window.setNicho = setNicho;
 // window.setCategoria = setCategoria; // (setCategoria não existe agora)
 // window.setCategoriaFarmacia = setCategoriaFarmacia; // (se também não existir)
 
-window.buscar = buscar;
-window.compararCesta = compararCesta;
-window.acharMelhorOpcao = acharMelhorOpcao;
-
 window.confirmarPreco = confirmarPreco;
 
 window.indicarNoMapaPorNomeLoja = indicarNoMapaPorNomeLoja;
