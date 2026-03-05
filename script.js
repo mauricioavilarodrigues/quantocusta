@@ -965,26 +965,7 @@ async function indicarNoMapaPorNomeLoja(nome) {
 window.mostrarCategoria = mostrarCategoria;
 window.indicarNoMapaPorNomeLoja = indicarNoMapaPorNomeLoja;
 
-// ===============================
-// HELPERS (helpers = funções auxiliares)
-// ===============================
-function escapeHtml(str) {
-  return String(str)
-    .replaceAll("&", "&amp;")
-    .replaceAll("<", "&lt;")
-    .replaceAll(">", "&gt;")
-    .replaceAll('"', "&quot;")
-    .replaceAll("'", "&#039;");
-}
 
-function normTxt(s) {
-  return String(s || "")
-    .toLowerCase()
-    .normalize("NFD")
-    .replace(/[\u0300-\u036f]/g, "")
-    .replace(/\s+/g, " ")
-    .trim();
-}
 // ===============================
 // HELPERS (helpers = funções auxiliares)
 // ===============================
