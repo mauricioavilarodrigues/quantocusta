@@ -986,7 +986,12 @@ function normTxt(s) {
     .replace(/\s+/g, " ")
     .trim();
 }
-
+// ===============================
+// MELHOR OPÇÃO
+// ===============================
+function acharMelhorOpcao() {
+  alert("Essa função ainda será implementada.");
+}
 // ===============================
 // EXPORTA FUNÇÕES PARA ONCLICK DO HTML (escopo global)
 // ===============================
