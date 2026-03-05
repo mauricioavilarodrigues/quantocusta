@@ -988,31 +988,6 @@ function normTxt(s) {
 }
 
 // ===============================
-// HELPERS (utilitários)
-// ===============================
-
-function escapeHtml(str) {
-  return String(str)
-    .replaceAll("&", "&amp;")
-    .replaceAll("<", "&lt;")
-    .replaceAll(">", "&gt;")
-    .replaceAll('"', "&quot;")
-    .replaceAll("'", "&#039;");
-}
-
-function escapeHtmlAttr(str) {
-  return escapeHtml(str).replaceAll("`", "&#096;");
-}
-
-function normTxt(s) {
-  return String(s || "")
-    .toLowerCase()
-    .normalize("NFD")
-    .replace(/[\u0300-\u036f]/g, "")
-    .replace(/\s+/g, " ")
-    .trim();
-}
-// ===============================
 // EXPORTA FUNÇÕES PARA ONCLICK DO HTML (escopo global)
 // ===============================
 window.setNicho = setNicho;
