@@ -131,6 +131,18 @@ function setNicho(n, b) {
 
   // aqui NÃO dispara buscar ainda
 }
+function setCategoria(cat, b) {
+  categoriaAtual = cat;
+  categoriaFarmaciaAtual = ""; // zera a da farmácia pra não misturar
+  // UI (interface = visual): marca o botão clicado como ativo
+  if (elFiltroSupermercado) {
+    elFiltroSupermercado.querySelectorAll("button").forEach((btn) => btn.classList.remove("ativo"));
+  }
+  b?.classList.add("ativo");
+
+  // dispara a busca (buscar = função que monta a lista)
+  buscar();
+}
 // ===============================
 // BADGE (indicador visual)
 // ===============================
