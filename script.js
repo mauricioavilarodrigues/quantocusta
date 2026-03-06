@@ -991,7 +991,38 @@ function normTxt(s) {
 // MELHOR OPÇÃO
 // ===============================
 function acharMelhorOpcao() {
-  alert("Essa função ainda será implementada.");
+  if (!ultimosResultados || ultimosResultados.length === 0) {
+    alert("Faça uma busca primeiro.");
+    return;
+  }
+
+  // Escolhe o menor preço válido
+  let melhor = null;
+
+  for (const item of ultimosResultados) {
+    const preco = Number(item?.preco);
+    if (!Number.isFinite(preco)) continue;
+
+    if (!melhor || preco < Number(melhor.preco)) {
+      melhor = item;
+    }
+  }
+
+  if (!melhor) {
+    alert("Não encontrei preços válidos nos resultados.");
+    return;
+  }
+
+  const produto = String(melhor.nome || melhor.produto || "Produto");
+  const loja = String(melhor.loja || "Loja não informada");
+  const precoFmt = Number(melhor.preco).toFixed(2).replace(".", ",");
+
+  alert(`💰 Melhor opção (menor preço):\n\n${produto}\nR$ ${precoFmt}\n📍 ${loja}`);
+
+  // Aponta no mapa, se essa função existir
+  if (typeof indicarNoMapaPorNomeLoja === "function" && loja && loja !== "Loja não informada") {
+    indicarNoMapaPorNomeLoja(loja);
+  }
 }
 // ===============================
 // EXPORTA FUNÇÕES PARA ONCLICK DO HTML (escopo global)
