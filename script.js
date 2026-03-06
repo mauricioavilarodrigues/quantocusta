@@ -27,6 +27,7 @@ let categoriaFarmaciaAtual = "";
 let cesta = [];
 let ultimosItens = []; // guarda a última lista renderizada (para compararCesta)
 let ultimosResultados = []; // (ultimosResultados = guarda a lista da última busca)
+console.log("DEBUG item exemplo:", ultimosResultados[0]);
 // DOM
 const elBusca = document.getElementById("busca");
 const authButtons = document.querySelector(".auth-buttons");
