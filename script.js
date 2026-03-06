@@ -307,7 +307,9 @@ async function buscar() {
 
       return true;
     });
-
+// Guarda os resultados filtrados para o botão “Melhor opção”
+// (ultimosResultados = memória da última busca)
+ultimosResultados = Array.isArray(itensBase) ? itensBase.slice() : [];
     let itens = itensBase.map((p) => ({
       id: p.id || p.item_id || normTxt(p.nome || p.produto || "").slice(0, 80),
       nome: p.nome || p.produto || "",
