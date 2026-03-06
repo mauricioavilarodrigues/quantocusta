@@ -849,17 +849,19 @@ async function garantirLocaisCarregados(tipo) {
   const rows = await buscarLocaisNoBackend(tipo, cidade);
 
   // aceita tanto "loja" quanto "nome" (compatibilidade = funciona com dois formatos)
-  const normalizar = (x) => {
-    const nome = (x.nome || "").toString().trim();
-    return {
-      nome,
-      nome_norm: normTxt(nome),
-      latitude: Number(x.latitude),
-      longitude: Number(x.longitude),
-      marker: null,
-    };
-  };
+ const normalizar = (x) => {
+  const nome = (x.nome || "").toString().trim();
+  const cnpj = normCnpj(x.cnpj);
 
+  return {
+    nome,
+    nome_norm: normTxt(nome),
+    cnpj,
+    latitude: Number(x.latitude),
+    longitude: Number(x.longitude),
+    marker: null,
+  };
+};
   const lista = (rows || [])
     .map(normalizar)
     .filter((p) => p.nome && Number.isFinite(p.latitude) && Number.isFinite(p.longitude));
