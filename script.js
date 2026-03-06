@@ -13,8 +13,10 @@ let dadosBase = null;
 export async function carregarDadosBase() {
   if (dadosBase) return dadosBase;
 
-  const res = await fetch("data.json?v=" + Date.now(), { cache: "no-store" });
-  if (!res.ok) throw new Error("Falha ao carregar data.json (HTTP " + res.status + ")");
+  const res = await fetch(`${API_BASE}/itens-base`, { cache: "no-store" }); 
+  // API_BASE (endereço base da sua API), /itens-base (rota/endpoint = caminho no servidor)
+
+  if (!res.ok) throw new Error("Falha ao carregar API (HTTP " + res.status + ")");
 
   dadosBase = await res.json();
   return dadosBase;
@@ -27,7 +29,6 @@ let categoriaFarmaciaAtual = "";
 let cesta = [];
 let ultimosItens = []; // guarda a última lista renderizada (para compararCesta)
 let ultimosResultados = []; // (ultimosResultados = guarda a lista da última busca)
-console.log("DEBUG item exemplo:", ultimosResultados[0]);
 // DOM
 const elBusca = document.getElementById("busca");
 const authButtons = document.querySelector(".auth-buttons");
