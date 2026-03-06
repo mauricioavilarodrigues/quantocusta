@@ -991,13 +991,13 @@ function escapeHtml(str) {
     .replaceAll("'", "&#039;");
 }
 
-function normTxt(s) {
-  return String(s || "")
-    .toLowerCase()
-    .normalize("NFD")
-    .replace(/[\u0300-\u036f]/g, "")
-    .replace(/\s+/g, " ")
-    .trim();
+function escapeHtmlAttr(str) {
+  return String(str)
+    .replaceAll("&", "&amp;")
+    .replaceAll('"', "&quot;")
+    .replaceAll("'", "&#039;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;");
 }
 // ===============================
 // MELHOR OPÇÃO
