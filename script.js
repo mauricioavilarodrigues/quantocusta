@@ -999,6 +999,15 @@ function escapeHtmlAttr(str) {
     .replaceAll("<", "&lt;")
     .replaceAll(">", "&gt;");
 }
+
+function normTxt(s) {
+  return String(s || "")
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/\s+/g, " ")
+    .trim();
+}
 // ===============================
 // MELHOR OPÇÃO
 // ===============================
