@@ -24,10 +24,9 @@ let nichoAtual = "";
 let tipoAtual = "";
 let categoriaAtual = "";
 let categoriaFarmaciaAtual = "";
-
 let cesta = [];
 let ultimosItens = []; // guarda a última lista renderizada (para compararCesta)
-
+let ultimosResultados = []; // (ultimosResultados = guarda a lista da última busca)
 // DOM
 const elBusca = document.getElementById("busca");
 const authButtons = document.querySelector(".auth-buttons");
