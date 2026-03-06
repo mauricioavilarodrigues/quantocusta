@@ -1059,3 +1059,4 @@ window.compararCesta = compararCesta;
 window.confirmarPreco = confirmarPreco;
 window.indicarNoMapaPorNomeLoja = indicarNoMapaPorNomeLoja;
 window.acharMelhorOpcao = acharMelhorOpcao;
+window.setCategoria = setCategoria;
