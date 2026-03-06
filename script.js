@@ -1008,6 +1008,9 @@ function normTxt(s) {
     .replace(/\s+/g, " ")
     .trim();
 }
+function normCnpj(v) {
+  return String(v || "").replace(/\D/g, "").trim();
+}
 // ===============================
 // MELHOR OPÇÃO
 // ===============================
