@@ -1038,3 +1038,15 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 });
+index.html:48 Uncaught ReferenceError: setNicho is not defined
+    at HTMLButtonElement.onclick (index.html:48:69)
+onclick @ index.html:48
+index.html:49 Uncaught ReferenceError: setNicho is not defined
+    at HTMLButtonElement.onclick (index.html:49:68)
+onclick @ index.html:49
+index.html:50 Uncaught ReferenceError: setNicho is not defined
+    at HTMLButtonElement.onclick (index.html:50:65)
+onclick @ index.html:50
+index.html:50 Uncaught ReferenceError: setNicho is not defined
+    at HTMLButtonElement.onclick (index.html:50:65)
+onclick @ index.html:50
