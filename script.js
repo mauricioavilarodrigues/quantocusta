@@ -321,18 +321,17 @@ async function buscar() {
     });
 // Guarda os resultados filtrados para o botão “Melhor opção”
 // (ultimosResultados = memória da última busca)
-ultimosResultados = Array.isArray(itensBase) ? itensBase.slice() : [];
-    let itens = itensBase.map((p) => ({
-      id: p.id || p.item_id || normTxt(p.nome || p.produto || "").slice(0, 80),
-      nome: p.nome || p.produto || "",
-      preco: p.preco ?? null,
-      loja: p.loja ?? null,
-      cidade: p.cidade ?? null,
-      origem: "base",
-      createdAt: p.createdAt || p.created_at || null,
-      updatedAt: p.updatedAt || p.updated_at || null,
-    }));
-
+let itens = itensBase.map((p) => ({
+  id: p.id || p.item_id || normTxt(p.nome || p.produto || "").slice(0, 80),
+  nome: p.nome || p.produto || "",
+  preco: p.preco ?? null,
+  loja: p.loja ?? null,
+  cnpj: p.cnpj ?? null,
+  cidade: p.cidade ?? null,
+  origem: "base",
+  createdAt: p.createdAt || p.created_at || null,
+  updatedAt: p.updatedAt || p.updated_at || null,
+}));
     if (nichoAtual === "supermercado") {
       const nfce = await apiGetNfceItensAprovados({
         cidade: "Rio Grande",
@@ -348,6 +347,7 @@ ultimosResultados = Array.isArray(itensBase) ? itensBase.slice() : [];
             nome: x.nome || x.produto || x.descricao || "",
             preco: x.preco ?? null,
             loja: x.loja || x.emitente || null,
+            cnpj: x.cnpj || null,
             cidade: x.cidade || null,
             origem: "nfce",
             createdAt: x.created_at || x.createdAt || x.data_emissao || x.dataEmissao || null,
@@ -389,12 +389,15 @@ ultimosResultados = Array.isArray(itensBase) ? itensBase.slice() : [];
       const lojaRaw = String(p.loja || "").trim();
       const cidadeRaw = String(p.cidade || "").trim();
 
-      const lojaHtml = lojaRaw
-        ? `<a href="#" onclick="indicarNoMapaPorNomeLoja('${escapeHtmlAttr(lojaRaw)}'); return false;">${escapeHtml(
-            lojaRaw
-          )}</a>`
-        : "";
+      const cnpjRaw = String(p.cnpj || "").trim();
 
+const lojaHtml = lojaRaw
+  ? `<a href="#" onclick="${
+      cnpjRaw
+        ? `indicarNoMapaPorCnpjLoja('${escapeHtmlAttr(cnpjRaw)}')`
+        : `indicarNoMapaPorNomeLoja('${escapeHtmlAttr(lojaRaw)}')`
+    }; return false;">${escapeHtml(lojaRaw)}</a>`
+  : "";
       const subtituloHtml = (() => {
         if (lojaRaw && cidadeRaw) return `${lojaHtml} • ${escapeHtml(cidadeRaw)} • ${ultimaHtml}`;
         if (lojaRaw) return `${lojaHtml} • ${ultimaHtml}`;
@@ -932,7 +935,20 @@ if (mapEl) {
 } else {
   console.error("❌ Não achei a div #map no HTML.");
 }
+function focarPorCnpj(cnpjAlvo, lista) {
+  if (!map) return false;
+  if (!Array.isArray(lista) || !lista.length) return false;
 
+  const alvo = normCnpj(cnpjAlvo);
+  if (!alvo) return false;
+
+  const achado = lista.find((x) => normCnpj(x.cnpj) === alvo);
+  if (!achado) return false;
+
+  map.setView([achado.latitude, achado.longitude], 16);
+  if (achado.marker?.openPopup) achado.marker.openPopup();
+  return true;
+}
 // focar (focar = centralizar o mapa em um local pelo nome)
 function focarPorNome(nomeAlvo, lista) {
   if (!map) return false;
@@ -980,6 +996,25 @@ async function indicarNoMapaPorNomeLoja(nome) {
 window.mostrarCategoria = mostrarCategoria;
 window.indicarNoMapaPorNomeLoja = indicarNoMapaPorNomeLoja;
 
+async function indicarNoMapaPorCnpjLoja(cnpj) {
+  if (nichoAtual === "combustivel") {
+    await mostrarCategoria("posto");
+    const ok = focarPorCnpj(cnpj, postosIndex);
+    if (!ok) alert("Não encontrei esse posto no mapa.");
+    return;
+  }
+
+  if (nichoAtual === "farmacia") {
+    await mostrarCategoria("farmacia");
+    const ok = focarPorCnpj(cnpj, farmaciasIndex);
+    if (!ok) alert("Não encontrei essa farmácia no mapa.");
+    return;
+  }
+
+  await mostrarCategoria("mercado");
+  const ok = focarPorCnpj(cnpj, mercadosIndex);
+  if (!ok) alert("Não encontrei esse mercado no mapa.");
+}
 
 // ===============================
 // HELPERS (helpers = funções auxiliares)
@@ -1072,3 +1107,4 @@ window.confirmarPreco = confirmarPreco;
 window.indicarNoMapaPorNomeLoja = indicarNoMapaPorNomeLoja;
 window.acharMelhorOpcao = acharMelhorOpcao;
 window.setCategoria = setCategoria;
+window.indicarNoMapaPorCnpjLoja = indicarNoMapaPorCnpjLoja;
