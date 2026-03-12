@@ -654,7 +654,7 @@ async function nfceImportar() {
     cidade,
     sourceUrl: ultimoNfce.sourceUrl || null,
     emitente: ultimoNfce.emitente || null,
-    cnpj: ultimoNfce.cnpj || null,
+    cnpj: normCnpj(ultimoNfce.cnpj) || null,
     dataEmissao: ultimoNfce.dataEmissao || null,
     itens: itens.map((it) => ({
       descricao: it.descricao || "",
@@ -1047,6 +1047,12 @@ function normTxt(s) {
 }
 function normCnpj(v) {
   return String(v || "").replace(/\D/g, "").trim();
+}
+
+function extrairCnpjDoTexto(texto) {
+  const match = String(texto || "").match(/\d{2}\.\d{3}\.\d{3}\/\d{4}\-\d{2}/);
+  if (!match) return null;
+  return match[0].replace(/\D/g, "");
 }
 // ===============================
 // MELHOR OPÇÃO
