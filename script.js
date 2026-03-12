@@ -949,6 +949,24 @@ function focarPorCnpj(cnpjAlvo, lista) {
   if (achado.marker?.openPopup) achado.marker.openPopup();
   return true;
 }
+function calcularDistanciaKm(lat1, lon1, lat2, lon2) {
+  const toRad = (graus) => (graus * Math.PI) / 180;
+
+  const R = 6371; // raio da Terra em km
+  const dLat = toRad(lat2 - lat1);
+  const dLon = toRad(lon2 - lon1);
+
+  const a =
+    Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+    Math.cos(toRad(lat1)) *
+      Math.cos(toRad(lat2)) *
+      Math.sin(dLon / 2) *
+      Math.sin(dLon / 2);
+
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+
+  return R * c;
+}
 // focar (focar = centralizar o mapa em um local pelo nome)
 function focarPorNome(nomeAlvo, lista) {
   if (!map) return false;
