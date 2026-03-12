@@ -967,6 +967,50 @@ function calcularDistanciaKm(lat1, lon1, lat2, lon2) {
 
   return R * c;
 }
+
+function obterListaAtualDoMapa() {
+  if (nichoAtual === "combustivel") return postosIndex;
+  if (nichoAtual === "farmacia") return farmaciasIndex;
+  return mercadosIndex;
+}
+
+function encontrarLocalPorNome(nomeLoja) {
+  const lista = obterListaAtualDoMapa();
+  if (!Array.isArray(lista) || !lista.length) return null;
+
+  const alvo = normTxt(nomeLoja || "");
+  if (!alvo) return null;
+
+  let achado = lista.find((x) => normTxt(x.nome) === alvo);
+  if (!achado) {
+    achado = lista.find((x) => normTxt(x.nome).includes(alvo) || alvo.includes(normTxt(x.nome)));
+  }
+
+  return achado || null;
+}
+
+function calcularDistanciaDaLoja(nomeLoja) {
+  if (!usuarioPosicao) return null;
+
+  const local = encontrarLocalPorNome(nomeLoja);
+  if (!local) return null;
+
+  const latUser = Number(usuarioPosicao.lat);
+  const lonUser = Number(usuarioPosicao.lng);
+  const latLoja = Number(local.latitude);
+  const lonLoja = Number(local.longitude);
+
+  if (
+    !Number.isFinite(latUser) ||
+    !Number.isFinite(lonUser) ||
+    !Number.isFinite(latLoja) ||
+    !Number.isFinite(lonLoja)
+  ) {
+    return null;
+  }
+
+  return calcularDistanciaKm(latUser, lonUser, latLoja, lonLoja);
+}
 // focar (focar = centralizar o mapa em um local pelo nome)
 function focarPorNome(nomeAlvo, lista) {
   if (!map) return false;
