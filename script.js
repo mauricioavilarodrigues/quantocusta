@@ -1176,3 +1176,4 @@ window.indicarNoMapaPorNomeLoja = indicarNoMapaPorNomeLoja;
 window.acharMelhorOpcao = acharMelhorOpcao;
 window.setCategoria = setCategoria;
 window.indicarNoMapaPorCnpjLoja = indicarNoMapaPorCnpjLoja;
+window.calcularDistanciaDaLoja = calcularDistanciaDaLoja;
