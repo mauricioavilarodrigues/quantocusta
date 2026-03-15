@@ -669,7 +669,7 @@ async function nfceImportar() {
   nfceEnableImport(false);
 
   try {
-    const r = await fetch(`${API_BASE}/nfce/import-precos`, {
+   const r = await fetch(`${API_BASE}/nfce/importar`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(payload),
