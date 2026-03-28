@@ -669,7 +669,7 @@ async function nfceImportar() {
   const cidade = (elNfceCidade?.value || "").trim() || "Rio Grande";
   const itens = Array.isArray(ultimoNfce.itens) ? ultimoNfce.itens : [];
   if (!itens.length) return nfceSetStatus("NFC-e inválida (sem itens).", true);
-
+renderizarProdutos(itens);
   const payload = {
     cidade,
     sourceUrl: ultimoNfce.sourceUrl || null,
