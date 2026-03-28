@@ -500,26 +500,6 @@ function compararCesta() {
   `;
 }
 
-function renderizarProdutos(lista) {
-  const container = document.getElementById("produtos");
-
-  if (!container) {
-    console.error("❌ #produtos não encontrado");
-    return;
-  }
-
-  if (!lista || lista.length === 0) {
-    container.innerHTML = "<p>Nenhum produto encontrado.</p>";
-    return;
-  }
-
-  container.innerHTML = lista.map(p => `
-    <div style="padding:8px; border-bottom:1px solid #eee;">
-      <strong>${p.nome || p.descricao}</strong><br>
-      <span>R$ ${p.preco || p.valor}</span>
-    </div>
-  `).join("");
-}
 // ===============================
 // FEEDBACK / AVALIAÇÃO
 // ===============================
@@ -630,6 +610,26 @@ function nfceRenderPreview(nfce) {
   `;
 }
 
+function renderizarProdutos(lista) {
+  const container = document.getElementById("produtos");
+
+  if (!container) {
+    console.error("❌ #produtos não encontrado");
+    return;
+  }
+
+  if (!lista || lista.length === 0) {
+    container.innerHTML = "<p>Nenhum produto encontrado.</p>";
+    return;
+  }
+
+  container.innerHTML = lista.map(p => `
+    <div style="padding:8px; border-bottom:1px solid #eee;">
+      <strong>${p.nome || p.descricao}</strong><br>
+      <span>R$ ${p.preco || p.valor}</span>
+    </div>
+  `).join("");
+}
 async function nfceLerUrl(url) {
   const u = String(url || "").trim();
   if (!u) return nfceSetStatus("Cole a URL da NFC-e.", true);
