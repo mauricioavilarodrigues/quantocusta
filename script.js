@@ -261,26 +261,39 @@ function aplicarOverridesDePreco(produtos, overridesPorId = {}) {
 // ===============================
 // API - NFC-e (itens aprovados)
 // ===============================
-const url = `${API_BASE}/nfce/itens?${qs.toString()}`;
+// ===============================
+// API - NFC-e (itens aprovados)
+// ===============================
+async function apiGetNfceItensAprovados({ cidade, q, nicho, limit = 50 }) {
+  const qs = new URLSearchParams();
 
-const res = await fetch(url, { cache: "no-store" });
+  if (cidade) qs.set("cidade", cidade);
+  if (q) qs.set("q", q);
+  if (nicho) qs.set("nicho", nicho);
+  qs.set("limit", String(limit));
 
-let data;
-try {
-  data = await res.json();
-} catch (e) {
-  data = null;
+  const url = `${API_BASE}/nfce/itens?${qs.toString()}`;
+
+  const res = await fetch(url, { cache: "no-store" });
+
+  let data;
+  try {
+    data = await res.json();
+  } catch (e) {
+    data = null;
+  }
+
+  if (!res.ok) {
+    console.error("ERRO BACKEND COMPLETO:", data);
+    throw new Error(
+      `Falha ao buscar NFC-e: HTTP ${res.status} | ${
+        data?.message || data?.erro || "sem detalhe"
+      }`
+    );
+  }
+
+  return data;
 }
-
-if (!res.ok) {
-  console.error("ERRO BACKEND COMPLETO:", data);
-  throw new Error(
-    `Falha ao buscar NFC-e: HTTP ${res.status} | ${data?.message || data?.erro || "sem detalhe"}`
-  );
-}
-
-return data;
-
 // ===============================
 // BUSCA (catálogo base + nfce aprovados)
 // ===============================
